@@ -1,5 +1,7 @@
 'use client'
 
+import React, { useRef } from 'react';
+
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -20,7 +22,7 @@ export function HomePageComponent() {
             <CardDescription>Choose how you want to learn today!</CardDescription>
           </CardHeader>
           <CardContent className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <Button className="h-24 text-lg" variant="outline">
+            <Button className="h-24 text-lg" variant="outline" onClick={() => window.location.href = '/chat'}>
               <BookOpen className="mr-2 h-6 w-6" /> Start a Lesson
             </Button>
             <Button className="h-24 text-lg" variant="outline">
