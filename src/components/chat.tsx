@@ -48,7 +48,7 @@ export function Chat({ className }: { className?: string }) {
     <div className={className}>
       <div className="flex h-screen bg-white">
         {/* Progress Panel */}
-        <div className="w-1/4 bg-blue-50 p-8 border-r border-blue-200">
+        <div className="w-1/5 bg-blue-50 p-8 border-r border-blue-200">
           <h2 className="text-2xl font-bold text-blue-600 mb-6">Your Progress</h2>
           <div className="space-y-6">
             <div className="bg-white p-4 rounded-lg shadow-md">
@@ -105,7 +105,7 @@ export function Chat({ className }: { className?: string }) {
         </div>
 
         {/* Main Companion View */}
-        <div className="w-1/2 bg-white p-8 flex flex-col">
+        <div className="w-3/5 bg-white p-8 flex flex-col">
           <div className="flex-grow flex flex-col items-center justify-center">
             <div className="w-64 h-64 bg-blue-200 rounded-full mb-8 flex items-center justify-center relative">
               <div className="text-8xl">{currentEmotion.emoji}</div>
@@ -121,14 +121,14 @@ export function Chat({ className }: { className?: string }) {
               <p className="text-blue-800">{funFact}</p>
             </div>
           </div>
-          <div className="mt-auto">
-            <div className="bg-blue-50 p-4 rounded-2xl shadow-lg w-full max-w-md mx-auto mb-4">
+          <div className="mt-auto flex flex-col items-center">
+            <div className="bg-blue-50 p-4 rounded-2xl shadow-lg w-full max-w-md mb-4">
               <p className="text-blue-800 text-center text-lg font-semibold">
                 {spokenText || "Tap the microphone and start speaking!"}
               </p>
             </div>
             <Button 
-              className={`w-full max-w-md mx-auto h-16 rounded-full ${isListening ? 'bg-red-500 hover:bg-red-600' : 'bg-blue-500 hover:bg-blue-600'} text-white text-xl font-bold transition-colors duration-300`} 
+              className={`w-full max-w-md h-16 rounded-full ${isListening ? 'bg-red-500 hover:bg-red-600' : 'bg-blue-500 hover:bg-blue-600'} text-white text-xl font-bold transition-colors duration-300`} 
               size="lg"
               onClick={handleMicClick}
             >
@@ -148,7 +148,7 @@ export function Chat({ className }: { className?: string }) {
         </div>
 
         {/* Chat Window */}
-        <div className="w-1/4 bg-blue-50 p-4 flex flex-col">
+        <div className="w-2/5 bg-blue-50 p-4 flex flex-col">
           <div className="flex-grow overflow-auto mb-4 bg-white rounded-lg shadow-inner p-4">
             {chatMessages.map((msg, index) => (
               <div key={index} className={`mb-4 ${msg.sender === 'user' ? 'text-right' : 'text-left'}`}>
