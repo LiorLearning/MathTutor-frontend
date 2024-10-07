@@ -5,6 +5,7 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Send, Mic } from "lucide-react"
+import { useSearchParams } from 'next/navigation';
 
 class Message {
   constructor(public id: number, public text: string, public sender: 'user' | 'bot') {}
@@ -18,6 +19,9 @@ const initialMessages = [
 ]
 
 export function Chat() {
+  const searchParams = useSearchParams();
+  const username = searchParams.get('username') || 'testuser';
+
   const [messages, setMessages] = useState<Message[]>(initialMessages)
   const [isListening, setIsListening] = useState(false)
   const [inputText, setInputText] = useState("")
@@ -56,7 +60,10 @@ export function Chat() {
         <div className="w-full bg-gray-200 rounded-full h-2.5 mb-4">
           <div className="bg-blue-600 h-2.5 rounded-full w-1/2"></div>
         </div>
-        <h1 className="text-xl font-bold">MathTutor</h1>
+        <div className="flex justify-between">
+          <h1 className="text-xl font-bold">MathTutor</h1>
+          <h3 className="text-lg text-gray-500">{username}</h3> {/* Display username */}
+        </div>
       </header>
       
       <ScrollArea className="flex-grow p-4" ref={scrollAreaRef}>
