@@ -9,108 +9,135 @@ import { useSearchParams } from 'next/navigation'
 import axios from 'axios'
 
 interface Message {
-  role: 'user' | 'assistant'
-  content: string
-  message_id: string
-  timestamp: string
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: string;
+  message_id: string;
 }
+
+interface StartChatRequest {
+  username: string;
+}
+
+interface StartChatResponse {
+  chat_id: string;
+}
+
+type GetChatHistoryResponse = Message[];
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL + 'api/v1/chat';
 
 export function Chat() {
-  const searchParams = useSearchParams()
-  const username = searchParams.get('username') || 'testuser'
+  const searchParams = useSearchParams();
+  const username = searchParams.get('username') || 'testuser';
   
-  const [messages, setMessages] = useState<Message[]>([])
-  const [isListening, setIsListening] = useState(false)
-  const [inputText, setInputText] = useState("")
-  const [isLoading, setIsLoading] = useState(true)
-  const [chatId, setChatId] = useState<string | null>(null); // Store chat_id
-  const scrollAreaRef = useRef<HTMLDivElement>(null)
-  const lastBotMessageRef = useRef<HTMLDivElement>(null)
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [isListening, setIsListening] = useState(false);
+  const [inputText, setInputText] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  // const [chatId, setChatId] = useState<string | undefined>(undefined);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const lastBotMessageRef = useRef<HTMLDivElement>(null);
 
   // Initialize chat and load history
   useEffect(() => {
     const initializeChat = async () => {
       try {
         // Start a new chat session
-        const startChatResponse = await axios.post(`${API_BASE_URL}/start_chat?username=${username}`, {}, {
+        // cleanup()
+        const startChatResponse = await axios.post<StartChatResponse>(`${API_BASE_URL}/start_chat?username=${username}`, {}, {
           headers: {
             'Content-Type': 'application/json',
           }
         });
+        console.log("start chat rsp: ", startChatResponse.data);
         
-        const newChatId = (startChatResponse.data as { chat_id?: string }).chat_id;
-        if (!newChatId) {
-          // If chat_id is none, call start_chat again
-          await axios.post(`${API_BASE_URL}/start_chat?username=${username}`, {}, {
-            headers: {
-              'Content-Type': 'application/json',
-            }
-          });
-        } else {
-          setChatId(newChatId); // Store the chat_id
-        }
+        // const newChatId = startChatResponse.data.chat_id;
+        // console.log("Chat id: ", newChatId);
+
+        // setChatId(newChatId);
         
         // Load chat history
-        const historyResponse = await axios.get(`${API_BASE_URL}/chat_history/${username}`, {
+        console.log("Fetching chat history")
+        const historyResponse = await axios.get<GetChatHistoryResponse>(`${API_BASE_URL}/chat_history/${username}`, {
           headers: {
             'Content-Type': 'application/json',
           }
         });
-        setMessages(historyResponse.data as Message[])
-      } catch (error) {
-        console.error('Error initializing chat:', error)
-      } finally {
-        setIsLoading(false)
-      }
-    }
+        console.log("Chat history loaded:", historyResponse.data);
 
-    initializeChat()
+        setMessages(historyResponse.data || []); // Ensure messages is an array
+      } catch (error) {
+        console.error('Error initializing chat:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    initializeChat();
 
     // Cleanup function for chat session
     const cleanup = async () => {
+      // console.log("Chat ID:", chatId);
+      console.log("Username:", username);
       try {
         await axios.post(`${API_BASE_URL}/end_chat?user_id=${username}`, {}, {
           headers: {
             'Content-Type': 'application/json',
           }
-        })
+        });
       } catch (error) {
-        console.error('Error ending chat:', error)
+        console.error('Error ending chat:', error);
       }
-    }
+    };
+
+    // Save chat function for chat session
+    const saveChat = async () => {
+      // console.log("Chat ID:", chatId);
+      console.log("Username:", username);
+      try {
+        await axios.post(`${API_BASE_URL}/save_chat?user_id=${username}`, {}, {
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        });
+      } catch (error) {
+        console.error('Error saving chat:', error);
+      }
+    };
 
     // Add event listeners for page unload/visibility change
     const handleUnload = () => {
-      cleanup()
-    }
+      console.log("Handle unload before: ", username);
+      cleanup();
+      console.log("Handle unload before: ", username);
+    };
 
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'hidden') {
-        cleanup()
+        saveChat();
       }
-    }
+    };
 
-    window.addEventListener('beforeunload', handleUnload)
-    document.addEventListener('visibilitychange', handleVisibilityChange)
+    window.addEventListener('beforeunload', handleUnload);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
 
     return () => {
-      cleanup()
-      window.removeEventListener('beforeunload', handleUnload)
-      document.removeEventListener('visibilitychange', handleVisibilityChange)
-    }
-  }, [username])
+      cleanup();
+      window.removeEventListener('beforeunload', handleUnload);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [username]);
 
   // Scroll to bottom when messages update
   useEffect(() => {
     if (lastBotMessageRef.current) {
-      lastBotMessageRef.current.scrollIntoView({ behavior: 'smooth' })
+      lastBotMessageRef.current.scrollIntoView({ behavior: 'smooth' });
     }
-  }, [messages])
+  }, [messages]);
 
   const handleSendMessage = async () => {
-    if (inputText.trim() === "") return
+    if (inputText.trim() === "") return;
 
     // Add user message to UI immediately
     const userMessage: Message = {
@@ -118,43 +145,45 @@ export function Chat() {
       content: inputText,
       message_id: `temp-${Date.now()}`,
       timestamp: new Date().toISOString()
-    }
-    setMessages(prevMessages => [...prevMessages, userMessage])
-    setInputText("")
+    };
+    setMessages(prevMessages => [...prevMessages, userMessage]);
+    setInputText("");
 
     try {
       // Send message to API
-      const response = await axios.post(`${API_BASE_URL}/handle_chat?user_id=${username}`, {
+      const response = await axios.post<{ response: string }>(`${API_BASE_URL}/handle_chat?user_id=${username}`, {
         message: inputText
       }, {
         headers: {
           'Content-Type': 'application/json',
         }
-      })
+      });
+      console.log(`User: ${inputText}`);
+      console.log(`Response: ${response.data.response}`);
 
       // Add bot response to messages
       const botMessage: Message = {
         role: 'assistant',
-        content: (response.data as { response: string }).response,
+        content: response.data.response,
         message_id: `bot-${Date.now()}`,
         timestamp: new Date().toISOString()
-      }
-      setMessages(prevMessages => [...prevMessages, botMessage])
+      };
+      setMessages(prevMessages => [...prevMessages, botMessage]);
     } catch (error) {
-      console.error('Error sending message:', error)
+      console.error('Error sending message:', error);
       // Optionally show error message to user
     }
-  }
+  };
 
   const toggleListening = () => {
-    setIsListening(!isListening)
+    setIsListening(!isListening);
     // Voice recognition implementation would go here
-  }
+  };
 
   if (isLoading) {
     return <div className="flex items-center justify-center h-screen">
       <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
-    </div>
+    </div>;
   }
 
   return (
@@ -171,7 +200,7 @@ export function Chat() {
       
       <ScrollArea className="flex-grow p-4" ref={scrollAreaRef}>
         <div className="space-y-6">
-          {messages.map((message, index) => (
+          {Array.isArray(messages) && messages.map((message, index) => ( // Check if messages is an array
             <div 
               key={message.message_id} 
               className="flex flex-col items-center"
@@ -205,7 +234,7 @@ export function Chat() {
           onChange={(e) => setInputText(e.target.value)}
           onKeyPress={(e) => {
             if (e.key === 'Enter') {
-              handleSendMessage()
+              handleSendMessage();
             }
           }}
         />
@@ -230,5 +259,5 @@ export function Chat() {
         </Button>
       </div>
     </div>
-  )
+  );
 }
