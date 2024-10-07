@@ -1,57 +1,160 @@
 'use client'
 
-import React, { useState, useRef, useEffect, ReactElement } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Send, Mic } from "lucide-react"
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation'
+import axios from 'axios'
 
-class Message {
-  constructor(public id: number, public text: string, public sender: 'user' | 'bot') {}
+interface Message {
+  role: 'user' | 'assistant'
+  content: string
+  message_id: string
+  timestamp: string
 }
 
-const initialMessages = [
-  new Message(1, "Welcome to the interactive lesson!", "bot"),
-  new Message(2, "Let's start with the basics of variables.", "bot"),
-  new Message(3, "What is a variable?", "user"),
-  new Message(4, "A variable is a quantity that can change, often represented by a letter.", "bot"),
-]
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL + 'api/v1/chat';
 
 export function Chat() {
-  const searchParams = useSearchParams();
-  const username = searchParams.get('username') || 'testuser';
-
-  const [messages, setMessages] = useState<Message[]>(initialMessages)
+  const searchParams = useSearchParams()
+  const username = searchParams.get('username') || 'testuser'
+  
+  const [messages, setMessages] = useState<Message[]>([])
   const [isListening, setIsListening] = useState(false)
   const [inputText, setInputText] = useState("")
+  const [isLoading, setIsLoading] = useState(true)
+  const [chatId, setChatId] = useState<string | null>(null); // Store chat_id
   const scrollAreaRef = useRef<HTMLDivElement>(null)
   const lastBotMessageRef = useRef<HTMLDivElement>(null)
 
-  const toggleListening = () => {
-    setIsListening(!isListening)
-    // Here you would typically start/stop actual voice recognition
-  }
+  // Initialize chat and load history
+  useEffect(() => {
+    const initializeChat = async () => {
+      try {
+        // Start a new chat session
+        const startChatResponse = await axios.post(`${API_BASE_URL}/start_chat?username=${username}`, {}, {
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        });
+        
+        const newChatId = (startChatResponse.data as { chat_id?: string }).chat_id;
+        if (!newChatId) {
+          // If chat_id is none, call start_chat again
+          await axios.post(`${API_BASE_URL}/start_chat?username=${username}`, {}, {
+            headers: {
+              'Content-Type': 'application/json',
+            }
+          });
+        } else {
+          setChatId(newChatId); // Store the chat_id
+        }
+        
+        // Load chat history
+        const historyResponse = await axios.get(`${API_BASE_URL}/chat_history/${username}`, {
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        });
+        setMessages(historyResponse.data as Message[])
+      } catch (error) {
+        console.error('Error initializing chat:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
 
+    initializeChat()
+
+    // Cleanup function for chat session
+    const cleanup = async () => {
+      try {
+        await axios.post(`${API_BASE_URL}/end_chat?user_id=${username}`, {}, {
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        })
+      } catch (error) {
+        console.error('Error ending chat:', error)
+      }
+    }
+
+    // Add event listeners for page unload/visibility change
+    const handleUnload = () => {
+      cleanup()
+    }
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        cleanup()
+      }
+    }
+
+    window.addEventListener('beforeunload', handleUnload)
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+
+    return () => {
+      cleanup()
+      window.removeEventListener('beforeunload', handleUnload)
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+    }
+  }, [username])
+
+  // Scroll to bottom when messages update
   useEffect(() => {
     if (lastBotMessageRef.current) {
       lastBotMessageRef.current.scrollIntoView({ behavior: 'smooth' })
     }
   }, [messages])
 
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (inputText.trim() === "") return
 
-    const newUserMessage = new Message(messages.length + 1, inputText, "user")
-
-    setMessages(prevMessages => [...prevMessages, newUserMessage])
+    // Add user message to UI immediately
+    const userMessage: Message = {
+      role: 'user',
+      content: inputText,
+      message_id: `temp-${Date.now()}`,
+      timestamp: new Date().toISOString()
+    }
+    setMessages(prevMessages => [...prevMessages, userMessage])
     setInputText("")
 
-    // Simulate bot response after a short delay
-    setTimeout(() => {
-      const newBotMessage = new Message(messages.length + 2, "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam auctor, nisl nec ultricies ultricies, nunc nisl aliquam nunc, vitae aliquam nisl nunc vitae nisl.", "bot")
-      setMessages(prevMessages => [...prevMessages, newBotMessage])
-    }, 1000)
+    try {
+      // Send message to API
+      const response = await axios.post(`${API_BASE_URL}/handle_chat?user_id=${username}`, {
+        message: inputText
+      }, {
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      })
+
+      // Add bot response to messages
+      const botMessage: Message = {
+        role: 'assistant',
+        content: (response.data as { response: string }).response,
+        message_id: `bot-${Date.now()}`,
+        timestamp: new Date().toISOString()
+      }
+      setMessages(prevMessages => [...prevMessages, botMessage])
+    } catch (error) {
+      console.error('Error sending message:', error)
+      // Optionally show error message to user
+    }
+  }
+
+  const toggleListening = () => {
+    setIsListening(!isListening)
+    // Voice recognition implementation would go here
+  }
+
+  if (isLoading) {
+    return <div className="flex items-center justify-center h-screen">
+      <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
+    </div>
   }
 
   return (
@@ -62,7 +165,7 @@ export function Chat() {
         </div>
         <div className="flex justify-between">
           <h1 className="text-xl font-bold">MathTutor</h1>
-          <h3 className="text-lg text-gray-500">{username}</h3> {/* Display username */}
+          <h3 className="text-lg text-gray-500">{username}</h3>
         </div>
       </header>
       
@@ -70,20 +173,23 @@ export function Chat() {
         <div className="space-y-6">
           {messages.map((message, index) => (
             <div 
-              key={message.id} 
+              key={message.message_id} 
               className="flex flex-col items-center"
-              ref={index === messages.length - 1 && message.sender === 'bot' ? lastBotMessageRef : null}
+              ref={index === messages.length - 1 && message.role === 'assistant' ? lastBotMessageRef : null}
             >
-              <div className={`max-w-[80%] ${message.sender === 'user' ? 'self-end' : 'self-start'}`}>
+              <div className={`max-w-[80%] ${message.role === 'user' ? 'self-end' : 'self-start'}`}>
                 <div
                   className={`rounded-2xl p-4 ${
-                    message.sender === 'user'
+                    message.role === 'user'
                       ? 'bg-blue-500 text-white'
                       : 'bg-gray-200 text-gray-800'
-                  } ${message.sender === 'bot' && index < messages.length - 1 ? 'opacity-50' : ''} 
-                  ${message.sender === 'bot' && index === messages.length - 1 ? 'opacity-100' : ''}`}
+                  } ${message.role === 'assistant' && index < messages.length - 1 ? 'opacity-50' : ''} 
+                  ${message.role === 'assistant' && index === messages.length - 1 ? 'opacity-100' : ''}`}
                 >
-                  {message.text}
+                  {message.content}
+                </div>
+                <div className="text-xs text-gray-500 mt-1">
+                  {new Date(message.timestamp).toLocaleTimeString()}
                 </div>
               </div>
             </div>
@@ -112,10 +218,15 @@ export function Chat() {
           }`}
           onClick={toggleListening}
         >
-          <Mic className="h-5 w-5" /> {/* Increased icon size */}
+          <Mic className="h-5 w-5" />
         </Button>
-        <Button size="icon" className={`h-12 w-12`} onClick={handleSendMessage}>
-          <Send className="h-5 w-5" /> {/* Increased icon size */}
+        <Button 
+          size="icon" 
+          className="h-12 w-12" 
+          onClick={handleSendMessage}
+          disabled={inputText.trim() === ''}
+        >
+          <Send className="h-5 w-5" />
         </Button>
       </div>
     </div>
