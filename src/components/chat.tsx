@@ -35,16 +35,14 @@ export function Chat() {
   const [isListening, setIsListening] = useState(false);
   const [inputText, setInputText] = useState("");
   const [isLoading, setIsLoading] = useState(true);
-  // const [chatId, setChatId] = useState<string | undefined>(undefined);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const lastBotMessageRef = useRef<HTMLDivElement>(null);
+  const websocketRef = useRef<WebSocket | null>(null);
 
   // Initialize chat and load history
   useEffect(() => {
     const initializeChat = async () => {
       try {
-        // Start a new chat session
-        // cleanup()
         const startChatResponse = await axios.post<StartChatResponse>(`${API_BASE_URL}/start_chat?username=${username}`, {}, {
           headers: {
             'Content-Type': 'application/json',
@@ -52,12 +50,6 @@ export function Chat() {
         });
         console.log("start chat rsp: ", startChatResponse.data);
         
-        // const newChatId = startChatResponse.data.chat_id;
-        // console.log("Chat id: ", newChatId);
-
-        // setChatId(newChatId);
-        
-        // Load chat history
         console.log("Fetching chat history")
         const historyResponse = await axios.get<GetChatHistoryResponse>(`${API_BASE_URL}/chat_history/${username}`, {
           headers: {
@@ -67,6 +59,23 @@ export function Chat() {
         console.log("Chat history loaded:", historyResponse.data);
 
         setMessages(historyResponse.data || []); // Ensure messages is an array
+
+        // WebSocket setup
+        websocketRef.current = new WebSocket(`${process.env.NEXT_PUBLIC_WS_BASE_URL}/handle_chat/${username}`);
+
+        websocketRef.current.onopen = () => {
+          console.log("WebSocket connection established");
+        }
+
+        websocketRef.current.onmessage = (event) => {
+          const botMessage: Message = {
+            role: 'assistant',
+            content: event.data,
+            message_id: `bot-${Date.now()}`,
+            timestamp: new Date().toISOString()
+          };
+          setMessages(prevMessages => [...prevMessages, botMessage]);
+        };
       } catch (error) {
         console.error('Error initializing chat:', error);
       } finally {
@@ -76,9 +85,7 @@ export function Chat() {
 
     initializeChat();
 
-    // Cleanup function for chat session
     const cleanup = async () => {
-      // console.log("Chat ID:", chatId);
       console.log("Username:", username);
       try {
         await axios.post(`${API_BASE_URL}/end_chat?user_id=${username}`, {}, {
@@ -91,9 +98,7 @@ export function Chat() {
       }
     };
 
-    // Save chat function for chat session
     const saveChat = async () => {
-      // console.log("Chat ID:", chatId);
       console.log("Username:", username);
       try {
         await axios.post(`${API_BASE_URL}/save_chat?user_id=${username}`, {}, {
@@ -106,7 +111,6 @@ export function Chat() {
       }
     };
 
-    // Add event listeners for page unload/visibility change
     const handleUnload = () => {
       console.log("Handle unload before: ", username);
       cleanup();
@@ -126,6 +130,7 @@ export function Chat() {
       cleanup();
       window.removeEventListener('beforeunload', handleUnload);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
+      websocketRef.current?.close();
     };
   }, [username]);
 
@@ -139,7 +144,6 @@ export function Chat() {
   const handleSendMessage = async () => {
     if (inputText.trim() === "") return;
 
-    // Add user message to UI immediately
     const userMessage: Message = {
       role: 'user',
       content: inputText,
@@ -149,29 +153,8 @@ export function Chat() {
     setMessages(prevMessages => [...prevMessages, userMessage]);
     setInputText("");
 
-    try {
-      // Send message to API
-      const response = await axios.post<{ response: string }>(`${API_BASE_URL}/handle_chat?user_id=${username}`, {
-        message: inputText
-      }, {
-        headers: {
-          'Content-Type': 'application/json',
-        }
-      });
-      console.log(`User: ${inputText}`);
-      console.log(`Response: ${response.data.response}`);
-
-      // Add bot response to messages
-      const botMessage: Message = {
-        role: 'assistant',
-        content: response.data.response,
-        message_id: `bot-${Date.now()}`,
-        timestamp: new Date().toISOString()
-      };
-      setMessages(prevMessages => [...prevMessages, botMessage]);
-    } catch (error) {
-      console.error('Error sending message:', error);
-      // Optionally show error message to user
+    if (websocketRef.current) {
+      websocketRef.current.send(JSON.stringify({ user_id: username, message: inputText }));
     }
   };
 
@@ -200,7 +183,7 @@ export function Chat() {
       
       <ScrollArea className="flex-grow p-4" ref={scrollAreaRef}>
         <div className="space-y-6">
-          {Array.isArray(messages) && messages.map((message, index) => ( // Check if messages is an array
+          {Array.isArray(messages) && messages.map((message, index) => (
             <div 
               key={message.message_id} 
               className="flex flex-col items-center"
