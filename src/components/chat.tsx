@@ -4,9 +4,73 @@ import React, { useState, useRef, useEffect } from 'react'
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Send, Mic } from "lucide-react"
+import { Send, Mic, Volume2, VolumeX } from "lucide-react"
 import { useSearchParams } from 'next/navigation'
 import axios from 'axios'
+
+// Complete Web Speech API TypeScript declarations
+interface SpeechRecognitionEvent extends Event {
+  results: SpeechRecognitionResultList;
+  resultIndex: number;
+  interpretation: any;
+}
+
+interface SpeechRecognitionResultList {
+  length: number;
+  item(index: number): SpeechRecognitionResult;
+  [index: number]: SpeechRecognitionResult;
+}
+
+interface SpeechRecognitionResult {
+  length: number;
+  item(index: number): SpeechRecognitionAlternative;
+  [index: number]: SpeechRecognitionAlternative;
+  isFinal: boolean;
+}
+
+interface SpeechRecognitionAlternative {
+  transcript: string;
+  confidence: number;
+}
+
+interface SpeechRecognitionErrorEvent extends Event {
+  error: string;
+  message: string;
+}
+
+interface SpeechRecognition extends EventTarget {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  maxAlternatives: number;
+  onaudioend: ((this: SpeechRecognition, ev: Event) => any) | null;
+  onaudiostart: ((this: SpeechRecognition, ev: Event) => any) | null;
+  onend: ((this: SpeechRecognition, ev: Event) => any) | null;
+  onerror: ((this: SpeechRecognition, ev: SpeechRecognitionErrorEvent) => any) | null;
+  onnomatch: ((this: SpeechRecognition, ev: SpeechRecognitionEvent) => any) | null;
+  onresult: ((this: SpeechRecognition, ev: SpeechRecognitionEvent) => any) | null;
+  onsoundend: ((this: SpeechRecognition, ev: Event) => any) | null;
+  onsoundstart: ((this: SpeechRecognition, ev: Event) => any) | null;
+  onspeechend: ((this: SpeechRecognition, ev: Event) => any) | null;
+  onspeechstart: ((this: SpeechRecognition, ev: Event) => any) | null;
+  onstart: ((this: SpeechRecognition, ev: Event) => any) | null;
+  start(): void;
+  stop(): void;
+  abort(): void;
+}
+
+interface SpeechRecognitionConstructor {
+  new (): SpeechRecognition;
+  prototype: SpeechRecognition;
+}
+
+
+declare global {
+  interface Window {
+    SpeechRecognition: SpeechRecognitionConstructor;
+    webkitSpeechRecognition: SpeechRecognitionConstructor;
+  }
+}
 
 interface Message {
   role: 'user' | 'assistant';
@@ -33,41 +97,91 @@ export function Chat() {
   
   const [messages, setMessages] = useState<Message[]>([]);
   const [isListening, setIsListening] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
   const [inputText, setInputText] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const lastBotMessageRef = useRef<HTMLDivElement>(null);
-  const websocketRef = useRef<WebSocket | null>(null);
+  const audioWebsocketRef = useRef<WebSocket | null>(null);
+  const chatWebsocketRef = useRef<WebSocket | null>(null);
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
+
+  // Initialize speech recognition
+  useEffect(() => {
+    console.log("Window: ", window);
+    if (typeof window !== 'undefined') {
+      const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (SpeechRecognitionAPI) {
+        recognitionRef.current = new SpeechRecognitionAPI();
+        recognitionRef.current.continuous = true;
+        recognitionRef.current.interimResults = true;
+
+        recognitionRef.current.onresult = (event: SpeechRecognitionEvent) => {
+          const transcript = Array.from(event.results)
+            .map(result => result[0])
+            .map(result => result.transcript)
+            .join('');
+          
+          setInputText(transcript);
+        };
+
+        recognitionRef.current.onerror = (event: SpeechRecognitionErrorEvent) => {
+          console.error('Speech recognition error:', event.error);
+          setIsListening(false);
+
+          if (event.error === 'network') {
+            alert('Network error: Please check your internet connection.');
+          }
+        };
+
+        // Update the onend event to restart recognition
+        recognitionRef.current.onend = () => {
+          if (isListening) {
+            recognitionRef.current?.start(); // Restart recognition if still listening
+          }
+        };
+      }
+    }
+  }, [isListening]);
 
   // Initialize chat and load history
   useEffect(() => {
     const initializeChat = async () => {
       try {
-        const startChatResponse = await axios.post<StartChatResponse>(`${API_BASE_URL}/start_chat?username=${username}`, {}, {
-          headers: {
-            'Content-Type': 'application/json',
-          }
-        });
-        console.log("start chat rsp: ", startChatResponse.data);
+        const startChatResponse = await axios.post<StartChatResponse>(
+          `${API_BASE_URL}/start_chat?username=${username}`,
+          {},
+          { headers: { 'Content-Type': 'application/json' } }
+        );
         
-        console.log("Fetching chat history")
-        const historyResponse = await axios.get<GetChatHistoryResponse>(`${API_BASE_URL}/chat_history/${username}`, {
-          headers: {
-            'Content-Type': 'application/json',
-          }
-        });
-        console.log("Chat history loaded:", historyResponse.data);
+        const historyResponse = await axios.get<GetChatHistoryResponse>(
+          `${API_BASE_URL}/chat_history/${username}`,
+          { headers: { 'Content-Type': 'application/json' } }
+        );
 
-        setMessages(historyResponse.data || []); // Ensure messages is an array
+        setMessages(historyResponse.data || []);
 
         // WebSocket setup
-        websocketRef.current = new WebSocket(`${process.env.NEXT_PUBLIC_WS_BASE_URL}/handle_chat/${username}`);
-
-        websocketRef.current.onopen = () => {
-          console.log("WebSocket connection established");
+        if (!chatWebsocketRef.current) {
+          chatWebsocketRef.current = new WebSocket(
+            `${process.env.NEXT_PUBLIC_WS_BASE_URL}/handle_chat/${username}`
+          );
+          chatWebsocketRef.current.onopen = () => {
+            console.log("Chat WebSocket connection established");
+          }
         }
 
-        websocketRef.current.onmessage = (event) => {
+        if (!audioWebsocketRef.current) {
+          audioWebsocketRef.current = new WebSocket(
+            `${process.env.NEXT_PUBLIC_WS_BASE_URL}/transcribe`
+          );
+          audioWebsocketRef.current.onopen = () => {
+            console.log("Audio WebSocket connection established");
+          }
+        }
+        
+
+        audioWebsocketRef.current.onmessage = (event) => {
           const botMessage: Message = {
             role: 'assistant',
             content: event.data,
@@ -75,6 +189,11 @@ export function Chat() {
             timestamp: new Date().toISOString()
           };
           setMessages(prevMessages => [...prevMessages, botMessage]);
+          
+          // Speak the response if not already speaking
+          if (!isSpeaking) {
+            speakMessage(event.data);
+          }
         };
       } catch (error) {
         console.error('Error initializing chat:', error);
@@ -85,52 +204,18 @@ export function Chat() {
 
     initializeChat();
 
-    const cleanup = async () => {
-      console.log("Username:", username);
-      try {
-        await axios.post(`${API_BASE_URL}/end_chat?user_id=${username}`, {}, {
-          headers: {
-            'Content-Type': 'application/json',
-          }
-        });
-      } catch (error) {
-        console.error('Error ending chat:', error);
-      }
-    };
-
-    const saveChat = async () => {
-      console.log("Username:", username);
-      try {
-        await axios.post(`${API_BASE_URL}/save_chat?user_id=${username}`, {}, {
-          headers: {
-            'Content-Type': 'application/json',
-          }
-        });
-      } catch (error) {
-        console.error('Error saving chat:', error);
-      }
-    };
-
-    const handleUnload = () => {
-      console.log("Handle unload before: ", username);
-      cleanup();
-      console.log("Handle unload before: ", username);
-    };
-
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'hidden') {
-        saveChat();
-      }
-    };
-
-    window.addEventListener('beforeunload', handleUnload);
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-
+    // Cleanup function
     return () => {
-      cleanup();
-      window.removeEventListener('beforeunload', handleUnload);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      websocketRef.current?.close();
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
+      if (audioWebsocketRef.current) {
+        audioWebsocketRef.current.close();
+      }
+      if (chatWebsocketRef.current) {
+        chatWebsocketRef.current.close();
+      }
+      window.speechSynthesis.cancel();
     };
   }, [username]);
 
@@ -153,14 +238,57 @@ export function Chat() {
     setMessages(prevMessages => [...prevMessages, userMessage]);
     setInputText("");
 
-    if (websocketRef.current) {
-      websocketRef.current.send(JSON.stringify({ user_id: username, message: inputText }));
+    if (chatWebsocketRef.current) {
+      chatWebsocketRef.current.send(inputText);
+      
+      // Fetch the message from the websocket and update the messages
+      chatWebsocketRef.current.onmessage = (event) => {
+        const botMessage: Message = {
+          role: 'assistant',
+          content: event.data,
+          message_id: `bot-${Date.now()}`,
+          timestamp: new Date().toISOString()
+        };
+        setMessages(prevMessages => [...prevMessages, botMessage]);
+      };
     }
   };
 
   const toggleListening = () => {
+    if (!recognitionRef.current) {
+      alert("Speech recognition is not supported in your browser");
+      return;
+    }
+
+    if (isListening) {
+      recognitionRef.current.stop();
+    } else {
+      recognitionRef.current.start();
+    }
     setIsListening(!isListening);
-    // Voice recognition implementation would go here
+  };
+
+  const speakMessage = (text: string) => {
+    if ('speechSynthesis' in window) {
+      setIsSpeaking(true);
+      const utterance = new SpeechSynthesisUtterance(text);
+      
+      utterance.onend = () => {
+        setIsSpeaking(false);
+      };
+
+      utterance.onerror = (event: SpeechSynthesisErrorEvent) => {
+        console.error('Speech synthesis error:', event);
+        setIsSpeaking(false);
+      };
+
+      window.speechSynthesis.speak(utterance);
+    }
+  };
+
+  const stopSpeaking = () => {
+    window.speechSynthesis.cancel();
+    setIsSpeaking(false);
   };
 
   if (isLoading) {
@@ -175,9 +303,19 @@ export function Chat() {
         <div className="w-full bg-gray-200 rounded-full h-2.5 mb-4">
           <div className="bg-blue-600 h-2.5 rounded-full w-1/2"></div>
         </div>
-        <div className="flex justify-between">
+        <div className="flex justify-between items-center">
           <h1 className="text-xl font-bold">MathTutor</h1>
-          <h3 className="text-lg text-gray-500">{username}</h3>
+          <div className="flex items-center gap-2">
+            <Button
+              size="icon"
+              variant="ghost"
+              onClick={isSpeaking ? stopSpeaking : () => {}}
+              className={isSpeaking ? 'text-blue-500' : 'text-gray-500'}
+            >
+              {isSpeaking ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
+            </Button>
+            <h3 className="text-lg text-gray-500">{username}</h3>
+          </div>
         </div>
       </header>
       
