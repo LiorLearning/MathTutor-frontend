@@ -108,6 +108,54 @@ export function Chat() {
     if (typeof window !== 'undefined') {
       initializeChat();
     }
+
+    // Cleanup function for chat session
+    const cleanup = async () => {
+      console.log("Username:", username);
+      try {
+        await axios.post(`${API_BASE_URL}/end_chat?user_id=${username}`, {}, {
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        });
+      } catch (error) {
+        console.error('Error ending chat:', error);
+      }
+    };
+
+    // Save chat function for chat session
+    const saveChat = async () => {
+      console.log("Username:", username);
+      try {
+        await axios.post(`${API_BASE_URL}/save_chat?user_id=${username}`, {}, {
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        });
+      } catch (error) {
+        console.error('Error saving chat:', error);
+      }
+    };
+
+    const handleUnload = () => {
+      cleanup();
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        saveChat();
+      }
+    };
+
+    window.addEventListener('beforeunload', handleUnload);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      cleanup();
+      window.removeEventListener('beforeunload', handleUnload);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);      
+    }
+
   }, [username]);
 
   useEffect(() => {
@@ -142,6 +190,8 @@ export function Chat() {
   const toggleListening = () => {
     setIsListening(prevState => !prevState);
   };
+
+  
 
   if (isLoading) {
     return <div className="flex items-center justify-center h-screen">
