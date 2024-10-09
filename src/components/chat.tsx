@@ -4,7 +4,7 @@ import React, { useState, useRef, useEffect } from 'react'
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Send, Mic } from "lucide-react"
+import { Send, Mic, Speaker, Square } from "lucide-react"
 import { useSearchParams } from 'next/navigation'
 import axios from 'axios'
 import ReactMarkdown from 'react-markdown'
@@ -12,6 +12,7 @@ import ReactMarkdown from 'react-markdown'
 interface Message {
   role: 'user' | 'assistant';
   content: string;
+  audioUrl?: string; // Added audioUrl to store audio
   timestamp: string;
   message_id: string;
 }
@@ -53,8 +54,8 @@ const MyImageComponent: React.FC<ImageProps> = ({ src, alt, width, height, class
   );
 };
 
-
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL + 'api/v1/chat';
+const SPEECH_API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL + 'api/v1/speech';
 
 export function Chat() {
   const searchParams = useSearchParams();
@@ -64,6 +65,8 @@ export function Chat() {
   const [isListening, setIsListening] = useState(false);
   const [inputText, setInputText] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const lastBotMessageRef = useRef<HTMLDivElement>(null);
   const audioWebsocketRef = useRef<WebSocket | null>(null);
@@ -99,10 +102,12 @@ export function Chat() {
             const botMessage: Message = {
               role: 'assistant',
               content: event.data,
+              audioUrl: '', // Initialize audioUrl
               message_id: `bot-${Date.now()}`,
               timestamp: new Date().toISOString()
             };
             setMessages(prevMessages => [...prevMessages, botMessage]);
+            toggleAudio(botMessage);
           };
         }
 
@@ -236,29 +241,73 @@ export function Chat() {
     }
   };
 
-  const handleAudioStop = async (blob: Blob) => {
-    if (audioWebsocketRef.current) {
-      const arrayBuffer = await blob.arrayBuffer();
-      audioWebsocketRef.current.send(arrayBuffer);
+  async function generateTextToSpeech(message: Message) {
+    try {
+      const response = await axios.post(`${SPEECH_API_BASE_URL}/tts-proxy`, { text: message.content }, {
+        headers: { 'Content-Type': 'application/json' },
+        responseType: 'blob',
+      });
+      const audioBlob = new Blob([response.data as ArrayBuffer], { type: 'audio/mpeg' });
+      const audioUrl = URL.createObjectURL(audioBlob);
+      
+      // Set the message directly to the message passed as input
+      setMessages(prevMessages => {
+        return [
+          ...prevMessages.slice(0, -1),
+          { ...message, audioUrl }, // Update the message with audioUrl
+        ];
+      });
+
+      if (audioRef.current) {
+        audioRef.current.src = audioUrl;
+        audioRef.current.play().catch(error => {
+          console.error('Playback failed:', error);
+        });
+        setIsPlaying(true);
+      }
+    } catch (error) {
+      console.error('Error generating text-to-speech:', error);
+    }
+  }
+
+  const toggleAudio = (message: Message) => {
+    if (!message.audioUrl) {
+      generateTextToSpeech(message);
+    } else {
+      if (isPlaying) {
+        if (audioRef.current) {
+          audioRef.current.pause();
+        }
+        setIsPlaying(false);
+      } else {
+        if (audioRef.current) {
+          audioRef.current.src = message.audioUrl;
+          audioRef.current.play().catch(error => {
+            console.error('Playback failed:', error);
+          });
+        }
+        setIsPlaying(true);
+      }
     }
   };
 
-  const toggleListening = () => {
-    setIsListening(prevState => !prevState);
-  };
+  useEffect(() => {
+    const audio = new Audio();
+    audioRef.current = audio;
+    audio.addEventListener('ended', () => setIsPlaying(false));
+    return () => {
+      audio.removeEventListener('ended', () => setIsPlaying(false));
+    };
+  }, []);
 
   if (isLoading) {
     return <div className="flex items-center justify-center h-screen">
       <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
     </div>;
   }
-
   return (
     <div className="flex flex-col h-screen max-w-4xl mx-auto bg-white">
       <header className="p-4 border-b">
-        <div className="w-full bg-gray-200 rounded-full h-2.5 mb-4">
-          <div className="bg-blue-600 h-2.5 rounded-full w-1/2"></div>
-        </div>
         <div className="flex justify-between items-center">
           <h1 className="text-xl font-bold">MathTutor</h1>
           <div className="flex items-center gap-2">
@@ -308,6 +357,18 @@ export function Chat() {
                   >
                     {message.content}
                   </ReactMarkdown>
+                  {message.role === 'assistant' && (
+                    <div className="mt-2">
+                      <Button 
+                        size="sm"
+                        variant="outline"
+                        className="bg-green-500 text-white rounded px-2 py-1"
+                        onClick={() => toggleAudio(message)}
+                      >
+                        {isPlaying ? <Square className="h-4 w-4" /> : <Speaker className="h-4 w-4" />}
+                      </Button>
+                    </div>
+                  )}
                 </div>
                 <div className="text-xs text-gray-500 mt-1">
                   {new Date(message.timestamp).toLocaleTimeString()}
