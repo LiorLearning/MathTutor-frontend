@@ -162,6 +162,15 @@ export function Chat() {
     
   }, [username]);
 
+  useEffect(() => {
+    if (scrollAreaRef.current) {
+      const scrollElement = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
+      if (scrollElement) {
+        scrollElement.scrollTop = scrollElement.scrollHeight;
+      }
+    }
+  }, [messages]);
+
   const handleSendMessage = async () => {
     if (inputText.trim() === "") return;
 
