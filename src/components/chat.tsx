@@ -4,7 +4,7 @@ import React, { useState, useRef, useEffect } from 'react'
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Send, Mic, Speaker, Square } from "lucide-react"
+import { Send, Mic, Pause, Volume2 } from "lucide-react"
 import { useSearchParams } from 'next/navigation'
 import axios from 'axios'
 import ReactMarkdown from 'react-markdown'
@@ -15,6 +15,7 @@ interface Message {
   audioUrl?: string; // Added audioUrl to store audio
   timestamp: string;
   message_id: string;
+  isPlaying?: boolean; // Added isPlaying to track audio state per message
 }
 
 interface StartChatResponse {
@@ -65,7 +66,6 @@ export function Chat() {
   const [isListening, setIsListening] = useState(false);
   const [inputText, setInputText] = useState("");
   const [isLoading, setIsLoading] = useState(true);
-  const [isPlaying, setIsPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const lastBotMessageRef = useRef<HTMLDivElement>(null);
@@ -104,7 +104,8 @@ export function Chat() {
               content: event.data,
               audioUrl: '', // Initialize audioUrl
               message_id: `bot-${Date.now()}`,
-              timestamp: new Date().toISOString()
+              timestamp: new Date().toISOString(),
+              isPlaying: false // Initialize isPlaying
             };
             setMessages(prevMessages => [...prevMessages, botMessage]);
             toggleAudio(botMessage);
@@ -263,7 +264,11 @@ export function Chat() {
         audioRef.current.play().catch(error => {
           console.error('Playback failed:', error);
         });
-        setIsPlaying(true);
+        setMessages(prevMessages => 
+          prevMessages.map(msg => 
+            msg.message_id === message.message_id ? { ...msg, isPlaying: true } : msg
+          )
+        );
       }
     } catch (error) {
       console.error('Error generating text-to-speech:', error);
@@ -274,11 +279,15 @@ export function Chat() {
     if (!message.audioUrl) {
       generateTextToSpeech(message);
     } else {
-      if (isPlaying) {
+      if (message.isPlaying) {
         if (audioRef.current) {
           audioRef.current.pause();
         }
-        setIsPlaying(false);
+        setMessages(prevMessages => 
+          prevMessages.map(msg => 
+            msg.message_id === message.message_id ? { ...msg, isPlaying: false } : msg
+          )
+        );
       } else {
         if (audioRef.current) {
           audioRef.current.src = message.audioUrl;
@@ -286,7 +295,11 @@ export function Chat() {
             console.error('Playback failed:', error);
           });
         }
-        setIsPlaying(true);
+        setMessages(prevMessages => 
+          prevMessages.map(msg => 
+            msg.message_id === message.message_id ? { ...msg, isPlaying: true } : msg
+          )
+        );
       }
     }
   };
@@ -294,9 +307,21 @@ export function Chat() {
   useEffect(() => {
     const audio = new Audio();
     audioRef.current = audio;
-    audio.addEventListener('ended', () => setIsPlaying(false));
+    audio.addEventListener('ended', () => {
+      setMessages(prevMessages => 
+        prevMessages.map(msg => 
+          msg.isPlaying ? { ...msg, isPlaying: false } : msg
+        )
+      );
+    });
     return () => {
-      audio.removeEventListener('ended', () => setIsPlaying(false));
+      audio.removeEventListener('ended', () => {
+        setMessages(prevMessages => 
+          prevMessages.map(msg => 
+            msg.isPlaying ? { ...msg, isPlaying: false } : msg
+          )
+        );
+      });
     };
   }, []);
 
@@ -339,33 +364,35 @@ export function Chat() {
                   } ${message.role === 'assistant' && index < messages.length - 1 ? 'opacity-50' : ''} 
                   ${message.role === 'assistant' && index === messages.length - 1 ? 'opacity-100' : ''}`}
                 >
-                  <ReactMarkdown
+                   <ReactMarkdown
                     components={{
                       img: ({ src, alt }) => (
-                        <div className="my-4">
-                          <MyImageComponent
-                            src={src || ''}
-                            alt={alt || ''}
-                            width={500}
-                            height={300}
-                            className="rounded-lg"
-                            style={{ objectFit: 'contain', width: '100%', height: 'auto' }}
-                          />
-                        </div>
+                        <MyImageComponent
+                          src={src || ''}
+                          alt={alt || ''}
+                          width={500}
+                          height={300}
+                          className="rounded-lg"
+                          style={{ objectFit: 'contain', width: '100%', height: 'auto' }}
+                        />
+                      ),
+                      // Add a wrapper for paragraphs to avoid nesting issues
+                      p: ({ children }) => (
+                        <div>{children}</div>
                       ),
                     }}
                   >
                     {message.content}
                   </ReactMarkdown>
                   {message.role === 'assistant' && (
-                    <div className="mt-2">
+                    <div className="mt-2 flex justify-end">
                       <Button 
                         size="sm"
                         variant="outline"
-                        className="bg-green-500 text-white rounded px-2 py-1"
+                        className="rounded px-2 py-1"
                         onClick={() => toggleAudio(message)}
                       >
-                        {isPlaying ? <Square className="h-4 w-4" /> : <Speaker className="h-4 w-4" />}
+                        {message.isPlaying ? <Pause className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
                       </Button>
                     </div>
                   )}
