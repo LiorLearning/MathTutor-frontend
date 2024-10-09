@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Send, Mic } from "lucide-react"
 import { useSearchParams } from 'next/navigation'
 import axios from 'axios'
+import ReactMarkdown from 'react-markdown'
 
 interface Message {
   role: 'user' | 'assistant';
@@ -20,6 +21,38 @@ interface StartChatResponse {
 }
 
 type GetChatHistoryResponse = Message[];
+
+interface ImageProps {
+  src: string;
+  alt?: string;
+  width?: number;
+  height?: number;
+  className?: string;
+  style?: React.CSSProperties;
+}
+
+const imageProps: ImageProps = {
+  src: 'https://example.com/image.jpg', // Replace with your image URL
+  alt: 'Description of the image',
+  width: 500,
+  height: 300,
+  className: 'rounded-lg',
+  style: { objectFit: 'contain', width: '100%', height: 'auto' },
+};
+
+const MyImageComponent: React.FC<ImageProps> = ({ src, alt, width, height, className, style }) => {
+  return (
+      <img
+          src={src}
+          alt={alt || ''}
+          width={width || 500}
+          height={height || 300}
+          className={`rounded-lg ${className}`}
+          style={style}
+      />
+  );
+};
+
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL + 'api/v1/chat';
 
@@ -158,6 +191,20 @@ export function Chat() {
 
   }, [username]);
 
+  const handleDeleteChat = async () => {
+    try {
+      await axios.delete(`${API_BASE_URL}/delete_chat?user_id=${username}`, {
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+      setMessages([]); // Clear messages after deletion
+      console.log("Chat deleted successfully.");
+    } catch (error) {
+      console.error('Error deleting chat:', error);
+    }
+  };
+
   useEffect(() => {
     
   }, [username]);
@@ -200,8 +247,6 @@ export function Chat() {
     setIsListening(prevState => !prevState);
   };
 
-  
-
   if (isLoading) {
     return <div className="flex items-center justify-center h-screen">
       <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
@@ -218,6 +263,12 @@ export function Chat() {
           <h1 className="text-xl font-bold">MathTutor</h1>
           <div className="flex items-center gap-2">
             <h3 className="text-lg text-gray-500">{username}</h3>
+            <Button 
+              className="bg-red-500 text-white" 
+              onClick={handleDeleteChat}
+            >
+              Delete Chat
+            </Button>
           </div>
         </div>
       </header>
@@ -239,7 +290,24 @@ export function Chat() {
                   } ${message.role === 'assistant' && index < messages.length - 1 ? 'opacity-50' : ''} 
                   ${message.role === 'assistant' && index === messages.length - 1 ? 'opacity-100' : ''}`}
                 >
-                  {message.content}
+                  <ReactMarkdown
+                    components={{
+                      img: ({ src, alt }) => (
+                        <div className="my-4">
+                          <MyImageComponent
+                            src={src || ''}
+                            alt={alt || ''}
+                            width={500}
+                            height={300}
+                            className="rounded-lg"
+                            style={{ objectFit: 'contain', width: '100%', height: 'auto' }}
+                          />
+                        </div>
+                      ),
+                    }}
+                  >
+                    {message.content}
+                  </ReactMarkdown>
                 </div>
                 <div className="text-xs text-gray-500 mt-1">
                   {new Date(message.timestamp).toLocaleTimeString()}
