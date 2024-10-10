@@ -123,7 +123,7 @@ export function Chat() {
                 isPlaying: false
               };
               setMessages(prevMessages => [...prevMessages, finalMessage]);
-              toggleAudio(finalMessage);
+              // toggleAudio(finalMessage);
               setPartialMessage('');
               partialMessageRef.current = '';
             } else {
@@ -359,6 +359,7 @@ export function Chat() {
           <h1 className="text-xl font-bold">MathTutor</h1>
           <div className="flex items-center gap-2">
             <h3 className="text-lg text-gray-500">{username}</h3>
+            
             <Button 
               className="bg-red-500 text-white" 
               onClick={handleDeleteChat}
