@@ -8,56 +8,16 @@ import { Send, Mic, Pause, Volume2 } from "lucide-react"
 import { useSearchParams } from 'next/navigation'
 import axios from 'axios'
 import ReactMarkdown from 'react-markdown'
+import { 
+  Message, 
+  StartChatResponse, 
+  GetChatHistoryResponse,
+  API_BASE_URL,
+  SPEECH_API_BASE_URL,
+  WS_END_SIGNAL,
+  MyImageComponent,
+} from '@/components/utils/chat_utils'
 
-interface Message {
-  role: 'user' | 'assistant';
-  content: string;
-  audioUrl?: string; // Added audioUrl to store audio
-  timestamp: string;
-  message_id: string;
-  isPlaying?: boolean; // Added isPlaying to track audio state per message
-}
-
-interface StartChatResponse {
-  chat_id: string;
-}
-
-type GetChatHistoryResponse = Message[];
-
-interface ImageProps {
-  src: string;
-  alt?: string;
-  width?: number;
-  height?: number;
-  className?: string;
-  style?: React.CSSProperties;
-}
-
-const imageProps: ImageProps = {
-  src: 'https://example.com/image.jpg', // Replace with your image URL
-  alt: 'Description of the image',
-  width: 500,
-  height: 300,
-  className: 'rounded-lg',
-  style: { objectFit: 'contain', width: '100%', height: 'auto' },
-};
-
-const MyImageComponent: React.FC<ImageProps> = ({ src, alt, width, height, className, style }) => {
-  return (
-      <img
-          src={src}
-          alt={alt || ''}
-          width={width || 500}
-          height={height || 300}
-          className={`rounded-lg ${className}`}
-          style={style}
-      />
-  );
-};
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL + 'api/v1/chat';
-const SPEECH_API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL + 'api/v1/speech';
-const WS_END_SIGNAL = "WS_END_SIGNAL";
 
 export function Chat() {
   const searchParams = useSearchParams();
@@ -219,6 +179,37 @@ export function Chat() {
 
   }, [username]);
 
+  useEffect(() => {
+    const audio = new Audio();
+    audioRef.current = audio;
+    audio.addEventListener('ended', () => {
+      setMessages(prevMessages => 
+        prevMessages.map(msg => 
+          msg.isPlaying ? { ...msg, isPlaying: false } : msg
+        )
+      );
+    });
+    return () => {
+      audio.removeEventListener('ended', () => {
+        setMessages(prevMessages => 
+          prevMessages.map(msg => 
+            msg.isPlaying ? { ...msg, isPlaying: false } : msg
+          )
+        );
+      });
+    };
+  }, []);
+
+  useEffect(() => {
+    if (scrollAreaRef.current) {
+      const scrollElement = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
+      if (scrollElement) {
+        scrollElement.scrollTop = scrollElement.scrollHeight;
+      }
+    }
+  }, [messages]);
+
+
   const handleDeleteChat = async () => {
     try {
       await axios.delete(`${API_BASE_URL}/delete_chat?user_id=${username}`, {
@@ -232,19 +223,6 @@ export function Chat() {
       console.error('Error deleting chat:', error);
     }
   };
-
-  useEffect(() => {
-    
-  }, [username]);
-
-  useEffect(() => {
-    if (scrollAreaRef.current) {
-      const scrollElement = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
-      if (scrollElement) {
-        scrollElement.scrollTop = scrollElement.scrollHeight;
-      }
-    }
-  }, [messages]);
 
   const handleSendMessage = async () => {
     if (inputText.trim() === "") return;
@@ -326,26 +304,6 @@ export function Chat() {
     }
   };
 
-  useEffect(() => {
-    const audio = new Audio();
-    audioRef.current = audio;
-    audio.addEventListener('ended', () => {
-      setMessages(prevMessages => 
-        prevMessages.map(msg => 
-          msg.isPlaying ? { ...msg, isPlaying: false } : msg
-        )
-      );
-    });
-    return () => {
-      audio.removeEventListener('ended', () => {
-        setMessages(prevMessages => 
-          prevMessages.map(msg => 
-            msg.isPlaying ? { ...msg, isPlaying: false } : msg
-          )
-        );
-      });
-    };
-  }, []);
 
   if (isLoading) {
     return <div className="flex items-center justify-center h-screen">
