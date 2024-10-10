@@ -57,37 +57,50 @@ const MyImageComponent: React.FC<ImageProps> = ({ src, alt, width, height, class
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL + 'api/v1/chat';
 const SPEECH_API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL + 'api/v1/speech';
+const WS_END_SIGNAL = "WS_END_SIGNAL";
 
 export function Chat() {
   const searchParams = useSearchParams();
   const username = searchParams.get('username') || 'testuser';
   
   const [messages, setMessages] = useState<Message[]>([]);
+  const [chatId, setChatId] = useState("");
   const [isListening, setIsListening] = useState(false);
   const [inputText, setInputText] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const [partialMessage, setPartialMessage] = useState<string>('');
+  const [isReceivingMessage, setIsReceivingMessage] = useState(false);
+  const partialMessageRef = useRef<string>('');
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const lastBotMessageRef = useRef<HTMLDivElement>(null);
   const audioWebsocketRef = useRef<WebSocket | null>(null);
   const chatWebsocketRef = useRef<WebSocket | null>(null);
 
+  useEffect(() => {
+    console.log("Current partialMessage:", partialMessage);
+  }, [partialMessage]);
+
   // Initialize chat and load history
   useEffect(() => {
     const initializeChat = async () => {
       try {
-        const startChatResponse = await axios.post<StartChatResponse>(
-          `${API_BASE_URL}/start_chat?username=${username}`,
-          {},
-          { headers: { 'Content-Type': 'application/json' } }
-        );
-        
-        const historyResponse = await axios.get<GetChatHistoryResponse>(
-          `${API_BASE_URL}/chat_history/${username}`,
-          { headers: { 'Content-Type': 'application/json' } }
-        );
+        if (chatId === "") {
+          const response = await axios.post<StartChatResponse>(
+            `${API_BASE_URL}/start_chat?username=${username}`,
+            {},
+            { headers: { 'Content-Type': 'application/json' } }
+          );
 
-        setMessages(historyResponse.data || []);
+          setChatId(response.data.chat_id);
+          
+          const historyResponse = await axios.get<GetChatHistoryResponse>(
+            `${API_BASE_URL}/chat_history/${username}`,
+            { headers: { 'Content-Type': 'application/json' } }
+          );
+
+          setMessages(historyResponse.data || []);
+        }
 
         // WebSocket setup
         if (!chatWebsocketRef.current) {
@@ -98,17 +111,26 @@ export function Chat() {
             console.log("Chat WebSocket connection established");
           }
 
-          chatWebsocketRef.current.onmessage = (event) => {
-            const botMessage: Message = {
-              role: 'assistant',
-              content: event.data,
-              audioUrl: '', // Initialize audioUrl
-              message_id: `bot-${Date.now()}`,
-              timestamp: new Date().toISOString(),
-              isPlaying: false // Initialize isPlaying
-            };
-            setMessages(prevMessages => [...prevMessages, botMessage]);
-            toggleAudio(botMessage);
+          chatWebsocketRef.current.onmessage = async (event) => {
+            if (event.data === WS_END_SIGNAL) {
+              setIsReceivingMessage(false);
+              const finalMessage: Message = {
+                role: 'assistant',
+                content: partialMessageRef.current,
+                audioUrl: '',
+                message_id: `bot-${Date.now()}`,
+                timestamp: new Date().toISOString(),
+                isPlaying: false
+              };
+              setMessages(prevMessages => [...prevMessages, finalMessage]);
+              toggleAudio(finalMessage);
+              setPartialMessage('');
+              partialMessageRef.current = '';
+            } else {
+              setIsReceivingMessage(true);
+              partialMessageRef.current += event.data;
+              setPartialMessage(partialMessageRef.current);
+            }
           };
         }
 
@@ -403,6 +425,17 @@ export function Chat() {
               </div>
             </div>
           ))}
+          {isReceivingMessage && partialMessage && (
+            <div className="flex flex-col items-center">
+              <div className="max-w-[80%] self-start">
+                <div className="rounded-2xl p-4 bg-gray-200 text-gray-800">
+                  <ReactMarkdown>
+                    {partialMessage}
+                  </ReactMarkdown>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </ScrollArea>
       
