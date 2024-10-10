@@ -18,6 +18,7 @@ import {
   MyImageComponent,
 } from '@/components/utils/chat_utils'
 
+const SPEAKOUT = false;
 
 export function Chat() {
   const searchParams = useSearchParams();
@@ -34,7 +35,7 @@ export function Chat() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const lastBotMessageRef = useRef<HTMLDivElement>(null);
-  const audioWebsocketRef = useRef<WebSocket | null>(null);
+  const stt_audioWebsocketRef = useRef<WebSocket | null>(null);
   const chatWebsocketRef = useRef<WebSocket | null>(null);
 
   useEffect(() => {
@@ -83,7 +84,9 @@ export function Chat() {
                 isPlaying: false
               };
               setMessages(prevMessages => [...prevMessages, finalMessage]);
-              // toggleAudio(finalMessage);
+              if (SPEAKOUT) {
+                toggleAudio(finalMessage);
+              }
               setPartialMessage('');
               partialMessageRef.current = '';
             } else {
@@ -94,15 +97,15 @@ export function Chat() {
           };
         }
 
-        if (!audioWebsocketRef.current) {
-          audioWebsocketRef.current = new WebSocket(
+        if (!stt_audioWebsocketRef.current) {
+          stt_audioWebsocketRef.current = new WebSocket(
             `${process.env.NEXT_PUBLIC_WS_BASE_URL}/transcribe`
           );
-          audioWebsocketRef.current.onopen = () => {
+          stt_audioWebsocketRef.current.onopen = () => {
             console.log("Audio WebSocket connection established");
           }
 
-          audioWebsocketRef.current.onmessage = (event) => {
+          stt_audioWebsocketRef.current.onmessage = (event) => {
             const transcribedText = event.data; // Get the transcribed text from the WebSocket
             console.log("Transcribed text: ", transcribedText);
             setInputText(transcribedText); // Update input text with transcribed text
@@ -111,8 +114,8 @@ export function Chat() {
 
         // Cleanup function
         return () => {
-          if (audioWebsocketRef.current) {
-            audioWebsocketRef.current.close();
+          if (stt_audioWebsocketRef.current) {
+            stt_audioWebsocketRef.current.close();
           }
           if (chatWebsocketRef.current) {
             chatWebsocketRef.current.close();
@@ -224,6 +227,12 @@ export function Chat() {
     }
   };
 
+  const resetIsPlaying = () => {
+    setMessages(prevMessages => 
+      prevMessages.map(msg => ({ ...msg, isPlaying: false }))
+    );
+  };
+
   const handleSendMessage = async () => {
     if (inputText.trim() === "") return;
 
@@ -233,9 +242,16 @@ export function Chat() {
       message_id: `temp-${Date.now()}`,
       timestamp: new Date().toISOString()
     };
+
+    if (audioRef.current) {
+      audioRef.current.pause();
+      resetIsPlaying();
+    }
+
     setMessages(prevMessages => [...prevMessages, userMessage]);
     setIsListening(false);
     setInputText("");
+
 
     if (chatWebsocketRef.current) {
       chatWebsocketRef.current.send(inputText);
@@ -244,7 +260,7 @@ export function Chat() {
 
   async function generateTextToSpeech(message: Message) {
     try {
-      const response = await axios.post(`${SPEECH_API_BASE_URL}/tts-proxy`, { text: message.content }, {
+      const response = await axios.post(`${SPEECH_API_BASE_URL}/google-tts-proxy`, { text: message.content }, {
         headers: { 'Content-Type': 'application/json' },
         responseType: 'blob',
       });
@@ -282,6 +298,7 @@ export function Chat() {
       if (message.isPlaying) {
         if (audioRef.current) {
           audioRef.current.pause();
+          message.isPlaying = false;
         }
         setMessages(prevMessages => 
           prevMessages.map(msg => 
