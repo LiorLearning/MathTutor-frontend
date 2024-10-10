@@ -19,6 +19,7 @@ import {
 } from '@/components/utils/chat_utils'
 
 const SPEAKOUT = false;
+const PLAYBACK_RATE = 1;
 
 export function Chat() {
   const searchParams = useSearchParams();
@@ -29,18 +30,11 @@ export function Chat() {
   const [isListening, setIsListening] = useState(false);
   const [inputText, setInputText] = useState("");
   const [isLoading, setIsLoading] = useState(true);
-  const [partialMessage, setPartialMessage] = useState<string>('');
-  const [isReceivingMessage, setIsReceivingMessage] = useState(false);
-  const partialMessageRef = useRef<string>('');
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const lastBotMessageRef = useRef<HTMLDivElement>(null);
   const stt_audioWebsocketRef = useRef<WebSocket | null>(null);
   const chatWebsocketRef = useRef<WebSocket | null>(null);
-
-  useEffect(() => {
-    console.log("Current partialMessage:", partialMessage);
-  }, [partialMessage]);
 
   // Initialize chat and load history
   useEffect(() => {
@@ -73,26 +67,17 @@ export function Chat() {
           }
 
           chatWebsocketRef.current.onmessage = async (event) => {
-            if (event.data === WS_END_SIGNAL) {
-              setIsReceivingMessage(false);
-              const finalMessage: Message = {
-                role: 'assistant',
-                content: partialMessageRef.current,
-                audioUrl: '',
-                message_id: `bot-${Date.now()}`,
-                timestamp: new Date().toISOString(),
-                isPlaying: false
-              };
-              setMessages(prevMessages => [...prevMessages, finalMessage]);
-              if (SPEAKOUT) {
-                toggleAudio(finalMessage);
-              }
-              setPartialMessage('');
-              partialMessageRef.current = '';
-            } else {
-              setIsReceivingMessage(true);
-              partialMessageRef.current += event.data;
-              setPartialMessage(partialMessageRef.current);
+            const finalMessage: Message = {
+              role: 'assistant',
+              content: event.data, // Get the sentence directly from the event data
+              audioUrl: '',
+              message_id: `bot-${Date.now()}`,
+              timestamp: new Date().toISOString(),
+              isPlaying: false
+            };
+            setMessages(prevMessages => [...prevMessages, finalMessage]);
+            if (SPEAKOUT) {
+              toggleAudio(finalMessage);
             }
           };
         }
@@ -277,6 +262,7 @@ export function Chat() {
 
       if (audioRef.current) {
         audioRef.current.src = audioUrl;
+        audioRef.current.playbackRate = PLAYBACK_RATE;
         audioRef.current.play().catch(error => {
           console.error('Playback failed:', error);
         });
@@ -308,6 +294,7 @@ export function Chat() {
       } else {
         if (audioRef.current) {
           audioRef.current.src = message.audioUrl;
+          audioRef.current.playbackRate = PLAYBACK_RATE;
           audioRef.current.play().catch(error => {
             console.error('Playback failed:', error);
           });
@@ -401,17 +388,6 @@ export function Chat() {
               </div>
             </div>
           ))}
-          {isReceivingMessage && partialMessage && (
-            <div className="flex flex-col items-center">
-              <div className="max-w-[80%] self-start">
-                <div className="rounded-2xl p-4 bg-gray-200 text-gray-800">
-                  <ReactMarkdown>
-                    {partialMessage}
-                  </ReactMarkdown>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
       </ScrollArea>
       
