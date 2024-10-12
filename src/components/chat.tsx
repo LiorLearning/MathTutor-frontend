@@ -4,7 +4,7 @@ import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Send, Mic, Pause, Volume2 } from "lucide-react"
+import { Send, Pause, Volume2 } from "lucide-react"
 import { useSearchParams } from 'next/navigation'
 import axios from 'axios'
 import ReactMarkdown from 'react-markdown'
@@ -12,7 +12,6 @@ import {
   Message, 
   StartChatResponse, 
   GetChatHistoryResponse,
-  isWebSocketClosed,
   API_BASE_URL,
   SPEECH_API_BASE_URL,
   MyImageComponent,
@@ -27,7 +26,6 @@ export function Chat() {
   
   const [messages, setMessages] = useState<Message[]>([]);
   const [chatId, setChatId] = useState("");
-  const [isListening, setIsListening] = useState(false);
   const [inputText, setInputText] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -36,7 +34,69 @@ export function Chat() {
   const stt_audioWebsocketRef = useRef<WebSocket | null>(null);
   const chatWebsocketRef = useRef<WebSocket | null>(null);
 
-  const initChatWebSocket = (username: string) => {
+  const generateTextToSpeech = useCallback(async (message: Message) => { // Wrapped in useCallback
+    try {
+      const response = await axios.post(`${SPEECH_API_BASE_URL}/google-tts-proxy`, { text: message.content }, {
+        headers: { 'Content-Type': 'application/json' },
+        responseType: 'blob',
+      });
+      const audioBlob = new Blob([response.data as ArrayBuffer], { type: 'audio/mpeg' });
+      const audioUrl = URL.createObjectURL(audioBlob);
+      
+      setMessages(prevMessages => {
+        return [
+          ...prevMessages.slice(0, -1),
+          { ...message, audioUrl },
+        ];
+      });
+
+      if (audioRef.current) {
+        audioRef.current.src = audioUrl;
+        audioRef.current.playbackRate = PLAYBACK_RATE;
+        audioRef.current.play().catch(error => {
+          console.error('Playback failed:', error);
+        });
+        setMessages(prevMessages => 
+          prevMessages.map(msg => 
+            msg.message_id === message.message_id ? { ...msg, isPlaying: true } : msg
+          )
+        );
+      }
+    } catch (error) {
+      console.error('Error generating text-to-speech:', error);
+    }
+  }, []); // Add dependencies if needed
+
+  const toggleAudio = useCallback((message: Message) => {
+    if (!message.audioUrl) {
+      generateTextToSpeech(message);
+    } else {
+      if (message.isPlaying) {
+        audioRef.current?.pause();
+        message.isPlaying = false;
+        setMessages(prevMessages => 
+          prevMessages.map(msg => 
+            msg.message_id === message.message_id ? { ...msg, isPlaying: false } : msg
+          )
+        );
+      } else {
+        if (audioRef.current) {
+          audioRef.current.src = message.audioUrl;
+          audioRef.current.playbackRate = PLAYBACK_RATE;
+          audioRef.current.play().catch(error => {
+            console.error('Playback failed:', error);
+          });
+        }
+        setMessages(prevMessages => 
+          prevMessages.map(msg => 
+            msg.message_id === message.message_id ? { ...msg, isPlaying: true } : msg
+          )
+        );
+      }
+    }
+  }, [generateTextToSpeech]);
+
+  const initChatWebSocket = useCallback((username: string) => {
     if (!chatWebsocketRef.current) {
       chatWebsocketRef.current = new WebSocket(
         `${process.env.NEXT_PUBLIC_WS_BASE_URL}/handle_chat/${username}`
@@ -47,12 +107,10 @@ export function Chat() {
 
       chatWebsocketRef.current.onmessage = async (event) => {
         const data = JSON.parse(event.data);
-        var message = data.content
-        if (data.role == 'correction') {
-          console.log("Inside Messages: ", messages)
+        const message = data.content;
+        if (data.role === 'correction') {
           setMessages(prevMessages => prevMessages.slice(0, -1));
-        }
-        else {
+        } else {
           console.error("Error: Unrecognized role received in WebSocket message:", data.role);
         }
 
@@ -70,9 +128,9 @@ export function Chat() {
         }
       };
     }
-  }
+  }, [toggleAudio]);
 
-  const initAudioWebSocket = () => {
+  const initAudioWebSocket = useCallback(() => {
     if (!stt_audioWebsocketRef.current) {
       stt_audioWebsocketRef.current = new WebSocket(
         `${process.env.NEXT_PUBLIC_WS_BASE_URL}/transcribe`
@@ -82,14 +140,13 @@ export function Chat() {
       }
 
       stt_audioWebsocketRef.current.onmessage = (event) => {
-        const transcribedText = event.data; // Get the transcribed text from the WebSocket
+        const transcribedText = event.data;
         console.log("Transcribed text: ", transcribedText);
-        setInputText(transcribedText); // Update input text with transcribed text
+        setInputText(transcribedText);
       };
     }
-  }
+  }, []);
 
-  // Initialize chat and load history
   useEffect(() => {
     const initializeChat = async () => {
       try {
@@ -110,18 +167,12 @@ export function Chat() {
           setMessages(historyResponse.data || []);
         }
 
-        // WebSocket setup
         initChatWebSocket(username);
         initAudioWebSocket();
         
-        // Cleanup function
         return () => {
-          if (stt_audioWebsocketRef.current) {
-            stt_audioWebsocketRef.current.close();
-          }
-          if (chatWebsocketRef.current) {
-            chatWebsocketRef.current.close();
-          }
+          stt_audioWebsocketRef.current?.close();
+          chatWebsocketRef.current?.close();
         };
         
       } catch (error) {
@@ -135,7 +186,6 @@ export function Chat() {
       initializeChat();
     }
 
-    // Cleanup function for chat session
     const cleanup = async () => {
       try {
         await axios.post(`${API_BASE_URL}/end_chat?user_id=${username}`, {}, {
@@ -143,13 +193,11 @@ export function Chat() {
             'Content-Type': 'application/json',
           }
         });
-        initChatWebSocket(username);
       } catch (error) {
         console.error('Error ending chat:', error);
       }
     };
 
-    // Save chat function for chat session
     const saveChat = async () => {
       try {
         await axios.post(`${API_BASE_URL}/save_chat?user_id=${username}`, {}, {
@@ -189,7 +237,7 @@ export function Chat() {
       document.removeEventListener('visibilitychange', handleVisibilityChange);      
     }
 
-  }, [username]);
+  }, [username, chatId, initChatWebSocket, initAudioWebSocket]);
 
   useEffect(() => {
     const audio = new Audio();
@@ -221,7 +269,6 @@ export function Chat() {
     }
   }, [messages]);
 
-
   const handleDeleteChat = async () => {
     try {
       await axios.delete(`${API_BASE_URL}/delete_chat/${username}`, {
@@ -229,7 +276,7 @@ export function Chat() {
           'Content-Type': 'application/json',
         }
       });
-      setMessages([]); // Clear messages after deletion
+      setMessages([]);
       console.log("Chat deleted successfully.");
     } catch (error) {
       console.error('Error deleting chat:', error);
@@ -252,18 +299,13 @@ export function Chat() {
       timestamp: new Date().toISOString()
     };
 
-    if (audioRef.current) {
-      audioRef.current.pause();
-      resetIsPlaying();
-    }
+    audioRef.current?.pause();
+    resetIsPlaying();
 
     setMessages(prevMessages => [...prevMessages, userMessage]);
-    setIsListening(false);
     setInputText("");
 
-    if (chatWebsocketRef.current) {
-      chatWebsocketRef.current.send(inputText);
-    }
+    chatWebsocketRef.current?.send(inputText);
   }, [inputText]);
 
   const messageComponents = useMemo(() => (
@@ -320,74 +362,7 @@ export function Chat() {
         </div>
       </div>
     ))
-  ), [messages]);
-
-
-  async function generateTextToSpeech(message: Message) {
-    try {
-      const response = await axios.post(`${SPEECH_API_BASE_URL}/google-tts-proxy`, { text: message.content }, {
-        headers: { 'Content-Type': 'application/json' },
-        responseType: 'blob',
-      });
-      const audioBlob = new Blob([response.data as ArrayBuffer], { type: 'audio/mpeg' });
-      const audioUrl = URL.createObjectURL(audioBlob);
-      
-      // Set the message directly to the message passed as input
-      setMessages(prevMessages => {
-        return [
-          ...prevMessages.slice(0, -1),
-          { ...message, audioUrl }, // Update the message with audioUrl
-        ];
-      });
-
-      if (audioRef.current) {
-        audioRef.current.src = audioUrl;
-        audioRef.current.playbackRate = PLAYBACK_RATE;
-        audioRef.current.play().catch(error => {
-          console.error('Playback failed:', error);
-        });
-        setMessages(prevMessages => 
-          prevMessages.map(msg => 
-            msg.message_id === message.message_id ? { ...msg, isPlaying: true } : msg
-          )
-        );
-      }
-    } catch (error) {
-      console.error('Error generating text-to-speech:', error);
-    }
-  }
-
-  const toggleAudio = (message: Message) => {
-    if (!message.audioUrl) {
-      generateTextToSpeech(message);
-    } else {
-      if (message.isPlaying) {
-        if (audioRef.current) {
-          audioRef.current.pause();
-          message.isPlaying = false;
-        }
-        setMessages(prevMessages => 
-          prevMessages.map(msg => 
-            msg.message_id === message.message_id ? { ...msg, isPlaying: false } : msg
-          )
-        );
-      } else {
-        if (audioRef.current) {
-          audioRef.current.src = message.audioUrl;
-          audioRef.current.playbackRate = PLAYBACK_RATE;
-          audioRef.current.play().catch(error => {
-            console.error('Playback failed:', error);
-          });
-        }
-        setMessages(prevMessages => 
-          prevMessages.map(msg => 
-            msg.message_id === message.message_id ? { ...msg, isPlaying: true } : msg
-          )
-        );
-      }
-    }
-  };
-
+  ), [messages, toggleAudio]);
 
   if (isLoading) {
     return <div className="flex items-center justify-center h-screen">
@@ -418,7 +393,6 @@ export function Chat() {
         </div>
       </ScrollArea>
       
-      
       <div className="p-6 border-t flex items-center">
         <Input 
           className="flex-grow mr-2 h-12"
@@ -441,4 +415,5 @@ export function Chat() {
         </Button>
       </div>
     </div>
-  );}
+  );
+}

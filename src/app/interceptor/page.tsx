@@ -1,13 +1,10 @@
-import { Header } from "@/components/header";
 import { InterceptorChat } from "@/components/interceptor_chat";
-import React from 'react';
+import React, { Suspense } from 'react';
 
-export default function ChatPage() {
+export default function InterceptorChatPage() {
   return (
-    <>
-      <React.StrictMode>
-        <InterceptorChat/>
-      </React.StrictMode>
-    </>
+    <Suspense fallback={<div>Loading...</div>}>
+      <InterceptorChat />
+    </Suspense>
   );
 }

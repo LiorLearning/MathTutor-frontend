@@ -1,3 +1,5 @@
+import Image from 'next/image';
+
 export interface Message {
     role: 'user' | 'assistant';
     content: string;
@@ -33,7 +35,7 @@ export const imageProps: ImageProps = {
   
 export const MyImageComponent: React.FC<ImageProps> = ({ src, alt, width, height, className, style }) => {
     return (
-        <img
+        <Image
             src={src}
             alt={alt || ''}
             width={width || 500}

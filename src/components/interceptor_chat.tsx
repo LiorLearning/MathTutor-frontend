@@ -4,14 +4,13 @@ import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Send} from "lucide-react"
+import { Send } from "lucide-react"
 import { useSearchParams } from 'next/navigation'
 import axios from 'axios'
 import ReactMarkdown from 'react-markdown'
 import { 
   Message, 
   GetChatHistoryResponse,
-  isWebSocketClosed,
   API_BASE_URL,
   MyImageComponent,
 } from '@/components/utils/chat_utils'
@@ -28,7 +27,7 @@ export function InterceptorChat() {
   const lastBotMessageRef = useRef<HTMLDivElement>(null);
   const chatWebsocketRef = useRef<WebSocket | null>(null);
 
-  const initChatWebSocket = (username: string) => {
+  const initChatWebSocket = useCallback((username: string) => {
     if (!chatWebsocketRef.current) {
       chatWebsocketRef.current = new WebSocket(
         `${process.env.NEXT_PUBLIC_WS_BASE_URL}/interceptor/${username}`
@@ -39,7 +38,7 @@ export function InterceptorChat() {
 
       chatWebsocketRef.current.onmessage = async (event) => {
         const data = JSON.parse(event.data);
-        var message = data.content;
+        const message = data.content;
         if (data.role === 'correction') {
           console.log("Inside Messages: ", messages)
           setMessages(prevMessages => prevMessages.slice(0, -2));
@@ -48,7 +47,7 @@ export function InterceptorChat() {
         }
 
         const finalMessage: Message = {
-          role: data.role == 'user' ? 'user' : 'assistant',
+          role: data.role === 'user' ? 'user' : 'assistant',
           content: message,
           audioUrl: '',
           message_id: data.role === 'user' ? `temp-${Date.now()}` : `bot-${Date.now()}`,
@@ -58,11 +57,11 @@ export function InterceptorChat() {
         setMessages(prevMessages => [...prevMessages, finalMessage]);
       };
     }
-  }
+  }, [messages]);
 
   useEffect(() => {
     console.log("Messages: ", messages)
-  }, [messages])
+  }, [messages]);
 
   // Initialize chat and load history
   useEffect(() => {
@@ -78,13 +77,6 @@ export function InterceptorChat() {
         // WebSocket setup
         initChatWebSocket(username);
         
-        // Cleanup function
-        return () => {
-          if (chatWebsocketRef.current) {
-            chatWebsocketRef.current.close();
-          }
-        };
-        
       } catch (error) {
         console.error('Error initializing chat:', error);
       } finally {
@@ -97,29 +89,21 @@ export function InterceptorChat() {
     }
 
     const handleUnload = () => {
-        initChatWebSocket(username);
-    };
-
-    const handleLoad = () => {
-      initChatWebSocket(username);
-    };
-
-    const handleVisibilityChange = () => {
-        initChatWebSocket(username);
+      if (chatWebsocketRef.current) {
+        chatWebsocketRef.current.close();
+      }
     };
 
     window.addEventListener('beforeunload', handleUnload);
-    window.addEventListener('load', handleLoad);
-    document.addEventListener('visibilitychange', handleVisibilityChange);
 
     return () => {
-      initChatWebSocket(username);
+      if (chatWebsocketRef.current) {
+        chatWebsocketRef.current.close();
+      }
       window.removeEventListener('beforeunload', handleUnload);
-      window.removeEventListener('load', handleLoad);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);      
     }
 
-  }, [username]);
+  }, [username, initChatWebSocket]);
 
   useEffect(() => {
     if (scrollAreaRef.current) {
@@ -129,7 +113,6 @@ export function InterceptorChat() {
       }
     }
   }, [messages]);
-
 
   const handleDeleteChat = async () => {
     try {
@@ -207,7 +190,6 @@ export function InterceptorChat() {
     ))
   ), [messages]);
 
-
   if (isLoading) {
     return <div className="flex items-center justify-center h-screen">
       <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
@@ -237,7 +219,6 @@ export function InterceptorChat() {
         </div>
       </ScrollArea>
       
-      
       <div className="p-6 border-t flex items-center">
         <Input 
           className="flex-grow mr-2 h-12"
@@ -260,4 +241,5 @@ export function InterceptorChat() {
         </Button>
       </div>
     </div>
-  );}
+  );
+}
