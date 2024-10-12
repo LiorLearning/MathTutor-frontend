@@ -29,7 +29,7 @@ export function InterceptorChat() {
   const chatWebsocketRef = useRef<WebSocket | null>(null);
 
   const initChatWebSocket = (username: string) => {
-    if (!chatWebsocketRef.current || isWebSocketClosed(chatWebsocketRef.current)) {
+    if (!chatWebsocketRef.current) {
       chatWebsocketRef.current = new WebSocket(
         `${process.env.NEXT_PUBLIC_WS_BASE_URL}/interceptor/${username}`
       );
@@ -38,11 +38,13 @@ export function InterceptorChat() {
       }
 
       chatWebsocketRef.current.onmessage = async (event) => {
+        const data = JSON.parse(event.data);
+        const role = data.role
         const finalMessage: Message = {
-          role: 'assistant',
-          content: event.data, // Get the sentence directly from the event data
+          role: role,
+          content: data.content,
           audioUrl: '',
-          message_id: `bot-${Date.now()}`,
+          message_id: role === 'user' ? `temp-${Date.now()}` : `bot-${Date.now()}`,
           timestamp: new Date().toISOString(),
           isPlaying: false
         };

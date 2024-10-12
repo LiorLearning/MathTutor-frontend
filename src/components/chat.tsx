@@ -37,7 +37,7 @@ export function Chat() {
   const chatWebsocketRef = useRef<WebSocket | null>(null);
 
   const initChatWebSocket = (username: string) => {
-    if (!chatWebsocketRef.current || isWebSocketClosed(chatWebsocketRef.current)) {
+    if (!chatWebsocketRef.current) {
       chatWebsocketRef.current = new WebSocket(
         `${process.env.NEXT_PUBLIC_WS_BASE_URL}/handle_chat/${username}`
       );

@@ -45,7 +45,7 @@ export const MyImageComponent: React.FC<ImageProps> = ({ src, alt, width, height
 };
 
 export const isWebSocketClosed = (webSocket: WebSocket): boolean => {
-    return webSocket.readyState === WebSocket.CLOSED || webSocket.readyState === WebSocket.CLOSING;
+    return webSocket.readyState !== WebSocket.OPEN;
 }
 
   
