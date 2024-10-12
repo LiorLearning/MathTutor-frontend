@@ -39,12 +39,19 @@ export function InterceptorChat() {
 
       chatWebsocketRef.current.onmessage = async (event) => {
         const data = JSON.parse(event.data);
-        const role = data.role
+        var message = data.content;
+        if (data.role === 'correction') {
+          console.log("Inside Messages: ", messages)
+          setMessages(prevMessages => prevMessages.slice(0, -2));
+        } else if (data.role !== 'user' && data.role !== 'assistant') {
+          console.error("Error: Unrecognized role received in WebSocket message:", data.role);
+        }
+
         const finalMessage: Message = {
-          role: role,
-          content: data.content,
+          role: data.role == 'user' ? 'user' : 'assistant',
+          content: message,
           audioUrl: '',
-          message_id: role === 'user' ? `temp-${Date.now()}` : `bot-${Date.now()}`,
+          message_id: data.role === 'user' ? `temp-${Date.now()}` : `bot-${Date.now()}`,
           timestamp: new Date().toISOString(),
           isPlaying: false
         };
@@ -52,6 +59,10 @@ export function InterceptorChat() {
       };
     }
   }
+
+  useEffect(() => {
+    console.log("Messages: ", messages)
+  }, [messages])
 
   // Initialize chat and load history
   useEffect(() => {
@@ -122,7 +133,7 @@ export function InterceptorChat() {
 
   const handleDeleteChat = async () => {
     try {
-      await axios.delete(`${API_BASE_URL}/delete_chat?user_id=${username}`, {
+      await axios.delete(`${API_BASE_URL}/delete_chat/${username}`, {
         headers: {
           'Content-Type': 'application/json',
         }

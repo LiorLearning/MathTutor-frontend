@@ -46,9 +46,19 @@ export function Chat() {
       }
 
       chatWebsocketRef.current.onmessage = async (event) => {
+        const data = JSON.parse(event.data);
+        var message = data.content
+        if (data.role == 'correction') {
+          console.log("Inside Messages: ", messages)
+          setMessages(prevMessages => prevMessages.slice(0, -1));
+        }
+        else {
+          console.error("Error: Unrecognized role received in WebSocket message:", data.role);
+        }
+
         const finalMessage: Message = {
           role: 'assistant',
-          content: event.data, // Get the sentence directly from the event data
+          content: message,
           audioUrl: '',
           message_id: `bot-${Date.now()}`,
           timestamp: new Date().toISOString(),
@@ -214,7 +224,7 @@ export function Chat() {
 
   const handleDeleteChat = async () => {
     try {
-      await axios.delete(`${API_BASE_URL}/delete_chat?user_id=${username}`, {
+      await axios.delete(`${API_BASE_URL}/delete_chat/${username}`, {
         headers: {
           'Content-Type': 'application/json',
         }
