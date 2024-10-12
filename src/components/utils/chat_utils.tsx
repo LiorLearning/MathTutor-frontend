@@ -43,6 +43,11 @@ export const MyImageComponent: React.FC<ImageProps> = ({ src, alt, width, height
         />
     );
 };
+
+export const isWebSocketClosed = (webSocket: WebSocket): boolean => {
+    return webSocket.readyState === WebSocket.CLOSED || webSocket.readyState === WebSocket.CLOSING;
+}
+
   
 export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL + 'api/v1/chat';
 export const SPEECH_API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL + 'api/v1/speech';

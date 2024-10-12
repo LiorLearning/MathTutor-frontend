@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -12,6 +12,7 @@ import {
   Message, 
   StartChatResponse, 
   GetChatHistoryResponse,
+  isWebSocketClosed,
   API_BASE_URL,
   SPEECH_API_BASE_URL,
   MyImageComponent,
@@ -35,6 +36,49 @@ export function Chat() {
   const stt_audioWebsocketRef = useRef<WebSocket | null>(null);
   const chatWebsocketRef = useRef<WebSocket | null>(null);
 
+  const initChatWebSocket = (username: string) => {
+    if (!chatWebsocketRef.current || isWebSocketClosed(chatWebsocketRef.current)) {
+      chatWebsocketRef.current = new WebSocket(
+        `${process.env.NEXT_PUBLIC_WS_BASE_URL}/handle_chat/${username}`
+      );
+      chatWebsocketRef.current.onopen = () => {
+        console.log("Chat WebSocket connection established");
+      }
+
+      chatWebsocketRef.current.onmessage = async (event) => {
+        const finalMessage: Message = {
+          role: 'assistant',
+          content: event.data, // Get the sentence directly from the event data
+          audioUrl: '',
+          message_id: `bot-${Date.now()}`,
+          timestamp: new Date().toISOString(),
+          isPlaying: false
+        };
+        setMessages(prevMessages => [...prevMessages, finalMessage]);
+        if (SPEAKOUT) {
+          toggleAudio(finalMessage);
+        }
+      };
+    }
+  }
+
+  const initAudioWebSocket = () => {
+    if (!stt_audioWebsocketRef.current) {
+      stt_audioWebsocketRef.current = new WebSocket(
+        `${process.env.NEXT_PUBLIC_WS_BASE_URL}/transcribe`
+      );
+      stt_audioWebsocketRef.current.onopen = () => {
+        console.log("Audio WebSocket connection established");
+      }
+
+      stt_audioWebsocketRef.current.onmessage = (event) => {
+        const transcribedText = event.data; // Get the transcribed text from the WebSocket
+        console.log("Transcribed text: ", transcribedText);
+        setInputText(transcribedText); // Update input text with transcribed text
+      };
+    }
+  }
+
   // Initialize chat and load history
   useEffect(() => {
     const initializeChat = async () => {
@@ -57,45 +101,9 @@ export function Chat() {
         }
 
         // WebSocket setup
-        if (!chatWebsocketRef.current) {
-          chatWebsocketRef.current = new WebSocket(
-            `${process.env.NEXT_PUBLIC_WS_BASE_URL}/handle_chat/${username}`
-          );
-          chatWebsocketRef.current.onopen = () => {
-            console.log("Chat WebSocket connection established");
-          }
-
-          chatWebsocketRef.current.onmessage = async (event) => {
-            const finalMessage: Message = {
-              role: 'assistant',
-              content: event.data, // Get the sentence directly from the event data
-              audioUrl: '',
-              message_id: `bot-${Date.now()}`,
-              timestamp: new Date().toISOString(),
-              isPlaying: false
-            };
-            setMessages(prevMessages => [...prevMessages, finalMessage]);
-            if (SPEAKOUT) {
-              toggleAudio(finalMessage);
-            }
-          };
-        }
-
-        if (!stt_audioWebsocketRef.current) {
-          stt_audioWebsocketRef.current = new WebSocket(
-            `${process.env.NEXT_PUBLIC_WS_BASE_URL}/transcribe`
-          );
-          stt_audioWebsocketRef.current.onopen = () => {
-            console.log("Audio WebSocket connection established");
-          }
-
-          stt_audioWebsocketRef.current.onmessage = (event) => {
-            const transcribedText = event.data; // Get the transcribed text from the WebSocket
-            console.log("Transcribed text: ", transcribedText);
-            setInputText(transcribedText); // Update input text with transcribed text
-          };
-        }
-
+        initChatWebSocket(username);
+        initAudioWebSocket();
+        
         // Cleanup function
         return () => {
           if (stt_audioWebsocketRef.current) {
@@ -119,13 +127,13 @@ export function Chat() {
 
     // Cleanup function for chat session
     const cleanup = async () => {
-      console.log("Username:", username);
       try {
         await axios.post(`${API_BASE_URL}/end_chat?user_id=${username}`, {}, {
           headers: {
             'Content-Type': 'application/json',
           }
         });
+        initChatWebSocket(username);
       } catch (error) {
         console.error('Error ending chat:', error);
       }
@@ -133,7 +141,6 @@ export function Chat() {
 
     // Save chat function for chat session
     const saveChat = async () => {
-      console.log("Username:", username);
       try {
         await axios.post(`${API_BASE_URL}/save_chat?user_id=${username}`, {}, {
           headers: {
@@ -149,18 +156,26 @@ export function Chat() {
       cleanup();
     };
 
+    const handleLoad = () => {
+      initChatWebSocket(username);
+    };
+
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'hidden') {
         saveChat();
+      } else if (document.visibilityState === 'visible') {
+        initChatWebSocket(username);
       }
     };
 
     window.addEventListener('beforeunload', handleUnload);
+    window.addEventListener('load', handleLoad);
     document.addEventListener('visibilitychange', handleVisibilityChange);
 
     return () => {
       cleanup();
       window.removeEventListener('beforeunload', handleUnload);
+      window.removeEventListener('load', handleLoad);
       document.removeEventListener('visibilitychange', handleVisibilityChange);      
     }
 
@@ -217,7 +232,7 @@ export function Chat() {
     );
   };
 
-  const handleSendMessage = async () => {
+  const handleSendMessage = useCallback(async () => {
     if (inputText.trim() === "") return;
 
     const userMessage: Message = {
@@ -236,11 +251,67 @@ export function Chat() {
     setIsListening(false);
     setInputText("");
 
-
     if (chatWebsocketRef.current) {
       chatWebsocketRef.current.send(inputText);
     }
-  };
+  }, [inputText]);
+
+  const messageComponents = useMemo(() => (
+    Array.isArray(messages) && messages.map((message, index) => (
+      <div 
+        key={message.message_id} 
+        className="flex flex-col items-center"
+        ref={index === messages.length - 1 && message.role === 'assistant' ? lastBotMessageRef : null}
+      >
+        <div className={`max-w-[80%] ${message.role === 'user' ? 'self-end' : 'self-start'}`}>
+          <div
+            className={`rounded-2xl p-4 ${
+              message.role === 'user'
+                ? 'bg-blue-500 text-white'
+                : 'bg-gray-200 text-gray-800'
+            } ${message.role === 'assistant' && index < messages.length - 1 ? 'opacity-50' : ''} 
+            ${message.role === 'assistant' && index === messages.length - 1 ? 'opacity-100' : ''}`}
+          >
+            <ReactMarkdown
+              components={{
+                img: ({ src, alt }) => (
+                  <MyImageComponent
+                    src={src || ''}
+                    alt={alt || ''}
+                    width={500}
+                    height={300}
+                    className="rounded-lg"
+                    style={{ objectFit: 'contain', width: '100%', height: 'auto' }}
+                  />
+                ),
+                p: ({ children }) => (
+                  <div>{children}</div>
+                ),
+              }}
+            >
+              {message.content}
+            </ReactMarkdown>
+            {message.role === 'assistant' && (
+              <div className="mt-2 flex justify-end">
+                <Button 
+                  size="sm"
+                  variant="outline"
+                  className="rounded px-2 py-1"
+                  onClick={() => toggleAudio(message)}
+                >
+                  {message.isPlaying ? <Pause className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+                </Button>
+              </div>
+            )}
+          </div>
+          <div className="text-xs text-gray-500 mt-1">
+            {new Date(message.timestamp).toLocaleTimeString()}
+          </div>
+        </div>
+      </div>
+    ))
+  ), [messages]);
+
 
   async function generateTextToSpeech(message: Message) {
     try {
@@ -330,65 +401,13 @@ export function Chat() {
           </div>
         </div>
       </header>
-      
+
       <ScrollArea className="flex-grow p-4" ref={scrollAreaRef}>
         <div className="space-y-6">
-          {Array.isArray(messages) && messages.map((message, index) => (
-            <div 
-              key={message.message_id} 
-              className="flex flex-col items-center"
-              ref={index === messages.length - 1 && message.role === 'assistant' ? lastBotMessageRef : null}
-            >
-              <div className={`max-w-[80%] ${message.role === 'user' ? 'self-end' : 'self-start'}`}>
-                <div
-                  className={`rounded-2xl p-4 ${
-                    message.role === 'user'
-                      ? 'bg-blue-500 text-white'
-                      : 'bg-gray-200 text-gray-800'
-                  } ${message.role === 'assistant' && index < messages.length - 1 ? 'opacity-50' : ''} 
-                  ${message.role === 'assistant' && index === messages.length - 1 ? 'opacity-100' : ''}`}
-                >
-                   <ReactMarkdown
-                    components={{
-                      img: ({ src, alt }) => (
-                        <MyImageComponent
-                          src={src || ''}
-                          alt={alt || ''}
-                          width={500}
-                          height={300}
-                          className="rounded-lg"
-                          style={{ objectFit: 'contain', width: '100%', height: 'auto' }}
-                        />
-                      ),
-                      // Add a wrapper for paragraphs to avoid nesting issues
-                      p: ({ children }) => (
-                        <div>{children}</div>
-                      ),
-                    }}
-                  >
-                    {message.content}
-                  </ReactMarkdown>
-                  {message.role === 'assistant' && (
-                    <div className="mt-2 flex justify-end">
-                      <Button 
-                        size="sm"
-                        variant="outline"
-                        className="rounded px-2 py-1"
-                        onClick={() => toggleAudio(message)}
-                      >
-                        {message.isPlaying ? <Pause className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
-                      </Button>
-                    </div>
-                  )}
-                </div>
-                <div className="text-xs text-gray-500 mt-1">
-                  {new Date(message.timestamp).toLocaleTimeString()}
-                </div>
-              </div>
-            </div>
-          ))}
+          {messageComponents}
         </div>
       </ScrollArea>
+      
       
       <div className="p-6 border-t flex items-center">
         <Input 
@@ -412,5 +431,4 @@ export function Chat() {
         </Button>
       </div>
     </div>
-  );
-}
+  );}
