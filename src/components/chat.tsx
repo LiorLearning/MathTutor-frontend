@@ -14,7 +14,6 @@ import {
   GetChatHistoryResponse,
   API_BASE_URL,
   SPEECH_API_BASE_URL,
-  WS_END_SIGNAL,
   MyImageComponent,
 } from '@/components/utils/chat_utils'
 

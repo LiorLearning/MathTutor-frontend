@@ -46,4 +46,3 @@ export const MyImageComponent: React.FC<ImageProps> = ({ src, alt, width, height
   
 export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL + 'api/v1/chat';
 export const SPEECH_API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL + 'api/v1/speech';
-export const WS_END_SIGNAL = "WS_END_SIGNAL";
