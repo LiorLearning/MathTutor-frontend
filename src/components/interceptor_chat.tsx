@@ -4,7 +4,7 @@ import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Send } from "lucide-react"
+import { Send, User } from "lucide-react"
 import { useSearchParams } from 'next/navigation'
 import axios from 'axios'
 import ReactMarkdown from 'react-markdown'
@@ -14,6 +14,47 @@ import {
   API_BASE_URL,
   MyImageComponent,
 } from '@/components/utils/chat_utils'
+
+function UserSidebar({ username }: { username: string }) {
+  const [userContext, setUserContext] = useState<string>('');
+  const [userDetails, setUserDetails] = useState<{ name: string; email: string } | null>(null);
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const contextResponse = await axios.get<{context: string}>(`${API_BASE_URL}/user_context/${username}`);
+        setUserContext(contextResponse.data.context);
+
+        const detailsResponse = await axios.get<{name: string; email: string}>(`${API_BASE_URL}/user_details/${username}`);
+        setUserDetails(detailsResponse.data);
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+      }
+    };
+
+    fetchUserData();
+  }, [username]);
+
+  return (
+    <div className="w-2/5 bg-gray-100 p-4 border-r">
+      <div className="mb-4">
+        <h2 className="text-lg font-semibold mb-2">User Details</h2>
+        {userDetails ? (
+          <div>
+            <p><strong>Name:</strong> {userDetails.name}</p>
+            <p><strong>Email:</strong> {userDetails.email}</p>
+          </div>
+        ) : (
+          <p>Loading user details...</p>
+        )}
+      </div>
+      <div>
+        <h2 className="text-lg font-semibold mb-2">User Context</h2>
+        <p className="text-sm">{userContext || 'Loading user context...'}</p>
+      </div>
+    </div>
+  );
+}
 
 
 export function InterceptorChat() {
@@ -195,50 +236,54 @@ export function InterceptorChat() {
       <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
     </div>;
   }
-  return (
-    <div className="flex flex-col h-screen max-w-4xl mx-auto bg-white">
-      <header className="p-4 border-b">
-        <div className="flex justify-between items-center">
-          <h1 className="text-xl font-bold">MathTutor</h1>
-          <div className="flex items-center gap-2">
-            <h3 className="text-lg text-gray-500">{username}</h3>
-            
-            <Button 
-              className="bg-red-500 text-white" 
-              onClick={handleDeleteChat}
-            >
-              Delete Chat
-            </Button>
-          </div>
-        </div>
-      </header>
 
-      <ScrollArea className="flex-grow p-4" ref={scrollAreaRef}>
-        <div className="space-y-6">
-          {messageComponents}
+  return (
+    <div className="flex h-screen bg-white">
+      <UserSidebar username={username} />
+      <div className="flex flex-col flex-grow">
+        <header className="p-4 border-b">
+          <div className="flex justify-between items-center">
+            <h1 className="text-xl font-bold">MathTutor</h1>
+            <div className="flex items-center gap-2">
+              <User className="h-5 w-5" />
+              <h3 className="text-lg text-gray-500">{username}</h3>
+              <Button 
+                className="bg-red-500 text-white" 
+                onClick={handleDeleteChat}
+              >
+                Delete Chat
+              </Button>
+            </div>
+          </div>
+        </header>
+
+        <ScrollArea className="flex-grow p-4" ref={scrollAreaRef}>
+          <div className="space-y-6">
+            {messageComponents}
+          </div>
+        </ScrollArea>
+        
+        <div className="p-6 border-t flex items-center">
+          <Input 
+            className="flex-grow mr-2 h-12"
+            placeholder="Type your message..." 
+            value={inputText}
+            onChange={(e) => setInputText(e.target.value)}
+            onKeyPress={(e) => {
+              if (e.key === 'Enter') {
+                handleSendMessage();
+              }
+            }}
+          />
+          <Button 
+            size="icon" 
+            className="h-12 w-12" 
+            onClick={handleSendMessage}
+            disabled={inputText.trim() === ''}
+          >
+            <Send className="h-5 w-5" />
+          </Button>
         </div>
-      </ScrollArea>
-      
-      <div className="p-6 border-t flex items-center">
-        <Input 
-          className="flex-grow mr-2 h-12"
-          placeholder="Type your message..." 
-          value={inputText}
-          onChange={(e) => setInputText(e.target.value)}
-          onKeyPress={(e) => {
-            if (e.key === 'Enter') {
-              handleSendMessage();
-            }
-          }}
-        />
-        <Button 
-          size="icon" 
-          className="h-12 w-12" 
-          onClick={handleSendMessage}
-          disabled={inputText.trim() === ''}
-        >
-          <Send className="h-5 w-5" />
-        </Button>
       </div>
     </div>
   );

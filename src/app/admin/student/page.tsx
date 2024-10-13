@@ -1,10 +1,11 @@
 import { Header } from "@/components/header";
-import { HomePageComponent } from "@/components/home";
+import { ManageStudentsComponent } from "@/components/manage-students";
 
 export default function HomePage() {
   return (
     <>
       <Header />
+      <ManageStudentsComponent />
     </>
   );
 }
