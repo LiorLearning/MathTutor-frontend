@@ -20,7 +20,7 @@ export function Header() {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-12 w-12 rounded-full p-0">
                 <Avatar className="h-12 w-12 border-2 border-white">
-                  <AvatarImage src="/placeholder-avatar.jpg" alt="Kid's profile" />
+                  <AvatarImage src="/images/placeholder-avatar.jpg" alt="Kid's profile" />
                   <AvatarFallback className="text-xl font-bold text-blue-500 bg-white">KB</AvatarFallback>
                 </Avatar>
               </Button>
@@ -28,7 +28,7 @@ export function Header() {
             <DropdownMenuContent className="w-56 bg-white rounded-xl shadow-lg" align="end">
               <div className="flex items-center p-4 space-x-4">
                 <Avatar className="h-10 w-10">
-                  <AvatarImage src="/placeholder-avatar.jpg" alt="Kid's profile" />
+                  <AvatarImage src="/images/placeholder-avatar.jpg" alt="Kid's profile" />
                   <AvatarFallback className="text-lg font-bold text-blue-500 bg-yellow-300">KB</AvatarFallback>
                 </Avatar>
                 <div>

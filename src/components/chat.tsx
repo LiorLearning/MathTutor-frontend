@@ -110,8 +110,6 @@ export function Chat() {
         const message = data.content;
         if (data.role === 'correction') {
           setMessages(prevMessages => prevMessages.slice(0, -1));
-        } else {
-          console.error("Error: Unrecognized role received in WebSocket message:", data.role);
         }
 
         const finalMessage: Message = {
@@ -188,7 +186,7 @@ export function Chat() {
 
     const cleanup = async () => {
       try {
-        await axios.post(`${API_BASE_URL}/end_chat?user_id=${username}`, {}, {
+        await axios.post(`${API_BASE_URL}/end_chat/${username}`, {}, {
           headers: {
             'Content-Type': 'application/json',
           }
@@ -200,7 +198,7 @@ export function Chat() {
 
     const saveChat = async () => {
       try {
-        await axios.post(`${API_BASE_URL}/save_chat?user_id=${username}`, {}, {
+        await axios.post(`${API_BASE_URL}/save_chat/${username}`, {}, {
           headers: {
             'Content-Type': 'application/json',
           }
