@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { User, Cake, GraduationCap, Search, ArrowLeft, ChevronDown, ChevronUp } from "lucide-react"
+import { User, Cake, Search, ArrowLeft, ChevronDown, ChevronUp } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import axios from 'axios'

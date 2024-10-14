@@ -1,7 +1,7 @@
 import { Header } from "@/components/header";
 import { StudentList } from "@/components/student-list";
 
-export default function HomePage() {
+export default function AllStudentsPage() {
   return (
     <>
       <Header />
