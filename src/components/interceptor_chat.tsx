@@ -84,7 +84,6 @@ export function InterceptorChat() {
         const data = JSON.parse(event.data);
         const message = data.content;
         if (data.role === 'correction') {
-          console.log("Inside Messages: ", messages)
           setMessages(prevMessages => prevMessages.slice(0, -2));
         } else if (data.role !== 'user' && data.role !== 'assistant') {
           console.error("Error: Unrecognized role received in WebSocket message:", data.role);
@@ -101,7 +100,7 @@ export function InterceptorChat() {
         setMessages(prevMessages => [...prevMessages, finalMessage]);
       };
     }
-  }, [messages]);
+  }, [username]);
 
   useEffect(() => {
     console.log("Messages: ", messages)
