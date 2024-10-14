@@ -267,20 +267,6 @@ export function Chat() {
     }
   }, [messages]);
 
-  const handleDeleteChat = async () => {
-    try {
-      await axios.delete(`${API_BASE_URL}/delete_chat/${username}`, {
-        headers: {
-          'Content-Type': 'application/json',
-        }
-      });
-      setMessages([]);
-      console.log("Chat deleted successfully.");
-    } catch (error) {
-      console.error('Error deleting chat:', error);
-    }
-  };
-
   const resetIsPlaying = () => {
     setMessages(prevMessages => 
       prevMessages.map(msg => ({ ...msg, isPlaying: false }))
@@ -374,13 +360,6 @@ export function Chat() {
           <h1 className="text-xl font-bold">MathTutor</h1>
           <div className="flex items-center gap-2">
             <h3 className="text-lg text-gray-500">{username}</h3>
-            
-            <Button 
-              className="bg-red-500 text-white" 
-              onClick={handleDeleteChat}
-            >
-              Delete Chat
-            </Button>
           </div>
         </div>
       </header>
