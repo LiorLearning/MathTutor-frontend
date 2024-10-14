@@ -2,19 +2,23 @@
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { useSearchParams } from 'next/navigation'
 import { CalendarPlus, MessageCircle, ArrowLeft } from "lucide-react"
 import Link from "next/link"
 
 export function ManageStudentsComponent() {
+  const searchParams = useSearchParams();
+  const username = searchParams.get('username') || 'testuser';
+
   return (
     <div className="flex flex-col min-h-screen">
       <main className="flex-grow container mx-auto py-8 px-4">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-3xl font-bold">Manage Students</h2>
-          <Link href="/admin-home">
+          <Link href="/admin/all-students">
             <Button variant="outline" className="flex items-center">
               <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Dashboard
+              Back to Students List
             </Button>
           </Link>
         </div>
@@ -40,13 +44,21 @@ export function ManageStudentsComponent() {
               <CardTitle>Quick Actions</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex flex-col space-y-4">
-                <Button className="bg-blue-500 hover:bg-blue-600 text-white flex items-center justify-center mx-auto w-3/5">
-                  <CalendarPlus className="mr-2 h-4 w-4" />
-                  Schedule New Class
-                </Button>
-                <Link href="/chat">
-                  <Button className="bg-blue-500 hover:bg-blue-600 text-white flex items-center justify-center mx-auto w-3/5">
+              <div className="flex flex-col space-y-4 w-3/5 mx-auto">
+                <Link href={`/admin/schedule?username=${username}`}>
+                  <Button className="bg-blue-500 hover:bg-blue-600 text-white flex items-center justify-center w-full">
+                    <CalendarPlus className="mr-2 h-4 w-4" />
+                    Schedule New Class
+                  </Button>
+                </Link>
+                <Link href={`/admin/interceptor?username=${username}`}>
+                  <Button className="bg-blue-500 hover:bg-blue-600 text-white flex items-center justify-center w-full">
+                    <MessageCircle className="mr-2 h-4 w-4" />
+                    Go to Interceptor Page
+                  </Button>
+                </Link>
+                <Link href={`/chat?username=${username}`}>
+                  <Button className="bg-blue-500 hover:bg-blue-600 text-white flex items-center justify-center w-full">
                     <MessageCircle className="mr-2 h-4 w-4" />
                     Go to Chat Page
                   </Button>
@@ -139,10 +151,6 @@ export function ManageStudentsComponent() {
           </CardContent>
         </Card>
       </main>
-
-      <footer className="bg-gray-100 py-4 px-6 text-center text-sm text-gray-600">
-        © 2023 MathMentor AI. All rights reserved.
-      </footer>
     </div>
   )
 }

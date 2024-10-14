@@ -1,50 +1,55 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { User, Cake, GraduationCap, Search } from "lucide-react"
-import { ArrowLeft } from "lucide-react"
+import { User, Cake, GraduationCap, Search, ArrowLeft, ChevronDown, ChevronUp } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
+import axios from 'axios'
+import { Student, API_BASE_URL } from '@/components/utils/admin_utils'
 
-// Mock data for students
-const students = [
-  { userName: "jsmith", firstName: "John", lastName: "Smith", age: 20, context: "Undergraduate" },
-  { userName: "mjohnson", firstName: "Mary", lastName: "Johnson", age: 22, context: "Graduate" },
-  { userName: "rwilliams", firstName: "Robert", lastName: "Williams", age: 19, context: "Undergraduate" },
-  { userName: "ebrown", firstName: "Emily", lastName: "Brown", age: 21, context: "Undergraduate" },
-  { userName: "djones", firstName: "David", lastName: "Jones", age: 23, context: "Graduate" },
-]
 
 export function StudentList() {
   const [searchTerm, setSearchTerm] = useState('')
+  const [students, setStudents] = useState<Student[]>([])
+  const [expandedCards, setExpandedCards] = useState<{ [key: string]: boolean }>({})
 
-  const handleCardClick = (userName: string) => {
-    console.log(`Clicked on student: ${userName}`)
-    // Here you would typically navigate to a detail page or open a modal
-    // For example: router.push(`/students/${userName}`)
-  }
+  useEffect(() => {
+    const fetchStudents = async () => {
+      try {
+        const response = await axios.get<Student[]>(`${API_BASE_URL}/users/`);
+        setStudents(response.data);
+      } catch (error) {
+        console.error('Error fetching students:', error);
+      }
+    };
+
+    fetchStudents();
+  }, []);
 
   const filteredStudents = students.filter(student => 
-    student.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    student.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    student.userName.toLowerCase().includes(searchTerm.toLowerCase())
+    student.first_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    student.last_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    student.userid.toLowerCase().includes(searchTerm.toLowerCase())
   )
+
+  const toggleExpand = (userid: string, event: React.MouseEvent) => {
+    event.stopPropagation();
+    setExpandedCards(prev => ({ ...prev, [userid]: !prev[userid] }));
+  }
 
   return (
     <div className="container mx-auto py-10 px-4">
-      <h1 className="text-2xl font-bold mb-5">Student List</h1>
-
       <div className="flex justify-between items-center mb-6">
-          <h2 className="text-3xl font-bold">Manage Students</h2>
-          <Link href="/admin-home">
-            <Button variant="outline" className="flex items-center">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Dashboard
-            </Button>
-          </Link>
-        </div>
+        <h1 className="text-2xl font-bold mb-5">Student List</h1>
+        <Link href="/admin">
+          <Button variant="outline" className="flex items-center">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Dashboard
+          </Button>
+        </Link>
+      </div>
 
       <div className="mb-6 relative">
         <Input
@@ -57,27 +62,69 @@ export function StudentList() {
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
       </div>
       <div className="space-y-4">
-        {filteredStudents.map((student) => (
+        {filteredStudents.map((student, index) => (
           <Card 
-            key={student.userName} 
+            key={`${student.userid}-${index}`} 
             className="w-full cursor-pointer hover:shadow-lg transition-shadow"
-            onClick={() => handleCardClick(student.userName)}
+            onClick={() => window.location.assign(`/admin/student?username=${student.userid}`)}
           >
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <User className="h-5 w-5" />
-                {student.firstName} {student.lastName}
+                {student.first_name} {student.last_name}
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground mb-2">@{student.userName}</p>
-              <div className="flex items-center gap-2 text-sm">
-                <Cake className="h-4 w-4" />
-                <span>{student.age} years old</span>
+              <div className="flex justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground mb-2">@{student.userid}</p>
+                  <div className="flex items-center gap-2 text-sm">
+                    <Cake className="h-4 w-4" />
+                    <span>{student.age} years old</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm mt-2">
+                    <span className="font-semibold">Guardian:</span>
+                    <span>{student.parent_guardian}</span>
+                  </div>
+                </div>
               </div>
-              <div className="flex items-center gap-2 text-sm mt-2">
-                <GraduationCap className="h-4 w-4" />
-                <span>{student.context}</span>
+              {expandedCards[student.userid] && (
+                <div className="mt-4">
+                  
+                  <div className="flex items-center gap-2 text-sm mt-2">
+                    <span className="font-semibold">Country:</span>
+                    <span>{student.country}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm mt-2">
+                    <span className="font-semibold">Grade:</span>
+                    <span>{student.grade}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm mt-2">
+                    <span className="font-semibold">Email:</span>
+                    <span>{student.email}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm mt-2">
+                    <span className="font-semibold">Phone:</span>
+                    <span>{student.phone}</span>
+                  </div>
+                  <div className="mt-2">
+                    <span className="font-semibold">Context:</span>
+                    <p className="text-sm mt-1">{student.user_context}</p>
+                  </div>
+                </div>
+              )}
+              <div className='flex justify-end'>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={(e) => toggleExpand(student.userid, e)}
+                >
+                  {expandedCards[student.userid] ? (
+                    <ChevronUp className="h-4 w-4" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4" />
+                  )}
+                </Button>
               </div>
             </CardContent>
           </Card>
@@ -87,5 +134,5 @@ export function StudentList() {
         )}
       </div>
     </div>
-  )
+  );
 }
