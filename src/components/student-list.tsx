@@ -7,7 +7,7 @@ import { User, Cake, GraduationCap, Search, ArrowLeft, ChevronDown, ChevronUp } 
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import axios from 'axios'
-import { Student, API_BASE_URL } from '@/components/utils/admin_utils'
+import { Student, MODEL_API_BASE_URL } from '@/components/utils/admin_utils'
 
 
 export function StudentList() {
@@ -18,7 +18,7 @@ export function StudentList() {
   useEffect(() => {
     const fetchStudents = async () => {
       try {
-        const response = await axios.get<Student[]>(`${API_BASE_URL}/users/`);
+        const response = await axios.get<Student[]>(`${MODEL_API_BASE_URL}/users/`);
         setStudents(response.data);
       } catch (error) {
         console.error('Error fetching students:', error);

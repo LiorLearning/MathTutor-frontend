@@ -1,14 +1,31 @@
 'use client'
 
+import { useEffect, useState } from 'react';
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useSearchParams } from 'next/navigation'
 import { CalendarPlus, MessageCircle, ArrowLeft } from "lucide-react"
 import Link from "next/link"
+import axios from 'axios';
+import { Student, MODEL_API_BASE_URL } from '@/components/utils/admin_utils';
 
 export function ManageStudentsComponent() {
   const searchParams = useSearchParams();
   const username = searchParams.get('username') || 'testuser';
+  const [studentDetails, setStudentDetails] = useState<Student | null>(null);
+
+  useEffect(() => {
+    const fetchStudentDetails = async () => {
+      try {
+        const response = await axios.get<Student>(`${MODEL_API_BASE_URL}/users/${username}`);
+        setStudentDetails(response.data);
+      } catch (error) {
+        console.error('Error fetching student details:', error);
+      }
+    };
+
+    fetchStudentDetails();
+  }, [username]);
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -30,12 +47,18 @@ export function ManageStudentsComponent() {
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
-                <p><strong>Name:</strong> Alex Thompson</p>
-                <p><strong>Grade:</strong> 4th</p>
-                <p><strong>Age:</strong> 9</p>
-                <p><strong>Parent/Guardian:</strong> Sarah Thompson</p>
-                <p><strong>Email:</strong> sarah.thompson@example.com</p>
-                <p><strong>Phone:</strong> (555) 123-4567</p>
+                {studentDetails ? (
+                  <>
+                    <p><strong>Name:</strong> {studentDetails.first_name} {studentDetails.last_name}</p>
+                    <p><strong>Grade:</strong> {studentDetails.grade}</p>
+                    <p><strong>Age:</strong> {studentDetails.age}</p>
+                    <p><strong>Parent/Guardian:</strong> {studentDetails.parent_guardian}</p>
+                    <p><strong>Email:</strong> {studentDetails.email}</p>
+                    <p><strong>Phone:</strong> {studentDetails.phone}</p>
+                  </>
+                ) : (
+                  <p>Loading student details...</p>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -73,7 +96,7 @@ export function ManageStudentsComponent() {
             <CardTitle>User context</CardTitle>
           </CardHeader>
           <CardContent>
-            <p>This section provides an overview of the user context, including the student's current status, recent activities, and any important notes for the teacher or guardian. It is essential to keep this information updated to ensure effective communication and support for the student's learning journey.</p>
+            <p>{studentDetails?.user_context}</p>
           </CardContent>
         </Card>
 

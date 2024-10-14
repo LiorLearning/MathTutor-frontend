@@ -14,19 +14,16 @@ import {
   API_BASE_URL,
   MyImageComponent,
 } from '@/components/utils/chat_utils'
+import { Student, MODEL_API_BASE_URL } from '@/components/utils/admin_utils'
 
 function UserSidebar({ username }: { username: string }) {
-  const [userContext, setUserContext] = useState<string>('');
-  const [userDetails, setUserDetails] = useState<{ name: string; email: string } | null>(null);
+  const [studentDetails, setStudentDetails] = useState<Student | null>(null);
 
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const contextResponse = await axios.get<{context: string}>(`${API_BASE_URL}/user_context/${username}`);
-        setUserContext(contextResponse.data.context);
-
-        const detailsResponse = await axios.get<{name: string; email: string}>(`${API_BASE_URL}/user_details/${username}`);
-        setUserDetails(detailsResponse.data);
+        const response = await axios.get<Student>(`${MODEL_API_BASE_URL}/users/${username}`);
+        setStudentDetails(response.data);
       } catch (error) {
         console.error('Error fetching user data:', error);
       }
@@ -36,13 +33,19 @@ function UserSidebar({ username }: { username: string }) {
   }, [username]);
 
   return (
-    <div className="w-2/5 bg-gray-100 p-4 border-r">
+    <div className="w-1/4 bg-gray-100 p-4 border-r">
       <div className="mb-4">
         <h2 className="text-lg font-semibold mb-2">User Details</h2>
-        {userDetails ? (
+        {studentDetails ? (
           <div>
-            <p><strong>Name:</strong> {userDetails.name}</p>
-            <p><strong>Email:</strong> {userDetails.email}</p>
+            <p><strong>User ID:</strong> {studentDetails.userid}</p>
+            <p><strong>Name:</strong> {studentDetails.first_name} {studentDetails.last_name}</p>
+            <p><strong>Grade:</strong> {studentDetails.grade}</p>
+            <p><strong>Age:</strong> {studentDetails.age}</p>
+            <p><strong>Parent/Guardian:</strong> {studentDetails.parent_guardian}</p>
+            <p><strong>Email:</strong> {studentDetails.email}</p>
+            <p><strong>Phone:</strong> {studentDetails.phone}</p>
+            <p><strong>Country:</strong> {studentDetails.country}</p>
           </div>
         ) : (
           <p>Loading user details...</p>
@@ -50,7 +53,7 @@ function UserSidebar({ username }: { username: string }) {
       </div>
       <div>
         <h2 className="text-lg font-semibold mb-2">User Context</h2>
-        <p className="text-sm">{userContext || 'Loading user context...'}</p>
+        <p className="text-sm">{studentDetails?.user_context || 'Loading user context...'}</p>
       </div>
     </div>
   );
