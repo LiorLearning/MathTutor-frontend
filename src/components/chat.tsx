@@ -17,7 +17,7 @@ import {
   MyImageComponent,
 } from '@/components/utils/chat_utils'
 
-const SPEAKOUT = false;
+const SPEAKOUT = true;
 const PLAYBACK_RATE = 1;
 
 export function Chat() {
