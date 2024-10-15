@@ -8,6 +8,8 @@ import { Send, Pause, Volume2 } from "lucide-react"
 import { useSearchParams } from 'next/navigation'
 import axios from 'axios'
 import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
+import remarkBreaks from 'remark-breaks';
 import { 
   Message, 
   StartChatResponse, 
@@ -33,6 +35,7 @@ export function Chat() {
   const lastBotMessageRef = useRef<HTMLDivElement>(null);
   const stt_audioWebsocketRef = useRef<WebSocket | null>(null);
   const chatWebsocketRef = useRef<WebSocket | null>(null);
+  const messageStreamIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const generateTextToSpeech = useCallback(async (message: Message) => { // Wrapped in useCallback
     try {
@@ -121,10 +124,15 @@ export function Chat() {
           isPlaying: false
         };
 
+        // Clear the previous streaming interval if it exists
+        if (messageStreamIntervalRef.current) {
+          clearInterval(messageStreamIntervalRef.current);
+        }
+
         // Stream the message content slowly
         const streamMessage = (fullMessage: string) => {
           let index = 0;
-          const interval = setInterval(() => {
+          messageStreamIntervalRef.current = setInterval(() => { // Store the interval ID
             if (index < fullMessage.length) {
               finalMessage.content += fullMessage[index++];
               setMessages(prevMessages => {
@@ -132,7 +140,8 @@ export function Chat() {
                 return [...updatedMessages, finalMessage];
               });
             } else {
-              clearInterval(interval);
+              clearInterval(messageStreamIntervalRef.current!);
+              messageStreamIntervalRef.current = null; // Reset the ref
             }
           }, 10); // Adjust the speed of streaming here
         };
@@ -314,78 +323,40 @@ export function Chat() {
     Array.isArray(messages) && messages.map((message, index) => (
       <div 
         key={message.message_id} 
-        className="flex flex-col items-center"
+        className="flex flex-col items-center justify-center h-full"
         ref={index === messages.length - 1 && message.role === 'assistant' ? lastBotMessageRef : null}
       >
         <div className={`max-w-[90%] ${message.role === 'user' ? 'self-end' : 'self-start'}`}>
           <div
-            className={`rounded-2xl p-4 ${
+            className={`rounded-3xl p-4 ${
               message.role === 'user'
                 ? 'bg-blue-500 text-white'
-                : 'bg-white-200 text-gray-800'
+                : 'bg-gray-50 text-gray-800'
             } ${message.role === 'assistant' && index < messages.length - 1 ? 'opacity-50' : ''} 
             ${message.role === 'assistant' && index === messages.length - 1 ? 'opacity-100' : ''}`}
           >
             <ReactMarkdown
+              remarkPlugins={[remarkGfm, remarkBreaks]}
               components={{
+                h1: ({node, ...props}) => <h1 className="text-4xl font-bold my-4" {...props} />,
+                h2: ({node, ...props}) => <h2 className="text-3xl font-bold my-3" {...props} />,
+                h3: ({node, ...props}) => <h3 className="text-2xl font-bold my-2" {...props} />,
+                p: ({node, ...props}) => <p className="" {...props} />,
+                a: ({node, ...props}) => <a className="text-blue-500 underline" {...props} />,
+                blockquote: ({node, ...props}) => <blockquote className="border-l-4 pl-4 italic text-gray-600" {...props} />,
+                ul: ({node, ...props}) => <ul className="list-disc pl-5" {...props} />,
+                ol: ({node, ...props}) => <ol className="list-decimal pl-5" {...props} />,
+                br: () => <br key={Math.random()} />,
                 img: ({ src, alt }) => (
                   <MyImageComponent
                     src={src || ''}
                     alt={alt || ''}
-                    width={400}
-                    height={250}
+                    width={500}
+                    height={300}
                     className="rounded-lg"
-                    style={{ objectFit: 'cover', width: '100%', height: 'auto' }}
+                    style={{ objectFit: 'contain', width: '100%', height: 'auto' }}
                   />
                 ),
-
-                p: ({ children }) => (
-                  <p className="mb-1">{children}</p>
-                ),
-
-                h1: ({ children }) => (
-                  <h1 className="text-2xl font-bold my-2">{children}</h1>
-                ),
-
-                h2: ({ children }) => (
-                  <h2 className="text-xl font-semibold my-2">{children}</h2>
-                ),
-
-                h3: ({ children }) => (
-                  <h3 className="text-lg font-medium my-1">{children}</h3>
-                ),
-
-                h4: ({ children }) => (
-                  <h4 className="text-md font-medium my-1">{children}</h4>
-                ),
-
-                h5: ({ children }) => (
-                  <h5 className="text-sm font-medium my-1">{children}</h5>
-                ),
-
-                h6: ({ children }) => (
-                  <h6 className="text-xs font-medium my-1">{children}</h6>
-                ),
-
-                blockquote: ({ children }) => (
-                  <blockquote className="border-l-4 border-gray-300 pl-3 italic my-1">
-                    {children}
-                  </blockquote>
-                ),
-
-                ul: ({ children }) => (
-                  <ul className="list-disc pl-4 my-1">{children}</ul>
-                ),
-
-                ol: ({ children }) => (
-                  <ol className="list-decimal pl-4 my-1">{children}</ol>
-                ),
-
-                li: ({ children }) => (
-                  <li className="mb-1">{children}</li>
-                ),
-
-                br: () => <br />, // Handle line breaks
               }}
             >
               {message.content}

@@ -8,6 +8,8 @@ import { Send, User } from "lucide-react"
 import { useSearchParams } from 'next/navigation'
 import axios from 'axios'
 import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
+import remarkBreaks from 'remark-breaks';
 import { 
   Message, 
   GetChatHistoryResponse,
@@ -193,12 +195,12 @@ export function InterceptorChat() {
     Array.isArray(messages) && messages.map((message, index) => (
       <div 
         key={message.message_id} 
-        className="flex flex-col items-center"
+        className="flex flex-col items-center justify-center h-full"
         ref={index === messages.length - 1 && message.role === 'assistant' ? lastBotMessageRef : null}
       >
-        <div className={`max-w-[80%] ${message.role === 'user' ? 'self-end' : 'self-start'}`}>
+        <div className={`max-w-[90%] ${message.role === 'user' ? 'self-end' : 'self-start'}`}>
           <div
-            className={`rounded-2xl p-4 ${
+            className={`rounded-3xl p-4 ${
               message.role === 'user'
                 ? 'bg-blue-500 text-white'
                 : 'bg-gray-200 text-gray-800'
@@ -206,7 +208,17 @@ export function InterceptorChat() {
             ${message.role === 'assistant' && index === messages.length - 1 ? 'opacity-100' : ''}`}
           >
             <ReactMarkdown
+              remarkPlugins={[remarkGfm, remarkBreaks]}
               components={{
+                h1: ({node, ...props}) => <h1 className="text-4xl font-bold my-4" {...props} />,
+                h2: ({node, ...props}) => <h2 className="text-3xl font-bold my-3" {...props} />,
+                h3: ({node, ...props}) => <h3 className="text-2xl font-bold my-2" {...props} />,
+                p: ({node, ...props}) => <p className="" {...props} />,
+                a: ({node, ...props}) => <a className="text-blue-500 underline" {...props} />,
+                blockquote: ({node, ...props}) => <blockquote className="border-l-4 pl-4 italic text-gray-600" {...props} />,
+                ul: ({node, ...props}) => <ul className="list-disc pl-5" {...props} />,
+                ol: ({node, ...props}) => <ol className="list-decimal pl-5" {...props} />,
+                br: () => <br key={Math.random()} />,
                 img: ({ src, alt }) => (
                   <MyImageComponent
                     src={src || ''}
@@ -216,9 +228,6 @@ export function InterceptorChat() {
                     className="rounded-lg"
                     style={{ objectFit: 'contain', width: '100%', height: 'auto' }}
                   />
-                ),
-                p: ({ children }) => (
-                  <div>{children}</div>
                 ),
               }}
             >
