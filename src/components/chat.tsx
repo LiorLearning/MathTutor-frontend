@@ -17,7 +17,7 @@ import {
   MyImageComponent,
 } from '@/components/utils/chat_utils'
 
-const SPEAKOUT = true;
+const SPEAKOUT = false;
 const PLAYBACK_RATE = 1;
 
 export function Chat() {
@@ -114,13 +114,31 @@ export function Chat() {
 
         const finalMessage: Message = {
           role: 'assistant',
-          content: message,
+          content: '',
           audioUrl: '',
           message_id: `bot-${Date.now()}`,
           timestamp: new Date().toISOString(),
           isPlaying: false
         };
-        setMessages(prevMessages => [...prevMessages, finalMessage]);
+
+        // Stream the message content slowly
+        const streamMessage = (fullMessage: string) => {
+          let index = 0;
+          const interval = setInterval(() => {
+            if (index < fullMessage.length) {
+              finalMessage.content += fullMessage[index++];
+              setMessages(prevMessages => {
+                const updatedMessages = prevMessages.filter(msg => msg.message_id !== finalMessage.message_id);
+                return [...updatedMessages, finalMessage];
+              });
+            } else {
+              clearInterval(interval);
+            }
+          }, 20); // Adjust the speed of streaming here
+        };
+
+        streamMessage(message);
+
         if (SPEAKOUT) {
           toggleAudio(finalMessage);
         }
