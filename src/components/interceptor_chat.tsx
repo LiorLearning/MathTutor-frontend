@@ -68,6 +68,7 @@ export function InterceptorChat() {
   
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState("");
+  const [correctionText, setCorrectionText] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const lastBotMessageRef = useRef<HTMLDivElement>(null);
@@ -187,9 +188,33 @@ export function InterceptorChat() {
     setInputText("");
 
     if (chatWebsocketRef.current) {
-      chatWebsocketRef.current.send(inputText);
+      chatWebsocketRef.current.send(JSON.stringify({
+        'role': 'input',
+        'content': inputText
+      }));
     }
   }, [inputText]);
+
+  const handleCorrectionMessage = useCallback(async () => {
+    if (correctionText.trim() === "") return;
+
+    const userMessage: Message = {
+      role: 'user',
+      content: correctionText,
+      message_id: `temp-${Date.now()}`,
+      timestamp: new Date().toISOString()
+    };
+
+    setMessages(prevMessages => [...prevMessages, userMessage]);
+    setCorrectionText("");
+
+    if (chatWebsocketRef.current) {
+      chatWebsocketRef.current.send(JSON.stringify({
+        'role': 'correction',
+        'content': correctionText,
+      }));
+    }
+  }, [correctionText]);
 
   const messageComponents = useMemo(() => (
     Array.isArray(messages) && messages.map((message, index) => (
@@ -273,11 +298,33 @@ export function InterceptorChat() {
             {messageComponents}
           </div>
         </ScrollArea>
-        
-        <div className="p-6 border-t flex items-center">
+
+        <div className="p-6 border-t flex items-center bg-gray-200">
           <Input 
-            className="flex-grow mr-2 h-12"
-            placeholder="Type your message..." 
+            className="flex-grow mr-2 h-12 bg-white"
+            placeholder="Update last assistant message..." 
+            value={correctionText}
+            onChange={(e) => setCorrectionText(e.target.value)}
+            onKeyPress={(e) => {
+              if (e.key === 'Enter') {
+                handleCorrectionMessage();
+              }
+            }}
+          />
+          <Button 
+            size="icon" 
+            className="h-12 w-12" 
+            onClick={handleCorrectionMessage}
+            disabled={correctionText.trim() === ''}
+          >
+            <Send className="h-5 w-5" />
+          </Button>
+        </div>
+        
+        <div className="p-6 border-t flex items-center bg-blue-200">
+          <Input 
+            className="flex-grow mr-2 h-12 bg-white"
+            placeholder="Send follow up message..." 
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
             onKeyPress={(e) => {
