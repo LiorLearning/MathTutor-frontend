@@ -27,6 +27,7 @@ export function Chat() {
   const username = searchParams.get('username') || 'testuser';
   
   const [messages, setMessages] = useState<Message[]>([]);
+  const [htmlContent, setHtmlContent] = useState("");
   const [chatId, setChatId] = useState("");
   const [inputText, setInputText] = useState("");
   const [isLoading, setIsLoading] = useState(true);
@@ -69,6 +70,24 @@ export function Chat() {
       console.error('Error generating text-to-speech:', error);
     }
   }, []); // Add dependencies if needed
+
+  const generateHtml = useCallback(() => {
+    const websocket = new WebSocket(`${process.env.NEXT_PUBLIC_WS_BASE_URL}/generate_html/${username}`);
+
+    setHtmlContent('');
+    
+    websocket.onopen = () => {
+      console.log("WebSocket connection established for HTML generation");
+    };
+
+    websocket.onmessage = (event) => {
+      setHtmlContent(prevHtml => prevHtml + event.data);
+    };
+
+    return () => {
+      websocket.close();
+    };
+  }, [username]);
 
   const toggleAudio = useCallback((message: Message) => {
     if (!message.audioUrl) {
@@ -286,11 +305,12 @@ export function Chat() {
   }, []);
 
   useEffect(() => {
-    if (scrollAreaRef.current) {
-      const scrollElement = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
-      if (scrollElement) {
-        scrollElement.scrollTop = scrollElement.scrollHeight;
-      }
+    const scrollElement = scrollAreaRef.current?.querySelector('[data-radix-scroll-area-viewport]');
+    if (scrollElement) {
+      scrollElement.scrollTo({
+        top: scrollElement.scrollHeight,
+        behavior: 'smooth' // Smooth scrolling effect
+      });
     }
   }, [messages]);
 
@@ -388,42 +408,57 @@ export function Chat() {
     </div>;
   }
   return (
-    <div className="flex flex-col h-screen max-w-4xl mx-auto bg-white">
-      <header className="p-4 border-b">
-        <div className="flex justify-between items-center">
-          <h1 className="text-xl font-bold">MathTutor</h1>
-          <div className="flex items-center gap-2">
-            <h3 className="text-lg text-gray-500">{username}</h3>
+    <div className="flex h-screen mx-auto bg-white">
+      <div className="w-1/2 flex flex-col p-4 border-r">
+        <header className="p-4 border-b">
+          <div className="flex justify-between items-center">
+            <h1 className="text-xl font-bold">MathTutor</h1>
+            <div className="flex items-center gap-2">
+              <h3 className="text-lg text-gray-500">{username}</h3>
+            </div>
           </div>
-        </div>
-      </header>
+        </header>
 
-      <ScrollArea className="flex-grow p-4" ref={scrollAreaRef}>
-        <div className="space-y-6">
-          {messageComponents}
+        <ScrollArea className="flex-grow p-4">
+          <div className="space-y-6">
+            {messageComponents}
+          </div>
+        </ScrollArea>
+        
+        <div className="p-6 border-t flex items-center">
+          <Input 
+            className="flex-grow mr-2 h-12"
+            placeholder="Type your message..." 
+            value={inputText}
+            onChange={(e) => setInputText(e.target.value)}
+            onKeyPress={(e) => {
+              if (e.key === 'Enter') {
+                handleSendMessage();
+              }
+            }}
+          />
+          <Button 
+            size="icon" 
+            className="h-12 w-12" 
+            onClick={handleSendMessage}
+            disabled={inputText.trim() === ''}
+          >
+            <Send className="h-5 w-5" />
+          </Button>
         </div>
-      </ScrollArea>
-      
-      <div className="p-6 border-t flex items-center">
-        <Input 
-          className="flex-grow mr-2 h-12"
-          placeholder="Type your message..." 
-          value={inputText}
-          onChange={(e) => setInputText(e.target.value)}
-          onKeyPress={(e) => {
-            if (e.key === 'Enter') {
-              handleSendMessage();
-            }
-          }}
-        />
+      </div>
+      <div className="w-1/2 p-4">
         <Button 
-          size="icon" 
-          className="h-12 w-12" 
-          onClick={handleSendMessage}
-          disabled={inputText.trim() === ''}
+          className="mb-4" 
+          onClick={generateHtml}
         >
-          <Send className="h-5 w-5" />
+          Generate HTML
         </Button>
+        <iframe 
+          srcDoc={htmlContent} 
+          style={{ width: '100%', height: '95%', border: '2px solid #ccc', borderRadius: '4px' }} 
+          title="Generated HTML"
+        />
       </div>
     </div>
   );
