@@ -134,7 +134,7 @@ export function Chat() {
             } else {
               clearInterval(interval);
             }
-          }, 20); // Adjust the speed of streaming here
+          }, 10); // Adjust the speed of streaming here
         };
 
         streamMessage(message);
@@ -317,12 +317,12 @@ export function Chat() {
         className="flex flex-col items-center"
         ref={index === messages.length - 1 && message.role === 'assistant' ? lastBotMessageRef : null}
       >
-        <div className={`max-w-[80%] ${message.role === 'user' ? 'self-end' : 'self-start'}`}>
+        <div className={`max-w-[90%] ${message.role === 'user' ? 'self-end' : 'self-start'}`}>
           <div
             className={`rounded-2xl p-4 ${
               message.role === 'user'
                 ? 'bg-blue-500 text-white'
-                : 'bg-gray-200 text-gray-800'
+                : 'bg-white-200 text-gray-800'
             } ${message.role === 'assistant' && index < messages.length - 1 ? 'opacity-50' : ''} 
             ${message.role === 'assistant' && index === messages.length - 1 ? 'opacity-100' : ''}`}
           >
@@ -332,15 +332,60 @@ export function Chat() {
                   <MyImageComponent
                     src={src || ''}
                     alt={alt || ''}
-                    width={500}
-                    height={300}
+                    width={400}
+                    height={250}
                     className="rounded-lg"
-                    style={{ objectFit: 'contain', width: '100%', height: 'auto' }}
+                    style={{ objectFit: 'cover', width: '100%', height: 'auto' }}
                   />
                 ),
+
                 p: ({ children }) => (
-                  <div>{children}</div>
+                  <p className="mb-1">{children}</p>
                 ),
+
+                h1: ({ children }) => (
+                  <h1 className="text-2xl font-bold my-2">{children}</h1>
+                ),
+
+                h2: ({ children }) => (
+                  <h2 className="text-xl font-semibold my-2">{children}</h2>
+                ),
+
+                h3: ({ children }) => (
+                  <h3 className="text-lg font-medium my-1">{children}</h3>
+                ),
+
+                h4: ({ children }) => (
+                  <h4 className="text-md font-medium my-1">{children}</h4>
+                ),
+
+                h5: ({ children }) => (
+                  <h5 className="text-sm font-medium my-1">{children}</h5>
+                ),
+
+                h6: ({ children }) => (
+                  <h6 className="text-xs font-medium my-1">{children}</h6>
+                ),
+
+                blockquote: ({ children }) => (
+                  <blockquote className="border-l-4 border-gray-300 pl-3 italic my-1">
+                    {children}
+                  </blockquote>
+                ),
+
+                ul: ({ children }) => (
+                  <ul className="list-disc pl-4 my-1">{children}</ul>
+                ),
+
+                ol: ({ children }) => (
+                  <ol className="list-decimal pl-4 my-1">{children}</ol>
+                ),
+
+                li: ({ children }) => (
+                  <li className="mb-1">{children}</li>
+                ),
+
+                br: () => <br />, // Handle line breaks
               }}
             >
               {message.content}
