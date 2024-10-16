@@ -245,7 +245,7 @@ export function InterceptorChat() {
                 ol: ({node, ...props}) => <ol className="list-decimal pl-5" {...props} />,
                 br: () => <br key={Math.random()} />,
                 img: ({ src, alt }) => (
-                  <MyImageComponent
+                  <img
                     src={src || ''}
                     alt={alt || ''}
                     width={500}

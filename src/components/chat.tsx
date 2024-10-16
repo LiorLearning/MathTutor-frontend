@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Send, Pause, Volume2, Square, Mic } from "lucide-react"
 import { useSearchParams } from 'next/navigation'
 import axios from 'axios'
+import { motion } from 'framer-motion'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import remarkBreaks from 'remark-breaks';
@@ -19,8 +20,9 @@ import {
   MyImageComponent,
 } from '@/components/utils/chat_utils'
 
-const SPEAKOUT = false;
+const SPEAKOUT = true;
 const PLAYBACK_RATE = 1;
+
 
 export function Chat() {
   const searchParams = useSearchParams();
@@ -47,7 +49,7 @@ export function Chat() {
 
   const generateTextToSpeech = useCallback(async (message: Message) => { // Wrapped in useCallback
     try {
-      const response = await axios.post(`${SPEECH_API_BASE_URL}/google-tts-proxy`, { text: message.content }, {
+      const response = await axios.post(`${SPEECH_API_BASE_URL}/openai-tts-proxy`, { text: message.content }, {
         headers: { 'Content-Type': 'application/json' },
         responseType: 'blob',
       });
@@ -419,7 +421,7 @@ export function Chat() {
                 ol: ({node, ...props}) => <ol className="list-decimal pl-5" {...props} />,
                 br: () => <br key={Math.random()} />,
                 img: ({ src, alt }) => (
-                  <MyImageComponent
+                  <img
                     src={src || ''}
                     alt={alt || ''}
                     width={500}
@@ -476,9 +478,9 @@ export function Chat() {
           </div>
         </ScrollArea>
         
-        <div className="p-6 border-t flex items-center">
+        <div className="p-6 border-t flex items-center space-x-2">
           <Input 
-            className="flex-grow mr-2 h-12"
+            className="flex-grow h-12"
             placeholder="Type your message..." 
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
@@ -496,16 +498,46 @@ export function Chat() {
           >
             <Send className="h-5 w-5" />
           </Button>
+          <Button
+              onClick={isRecording ? stopRecording : startRecording}
+              className={`w-16 h-16 rounded-full flex items-center justify-center transition-colors ${
+                isRecording ? 'bg-red-500 hover:bg-red-600' : 'bg-blue-500 hover:bg-blue-600'
+              }`}
+              aria-label={isRecording ? 'Stop recording' : 'Start recording'}
+            >
+              {isRecording ? (
+                <Square className="w-6 h-6 text-white" />
+              ) : (
+                <Mic className="w-6 h-6 text-white" />
+              )}
+            </Button>
+            {isRecording && (
+              <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2">
+                <motion.div
+                  className="flex space-x-1"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                >
+                  {[0, 1, 2, 3, 4].map((i) => (
+                    <motion.div
+                      key={i}
+                      className="w-1 h-8 bg-blue-500 rounded-full"
+                      animate={{
+                        height: [8, 32, 8],
+                      }}
+                      transition={{
+                        duration: 0.5,
+                        repeat: Infinity,
+                        repeatType: 'reverse',
+                        delay: i * 0.1,
+                      }}
+                    />
+                  ))}
+                </motion.div>
+              </div>
+            )}
         </div>
-        <div className="mb-4 flex justify-center">
-          <Button 
-            onClick={isRecording ? stopRecording : startRecording}
-            className={`${isRecording ? 'bg-red-500 hover:bg-red-600' : 'bg-blue-500 hover:bg-blue-600'} text-white font-bold py-2 px-4 rounded`}
-          >
-            {isRecording ? <Square className="mr-2" /> : <Mic className="mr-2" />}
-            {isRecording ? 'Stop Recording' : 'Start Recording'}
-          </Button>
-      </div>
       </div>
       <div className="w-1/2 p-4">
         <Button 
