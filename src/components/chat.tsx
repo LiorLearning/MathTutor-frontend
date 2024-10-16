@@ -4,7 +4,7 @@ import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Send, Pause, Volume2 } from "lucide-react"
+import { Send, Pause, Volume2, Square, Mic } from "lucide-react"
 import { useSearchParams } from 'next/navigation'
 import axios from 'axios'
 import ReactMarkdown from 'react-markdown'
@@ -31,12 +31,19 @@ export function Chat() {
   const [chatId, setChatId] = useState("");
   const [inputText, setInputText] = useState("");
   const [isLoading, setIsLoading] = useState(true);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const lastBotMessageRef = useRef<HTMLDivElement>(null);
-  const stt_audioWebsocketRef = useRef<WebSocket | null>(null);
   const chatWebsocketRef = useRef<WebSocket | null>(null);
   const messageStreamIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // Text to Speech
+  const ttsAudioRef = useRef<HTMLAudioElement | null>(null);
+
+  // Speech to Text
+  const sttAudioWebsocketRef = useRef<WebSocket | null>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const [isRecording, setIsRecording] = useState(false);
+
 
   const generateTextToSpeech = useCallback(async (message: Message) => { // Wrapped in useCallback
     try {
@@ -54,10 +61,10 @@ export function Chat() {
         ];
       });
 
-      if (audioRef.current) {
-        audioRef.current.src = audioUrl;
-        audioRef.current.playbackRate = PLAYBACK_RATE;
-        audioRef.current.play().catch(error => {
+      if (ttsAudioRef.current) {
+        ttsAudioRef.current.src = audioUrl;
+        ttsAudioRef.current.playbackRate = PLAYBACK_RATE;
+        ttsAudioRef.current.play().catch(error => {
           console.error('Playback failed:', error);
         });
         setMessages(prevMessages => 
@@ -94,7 +101,7 @@ export function Chat() {
       generateTextToSpeech(message);
     } else {
       if (message.isPlaying) {
-        audioRef.current?.pause();
+        ttsAudioRef.current?.pause();
         message.isPlaying = false;
         setMessages(prevMessages => 
           prevMessages.map(msg => 
@@ -102,10 +109,10 @@ export function Chat() {
           )
         );
       } else {
-        if (audioRef.current) {
-          audioRef.current.src = message.audioUrl;
-          audioRef.current.playbackRate = PLAYBACK_RATE;
-          audioRef.current.play().catch(error => {
+        if (ttsAudioRef.current) {
+          ttsAudioRef.current.src = message.audioUrl;
+          ttsAudioRef.current.playbackRate = PLAYBACK_RATE;
+          ttsAudioRef.current.play().catch(error => {
             console.error('Playback failed:', error);
           });
         }
@@ -175,21 +182,65 @@ export function Chat() {
   }, [toggleAudio]);
 
   const initAudioWebSocket = useCallback(() => {
-    if (!stt_audioWebsocketRef.current) {
-      stt_audioWebsocketRef.current = new WebSocket(
+    if (!sttAudioWebsocketRef.current) {
+      sttAudioWebsocketRef.current = new WebSocket(
         `${process.env.NEXT_PUBLIC_WS_BASE_URL}/transcribe`
       );
-      stt_audioWebsocketRef.current.onopen = () => {
+      sttAudioWebsocketRef.current.onopen = () => {
         console.log("Audio WebSocket connection established");
       }
 
-      stt_audioWebsocketRef.current.onmessage = (event) => {
+      sttAudioWebsocketRef.current.onmessage = (event) => {
         const transcribedText = event.data;
         console.log("Transcribed text: ", transcribedText);
         setInputText(transcribedText);
       };
+
+      sttAudioWebsocketRef.current.onclose = () => {
+        console.log("Audio WebSocket connection closed");
+      };
+
+      sttAudioWebsocketRef.current.onerror = (error) => {
+        console.error("Audio WebSocket error: ", error);
+      };
     }
   }, []);
+
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mediaRecorderRef.current = new MediaRecorder(stream);
+
+      const audioChunks: Blob[] = [];
+
+      mediaRecorderRef.current.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunks.push(event.data);
+        }
+      };
+
+      mediaRecorderRef.current.onstop = () => {
+        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+        if (sttAudioWebsocketRef.current?.readyState === WebSocket.OPEN) {
+          sttAudioWebsocketRef.current?.send(audioBlob);
+        }
+      };
+
+      mediaRecorderRef.current.start();
+      setIsRecording(true);
+    } catch (err) {
+      console.error('Error accessing microphone: ' + err);
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+      mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
+      setIsRecording(false);
+    }
+  };
+
 
   useEffect(() => {
     const initializeChat = async () => {
@@ -215,7 +266,7 @@ export function Chat() {
         initAudioWebSocket();
         
         return () => {
-          stt_audioWebsocketRef.current?.close();
+          sttAudioWebsocketRef.current?.close();
           chatWebsocketRef.current?.close();
         };
         
@@ -285,7 +336,7 @@ export function Chat() {
 
   useEffect(() => {
     const audio = new Audio();
-    audioRef.current = audio;
+    ttsAudioRef.current = audio;
     audio.addEventListener('ended', () => {
       setMessages(prevMessages => 
         prevMessages.map(msg => 
@@ -330,7 +381,7 @@ export function Chat() {
       timestamp: new Date().toISOString()
     };
 
-    audioRef.current?.pause();
+    ttsAudioRef.current?.pause();
     resetIsPlaying();
 
     setMessages(prevMessages => [...prevMessages, userMessage]);
@@ -419,7 +470,7 @@ export function Chat() {
           </div>
         </header>
 
-        <ScrollArea className="flex-grow p-4">
+        <ScrollArea ref={scrollAreaRef} className="flex-grow p-4">
           <div className="space-y-6">
             {messageComponents}
           </div>
@@ -446,6 +497,15 @@ export function Chat() {
             <Send className="h-5 w-5" />
           </Button>
         </div>
+        <div className="mb-4 flex justify-center">
+          <Button 
+            onClick={isRecording ? stopRecording : startRecording}
+            className={`${isRecording ? 'bg-red-500 hover:bg-red-600' : 'bg-blue-500 hover:bg-blue-600'} text-white font-bold py-2 px-4 rounded`}
+          >
+            {isRecording ? <Square className="mr-2" /> : <Mic className="mr-2" />}
+            {isRecording ? 'Stop Recording' : 'Start Recording'}
+          </Button>
+      </div>
       </div>
       <div className="w-1/2 p-4">
         <Button 
