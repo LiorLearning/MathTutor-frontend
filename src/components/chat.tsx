@@ -46,9 +46,12 @@ export function Chat() {
   const ttsAudioRef = useRef<HTMLAudioElement | null>(null);
 
   // Speech to Text
-  const sttAudioWebsocketRef = useRef<WebSocket | null>(null);
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const [isRecording, setIsRecording] = useState(false);
+  const sttAudioWebsocketRef = useRef<WebSocket | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const sourceNodeRef = useRef<MediaStreamAudioSourceNode | null>(null);
+  const processorNodeRef = useRef<ScriptProcessorNode | null>(null);
 
   const getTTS = useCallback(async (message: string): Promise<string> => {
     let audioUrl = '';
@@ -235,7 +238,7 @@ export function Chat() {
       sttAudioWebsocketRef.current.onmessage = (event) => {
         const transcribedText = event.data;
         console.log("Transcribed text: ", transcribedText);
-        setInputText(transcribedText);
+        setInputText(prevText => prevText + ' ' + transcribedText);
       };
 
       sttAudioWebsocketRef.current.onclose = () => {
@@ -250,35 +253,59 @@ export function Chat() {
 
   const startRecording = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      mediaRecorderRef.current = new MediaRecorder(stream);
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        audio: { 
+          sampleRate: 16000,
+          channelCount: 1,
+          echoCancellation: true,
+          noiseSuppression: true
+        } 
+      });
+      
+      streamRef.current = stream;
+      
+      audioContextRef.current = new AudioContext({ sampleRate: 16000 });
+      sourceNodeRef.current = audioContextRef.current.createMediaStreamSource(stream);
+      processorNodeRef.current = audioContextRef.current.createScriptProcessor(1024, 1, 1);
 
-      const audioChunks: Blob[] = [];
+      sourceNodeRef.current.connect(processorNodeRef.current);
+      processorNodeRef.current.connect(audioContextRef.current.destination);
 
-      mediaRecorderRef.current.ondataavailable = (event) => {
-        if (event.data.size > 0) {
-          audioChunks.push(event.data);
+      processorNodeRef.current.onaudioprocess = (e) => {
+        const inputData = e.inputBuffer.getChannelData(0);
+        const audioData = new Int16Array(inputData.length);
+        for (let i = 0; i < inputData.length; i++) {
+          audioData[i] = Math.max(-1, Math.min(1, inputData[i])) * 0x7FFF;
         }
-      };
-
-      mediaRecorderRef.current.onstop = () => {
-        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
         if (sttAudioWebsocketRef.current?.readyState === WebSocket.OPEN) {
-          sttAudioWebsocketRef.current?.send(audioBlob);
+          sttAudioWebsocketRef.current.send(audioData.buffer);
         }
       };
 
-      mediaRecorderRef.current.start();
       setIsRecording(true);
     } catch (err) {
-      console.error('Error accessing microphone: ' + err);
+      console.error('Error accessing microphone:', err);
     }
   };
 
   const stopRecording = () => {
-    if (mediaRecorderRef.current && isRecording) {
-      mediaRecorderRef.current.stop();
-      mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
+    if (isRecording) {
+      // Stop all tracks on the active stream
+      streamRef.current?.getTracks().forEach(track => track.stop());
+
+      // Disconnect and null out audio nodes
+      if (sourceNodeRef.current && processorNodeRef.current && audioContextRef.current) {
+        sourceNodeRef.current.disconnect();
+        processorNodeRef.current.disconnect();
+        audioContextRef.current.close();
+      }
+
+      // Reset all refs
+      streamRef.current = null;
+      audioContextRef.current = null;
+      sourceNodeRef.current = null;
+      processorNodeRef.current = null;
+
       setIsRecording(false);
     }
   };
@@ -308,6 +335,7 @@ export function Chat() {
         initAudioWebSocket();
         
         return () => {
+          stopRecording();
           sttAudioWebsocketRef.current?.close();
           chatWebsocketRef.current?.close();
           htmlWebsocketRef.current?.close()
