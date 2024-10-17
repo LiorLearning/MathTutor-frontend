@@ -81,7 +81,7 @@ export function Chat() {
   }, []); // Add dependencies if needed
 
   const generateHtml = useCallback(() => {
-    const websocket = new WebSocket(`${process.env.NEXT_PUBLIC_WS_BASE_URL}/generate_html/${username}`);
+    const websocket = new WebSocket(`${process.env.NEXT_PUBLIC_WS_BASE_URL}/chat/generate_html/${username}`);
 
     setHtmlContent('');
     
@@ -130,7 +130,7 @@ export function Chat() {
   const initChatWebSocket = useCallback((username: string) => {
     if (!chatWebsocketRef.current) {
       chatWebsocketRef.current = new WebSocket(
-        `${process.env.NEXT_PUBLIC_WS_BASE_URL}/handle_chat/${username}`
+        `${process.env.NEXT_PUBLIC_WS_BASE_URL}/chat/handle_chat/${username}`
       );
       chatWebsocketRef.current.onopen = () => {
         console.log("Chat WebSocket connection established");
@@ -171,12 +171,13 @@ export function Chat() {
               clearInterval(messageStreamIntervalRef.current!);
               messageStreamIntervalRef.current = null; // Reset the ref
             }
-          }, 10); // Adjust the speed of streaming here
+          }, 0); // Adjust the speed of streaming here
         };
 
         streamMessage(message);
 
         if (SPEAKOUT) {
+          console.log("Speking out the message");
           toggleAudio(finalMessage);
         }
       };
@@ -186,7 +187,7 @@ export function Chat() {
   const initAudioWebSocket = useCallback(() => {
     if (!sttAudioWebsocketRef.current) {
       sttAudioWebsocketRef.current = new WebSocket(
-        `${process.env.NEXT_PUBLIC_WS_BASE_URL}/transcribe`
+        `${process.env.NEXT_PUBLIC_WS_BASE_URL}/speech/transcribe`
       );
       sttAudioWebsocketRef.current.onopen = () => {
         console.log("Audio WebSocket connection established");
@@ -249,7 +250,7 @@ export function Chat() {
       try {
         if (chatId === "") {
           const response = await axios.post<StartChatResponse>(
-            `${API_BASE_URL}/start_chat?username=${username}`,
+            `${API_BASE_URL}/start_chat?user_id=${username}`,
             {},
             { headers: { 'Content-Type': 'application/json' } }
           );
@@ -257,7 +258,7 @@ export function Chat() {
           setChatId(response.data.chat_id);
           
           const historyResponse = await axios.get<GetChatHistoryResponse>(
-            `${API_BASE_URL}/chat_history/${username}`,
+            `${API_BASE_URL}/chat_history?user_id=${username}`,
             { headers: { 'Content-Type': 'application/json' } }
           );
 
@@ -285,7 +286,7 @@ export function Chat() {
 
     const cleanup = async () => {
       try {
-        await axios.post(`${API_BASE_URL}/end_chat/${username}`, {}, {
+        await axios.post(`${API_BASE_URL}/end_chat?user_id=${username}`, {}, {
           headers: {
             'Content-Type': 'application/json',
           }
@@ -297,7 +298,7 @@ export function Chat() {
 
     const saveChat = async () => {
       try {
-        await axios.post(`${API_BASE_URL}/save_chat/${username}`, {}, {
+        await axios.post(`${API_BASE_URL}/save_chat?user_id=${username}`, {}, {
           headers: {
             'Content-Type': 'application/json',
           }

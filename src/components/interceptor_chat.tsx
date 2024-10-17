@@ -24,7 +24,7 @@ function UserSidebar({ username }: { username: string }) {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const response = await axios.get<Student>(`${MODEL_API_BASE_URL}/users/${username}`);
+        const response = await axios.get<Student>(`${MODEL_API_BASE_URL}/users?user_id=${username}`);
         setStudentDetails(response.data);
       } catch (error) {
         console.error('Error fetching user data:', error);
@@ -77,7 +77,7 @@ export function InterceptorChat() {
   const initChatWebSocket = useCallback((username: string) => {
     if (!chatWebsocketRef.current) {
       chatWebsocketRef.current = new WebSocket(
-        `${process.env.NEXT_PUBLIC_WS_BASE_URL}/interceptor/${username}`
+        `${process.env.NEXT_PUBLIC_WS_BASE_URL}/chat/interceptor/${username}`
       );
       chatWebsocketRef.current.onopen = () => {
         console.log("Chat WebSocket connection established");
@@ -114,7 +114,7 @@ export function InterceptorChat() {
     const initializeChat = async () => {
       try {
         const historyResponse = await axios.get<GetChatHistoryResponse>(
-        `${API_BASE_URL}/chat_history/${username}`,
+        `${API_BASE_URL}/chat_history?user_id=${username}`,
         { headers: { 'Content-Type': 'application/json' } }
         );
 
@@ -162,7 +162,7 @@ export function InterceptorChat() {
 
   const handleDeleteChat = async () => {
     try {
-      await axios.delete(`${API_BASE_URL}/delete_chat/${username}`, {
+      await axios.delete(`${API_BASE_URL}/delete_chat?user_id=${username}`, {
         headers: {
           'Content-Type': 'application/json',
         }
