@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label"
 import { Send, User } from "lucide-react"
 import { useSearchParams } from 'next/navigation'
 import axios from 'axios'
+import Image from 'next/image'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import remarkBreaks from 'remark-breaks'
@@ -79,10 +80,9 @@ export function InterceptorChat() {
 
   const [htmlContent, setHtmlContent] = useState("");
   const [isCodeView, setIsCodeView] = useState(false);
-  const [embedLink, setEmbedLink] = useState("");
   const [sendLoadingMessage, setSendLoadingMessage] = useState(false); // New state for loading message toggle
 
-  const initHtmlWebSocket = useCallback((username: string) => {
+  const initHtmlWebSocket = useCallback(() => {
     if (!htmlWebsocketRef.current) {
       htmlWebsocketRef.current = new WebSocket(`${process.env.NEXT_PUBLIC_WS_BASE_URL}/chat/interceptor/html/${username}`);
 
@@ -104,7 +104,7 @@ export function InterceptorChat() {
         console.log('WebSocket connection closed');
       };
     }
-  }, [username]);
+  }, []);
 
   const generateHtml = useCallback(() => {
     if (htmlWebsocketRef.current) {
@@ -124,7 +124,7 @@ export function InterceptorChat() {
     }
   };
 
-  const initChatWebSocket = useCallback((username: string) => {
+  const initChatWebSocket = useCallback(() => {
     if (!chatWebsocketRef.current) {
       chatWebsocketRef.current = new WebSocket(
         `${process.env.NEXT_PUBLIC_WS_BASE_URL}/chat/interceptor/${username}`
@@ -153,7 +153,7 @@ export function InterceptorChat() {
         setMessages(prevMessages => [...prevMessages, finalMessage]);
       };
     }
-  }, [username]);
+  }, []);
 
   // Initialize chat and load history
   useEffect(() => {
@@ -167,8 +167,8 @@ export function InterceptorChat() {
         setMessages(historyResponse.data || []);
 
         // WebSocket setup
-        initChatWebSocket(username);
-        initHtmlWebSocket(username);
+        initChatWebSocket();
+        initHtmlWebSocket();
         
       } catch (error) {
         console.error('Error initializing chat:', error);
@@ -199,7 +199,7 @@ export function InterceptorChat() {
       window.removeEventListener('beforeunload', handleUnload);
     }
 
-  }, [username, initChatWebSocket]);
+  }, [username, initChatWebSocket, initHtmlWebSocket]);
 
   useEffect(() => {
     if (scrollAreaRef.current) {
@@ -285,17 +285,17 @@ export function InterceptorChat() {
             <ReactMarkdown
               remarkPlugins={[remarkGfm, remarkBreaks]}
               components={{
-                h1: ({node, ...props}) => <h1 className="text-4xl font-bold my-4" {...props} />,
-                h2: ({node, ...props}) => <h2 className="text-3xl font-bold my-3" {...props} />,
-                h3: ({node, ...props}) => <h3 className="text-2xl font-bold my-2" {...props} />,
-                p: ({node, ...props}) => <p className="" {...props} />,
-                a: ({node, ...props}) => <a className="text-blue-500 underline" {...props} />,
-                blockquote: ({node, ...props}) => <blockquote className="border-l-4 pl-4 italic text-gray-600" {...props} />,
-                ul: ({node, ...props}) => <ul className="list-disc pl-5" {...props} />,
-                ol: ({node, ...props}) => <ol className="list-decimal pl-5" {...props} />,
+                h1: (props) => <h1 className="text-4xl font-bold my-4" {...props} />,
+                h2: (props) => <h2 className="text-3xl font-bold my-3" {...props} />,
+                h3: (props) => <h3 className="text-2xl font-bold my-2" {...props} />,
+                p: (props) => <p className="" {...props} />,
+                a: (props) => <a className="text-blue-500 underline" {...props} />,
+                blockquote: (props) => <blockquote className="border-l-4 pl-4 italic text-gray-600" {...props} />,
+                ul: (props) => <ul className="list-disc pl-5" {...props} />,
+                ol: (props) => <ol className="list-decimal pl-5" {...props} />,
                 br: () => <br key={Math.random()} />,
                 img: ({ src, alt }) => (
-                  <img
+                  <Image
                     src={src || ''}
                     alt={alt || ''}
                     width={500}
