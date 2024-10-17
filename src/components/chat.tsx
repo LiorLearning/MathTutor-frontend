@@ -290,6 +290,7 @@ export function Chat() {
 
   const stopRecording = () => {
     if (isRecording) {
+      setIsRecording(false); // Set recording to false on UI
       // Stop all tracks on the active stream
       streamRef.current?.getTracks().forEach(track => track.stop());
 
@@ -306,7 +307,9 @@ export function Chat() {
       sourceNodeRef.current = null;
       processorNodeRef.current = null;
 
-      setIsRecording(false);
+      setTimeout(() => {
+        handleSendMessage(); // Call send message after waiting for 2 seconds
+      }, 2000); // Wait for 2 seconds before stopping
     }
   };
 
