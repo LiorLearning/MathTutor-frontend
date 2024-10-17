@@ -104,7 +104,7 @@ export function InterceptorChat() {
         console.log('WebSocket connection closed');
       };
     }
-  }, []);
+  }, [username]);
 
   const generateHtml = useCallback(() => {
     if (htmlWebsocketRef.current) {
@@ -112,7 +112,7 @@ export function InterceptorChat() {
       const message = { action: "GENERATE", content: sendLoadingMessage ? "loading" : "" }; // Send loading message if toggle is on
       htmlWebsocketRef.current.send(JSON.stringify(message));
     }
-  }, [username, sendLoadingMessage]); // Include sendLoadingMessage in dependencies
+  }, [sendLoadingMessage]); // Include sendLoadingMessage in dependencies
 
   const handleHtmlChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
     setHtmlContent(event.target.value);
@@ -153,7 +153,7 @@ export function InterceptorChat() {
         setMessages(prevMessages => [...prevMessages, finalMessage]);
       };
     }
-  }, []);
+  }, [username]);
 
   // Initialize chat and load history
   useEffect(() => {

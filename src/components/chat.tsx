@@ -20,7 +20,8 @@ import {
   SPEECH_API_BASE_URL,
 } from '@/components/utils/chat_utils'
 
-const SPEAKOUT = true;
+const SPEAKOUT = false;
+const SPEED = 30;
 const PLAYBACK_RATE = 1;
 
 export function Chat() {
@@ -140,7 +141,7 @@ export function Chat() {
           setMessages(prevMessages => prevMessages.slice(0, -1));
         }
 
-        let audioUrl = SPEAKOUT ? await getTTS(message) : '';
+        const audioUrl = SPEAKOUT ? await getTTS(message) : '';
         console.log('Audio URL:', audioUrl);
 
         const finalMessage: Message = {
@@ -165,10 +166,11 @@ export function Chat() {
           }
 
           const streamMessage = (fullMessage: string) => {
+            const messageChunks = fullMessage.split(' '); // Split the message into chunks by whitespace
             let index = 0;
             messageStreamIntervalRef.current = setInterval(() => {
-              if (index < fullMessage.length) {
-                finalMessage.content += fullMessage[index++];
+              if (index < messageChunks.length) {
+                finalMessage.content += messageChunks[index++] + ' '; // Add chunk and a space
                 setMessages(prevMessages => {
                   const updatedMessages = prevMessages.filter(msg => msg.message_id !== finalMessage.message_id);
                   return [...updatedMessages, finalMessage];
@@ -181,14 +183,14 @@ export function Chat() {
                   setMessageAudioAndPlay(finalMessage, audioUrl);
                 }
               }
-            }, 0);
+            }, SPEED);
           };
 
           streamMessage(message);
         }
       }
     }
-  }, [setMessageAudioAndPlay]);
+  }, [getTTS, setMessageAudioAndPlay]);
 
   const initHtmlWebSocket = useCallback((username: string) => {
     if (!htmlWebsocketRef.current) {
