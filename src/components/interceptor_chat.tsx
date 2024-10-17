@@ -230,6 +230,7 @@ export function InterceptorChat() {
     const userMessage: Message = {
       role: 'user',
       content: inputText,
+      audioUrl: '',
       message_id: `temp-${Date.now()}`,
       timestamp: new Date().toISOString()
     };
@@ -251,6 +252,7 @@ export function InterceptorChat() {
     const userMessage: Message = {
       role: 'user',
       content: correctionText,
+      audioUrl: '',
       message_id: `temp-${Date.now()}`,
       timestamp: new Date().toISOString()
     };

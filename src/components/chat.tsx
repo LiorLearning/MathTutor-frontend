@@ -20,7 +20,7 @@ import {
   SPEECH_API_BASE_URL,
 } from '@/components/utils/chat_utils'
 
-const SPEAKOUT = false;
+const SPEAKOUT = true;
 const PLAYBACK_RATE = 1;
 
 export function Chat() {
@@ -49,15 +49,24 @@ export function Chat() {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const [isRecording, setIsRecording] = useState(false);
 
-  const generateTextToSpeech = useCallback(async (message: Message) => {
+  const getTTS = useCallback(async (message: string): Promise<string> => {
+    let audioUrl = '';
     try {
-      const response = await axios.post(`${SPEECH_API_BASE_URL}/openai-tts-proxy`, { text: message.content }, {
+      const response = await axios.post(`${SPEECH_API_BASE_URL}/openai-tts-proxy`, { text: message }, {
         headers: { 'Content-Type': 'application/json' },
         responseType: 'blob',
       });
       const audioBlob = new Blob([response.data as ArrayBuffer], { type: 'audio/mpeg' });
-      const audioUrl = URL.createObjectURL(audioBlob);
-      
+      audioUrl = URL.createObjectURL(audioBlob);
+      console.log('Audio blob generated:', audioUrl);
+    } catch (error) {
+      console.error('Error generating text-to-speech:', error);
+    }
+    return audioUrl;
+  }, []);
+
+  const setMessageAudioAndPlay = useCallback(async (message: Message, audioUrl: string) => {
+    try {
       setMessages(prevMessages => {
         return [
           ...prevMessages.slice(0, -1),
@@ -78,15 +87,18 @@ export function Chat() {
         );
       }
     } catch (error) {
-      console.error('Error generating text-to-speech:', error);
+      
     }
   }, []);
 
-  const toggleAudio = useCallback((message: Message) => {
-    if (!message.audioUrl) {
-      generateTextToSpeech(message);
+  const toggleAudio = useCallback(async (message: Message) => {
+    if (message.audioUrl !== '') {
+      console.log('Generating text-to-speech for message:', message);
+      const audioUrl = await getTTS(message.content);
+      setMessageAudioAndPlay(message, audioUrl);
     } else {
       if (message.isPlaying) {
+        console.log('Pausing audio for message ID:', message.message_id);
         ttsAudioRef.current?.pause();
         message.isPlaying = false;
         setMessages(prevMessages => 
@@ -95,6 +107,7 @@ export function Chat() {
           )
         );
       } else {
+        console.log('Playing audio for message ID:', message.message_id);
         if (ttsAudioRef.current) {
           ttsAudioRef.current.src = message.audioUrl;
           ttsAudioRef.current.playbackRate = PLAYBACK_RATE;
@@ -109,9 +122,9 @@ export function Chat() {
         );
       }
     }
-  }, [generateTextToSpeech]);
+  }, [setMessageAudioAndPlay, getTTS]);
 
-  const initChatWebSocket = useCallback((username: string) => {
+  const initChatWebSocket = useCallback(async (username: string) => {
     if (!chatWebsocketRef.current) {
       chatWebsocketRef.current = new WebSocket(
         `${process.env.NEXT_PUBLIC_WS_BASE_URL}/chat/handle_chat/${username}`
@@ -126,6 +139,9 @@ export function Chat() {
         if (data.role === 'correction') {
           setMessages(prevMessages => prevMessages.slice(0, -1));
         }
+
+        let audioUrl = SPEAKOUT ? await getTTS(message) : '';
+        console.log('Audio URL:', audioUrl);
 
         const finalMessage: Message = {
           role: 'assistant',
@@ -160,19 +176,19 @@ export function Chat() {
               } else {
                 clearInterval(messageStreamIntervalRef.current!);
                 messageStreamIntervalRef.current = null; 
+                if (SPEAKOUT) {
+                  console.log("Speaking out the message...", finalMessage);
+                  setMessageAudioAndPlay(finalMessage, audioUrl);
+                }
               }
             }, 0);
           };
 
           streamMessage(message);
-
-          if (SPEAKOUT) {
-            toggleAudio(finalMessage);
-          }
         }
       }
     }
-  }, [toggleAudio]);
+  }, [setMessageAudioAndPlay]);
 
   const initHtmlWebSocket = useCallback((username: string) => {
     if (!htmlWebsocketRef.current) {
@@ -406,6 +422,7 @@ export function Chat() {
     const userMessage: Message = {
       role: 'user',
       content: inputText,
+      audioUrl: '',
       message_id: `temp-${Date.now()}`,
       timestamp: new Date().toISOString()
     };

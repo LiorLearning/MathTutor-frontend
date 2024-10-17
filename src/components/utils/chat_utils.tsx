@@ -1,7 +1,7 @@
 export interface Message {
     role: 'user' | 'assistant';
     content: string;
-    audioUrl?: string; // Added audioUrl to store audio
+    audioUrl: string; // Added audioUrl to store audio
     timestamp: string;
     message_id: string;
     isPlaying?: boolean; // Added isPlaying to track audio state per message
