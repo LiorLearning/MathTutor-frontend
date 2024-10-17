@@ -17,10 +17,9 @@ import {
   GetChatHistoryResponse,
   API_BASE_URL,
   SPEECH_API_BASE_URL,
-  MyImageComponent,
 } from '@/components/utils/chat_utils'
 
-const SPEAKOUT = true;
+const SPEAKOUT = false;
 const PLAYBACK_RATE = 1;
 
 

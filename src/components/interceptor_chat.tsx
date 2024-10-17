@@ -4,17 +4,20 @@ import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
+import { Switch } from "@/components/ui/switch"
+import { Textarea } from "@/components/ui/textarea"
+import { Label } from "@/components/ui/label"
 import { Send, User } from "lucide-react"
 import { useSearchParams } from 'next/navigation'
 import axios from 'axios'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
-import remarkBreaks from 'remark-breaks';
+import remarkBreaks from 'remark-breaks'
+
 import { 
   Message, 
   GetChatHistoryResponse,
   API_BASE_URL,
-  MyImageComponent,
 } from '@/components/utils/chat_utils'
 import { Student, MODEL_API_BASE_URL } from '@/components/utils/admin_utils'
 
@@ -35,7 +38,7 @@ function UserSidebar({ username }: { username: string }) {
   }, [username]);
 
   return (
-    <div className="w-1/4 bg-gray-100 p-4 border-r">
+    <div className="w-1/5 bg-gray-100 p-4 border-r">
       <div className="mb-4">
         <h2 className="text-lg font-semibold mb-2">User Details</h2>
         {studentDetails ? (
@@ -59,6 +62,67 @@ function UserSidebar({ username }: { username: string }) {
       </div>
     </div>
   );
+}
+
+export default function HtmlContentSidebar({ username }: { username: string }) {
+  const [htmlContent, setHtmlContent] = useState("")
+  const [isCodeView, setIsCodeView] = useState(false)
+
+  const generateHtml = useCallback(() => {
+    const websocket = new WebSocket(`${process.env.NEXT_PUBLIC_WS_BASE_URL}/chat/generate_html/${username}`)
+
+    setHtmlContent("")
+    
+    websocket.onopen = () => {
+      console.log("WebSocket connection established for HTML generation")
+    }
+
+    websocket.onmessage = (event) => {
+      setHtmlContent(prevHtml => prevHtml + event.data)
+    }
+
+    return () => {
+      websocket.close()
+    }
+  }, [username])
+
+  const handleHtmlChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setHtmlContent(event.target.value)
+  }
+
+  return (
+    <div className="w-2/5 p-4 flex flex-col h-full">
+      <div className="flex justify-between items-center mb-4">
+        <Button onClick={generateHtml}>
+          Generate HTML
+        </Button>
+        <div className="flex items-center space-x-2">
+          <Switch
+            id="code-view"
+            checked={isCodeView}
+            onCheckedChange={setIsCodeView}
+          />
+          <Label htmlFor="code-view">
+            {isCodeView ? "Code View" : "Rendered View"}
+          </Label>
+        </div>
+      </div>
+      {isCodeView ? (
+        <Textarea
+          value={htmlContent}
+          onChange={handleHtmlChange}
+          className="flex-grow font-mono text-sm"
+          placeholder="HTML code will appear here"
+        />
+      ) : (
+        <iframe 
+          srcDoc={htmlContent} 
+          className="flex-grow border-2 border-gray-300 rounded-md"
+          title="Generated HTML"
+        />
+      )}
+    </div>
+  )
 }
 
 
@@ -276,7 +340,7 @@ export function InterceptorChat() {
   return (
     <div className="flex h-screen bg-white">
       <UserSidebar username={username} />
-      <div className="flex flex-col flex-grow">
+      <div className="flex flex-col flex-grow w-2/5">
         <header className="p-4 border-b">
           <div className="flex justify-between items-center">
             <h1 className="text-xl font-bold">MathTutor</h1>
@@ -343,6 +407,7 @@ export function InterceptorChat() {
           </Button>
         </div>
       </div>
+      <HtmlContentSidebar username={username} />
     </div>
   );
 }

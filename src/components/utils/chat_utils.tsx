@@ -1,5 +1,3 @@
-import Image from 'next/image';
-
 export interface Message {
     role: 'user' | 'assistant';
     content: string;
@@ -31,19 +29,6 @@ export const imageProps: ImageProps = {
     height: 300,
     className: 'rounded-lg',
     style: { objectFit: 'contain', width: '100%', height: 'auto' },
-};
-  
-export const MyImageComponent: React.FC<ImageProps> = ({ src, alt, width, height, className, style }) => {
-    return (
-        <Image
-            src={src}
-            alt={alt || ''}
-            width={width || 500}
-            height={height || 300}
-            className={`rounded-lg ${className}`}
-            style={style}
-        />
-    );
 };
 
 export const isWebSocketClosed = (webSocket: WebSocket): boolean => {
