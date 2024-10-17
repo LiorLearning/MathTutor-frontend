@@ -136,35 +136,43 @@ export function Chat() {
           isPlaying: false
         };
 
-        // Clear the previous streaming interval if it exists
-        if (messageStreamIntervalRef.current) {
-          clearInterval(messageStreamIntervalRef.current);
+        if (message.startsWith("![Generated")) {
+          finalMessage.content = message; // Show the complete message instead of streaming
+          setMessages(prevMessages => {
+            const updatedMessages = prevMessages.filter(msg => msg.message_id !== finalMessage.message_id);
+            return [...updatedMessages, finalMessage];
+          });
+
+        } else {
+          // Clear the previous streaming interval if it exists
+          if (messageStreamIntervalRef.current) {
+            clearInterval(messageStreamIntervalRef.current);
+          }
+
+          // Stream the message content slowly
+          const streamMessage = (fullMessage: string) => {
+            let index = 0;
+            messageStreamIntervalRef.current = setInterval(() => { // Store the interval ID
+              if (index < fullMessage.length) {
+                finalMessage.content += fullMessage[index++];
+                setMessages(prevMessages => {
+                  const updatedMessages = prevMessages.filter(msg => msg.message_id !== finalMessage.message_id);
+                  return [...updatedMessages, finalMessage];
+                });
+              } else {
+                clearInterval(messageStreamIntervalRef.current!);
+                messageStreamIntervalRef.current = null; // Reset the ref
+              }
+            }, 0); // Adjust the speed of streaming here
+          };
+
+          streamMessage(message);
+
+          if (SPEAKOUT) {
+            toggleAudio(finalMessage);
+          }
         }
-
-        // Stream the message content slowly
-        const streamMessage = (fullMessage: string) => {
-          let index = 0;
-          messageStreamIntervalRef.current = setInterval(() => { // Store the interval ID
-            if (index < fullMessage.length) {
-              finalMessage.content += fullMessage[index++];
-              setMessages(prevMessages => {
-                const updatedMessages = prevMessages.filter(msg => msg.message_id !== finalMessage.message_id);
-                return [...updatedMessages, finalMessage];
-              });
-            } else {
-              clearInterval(messageStreamIntervalRef.current!);
-              messageStreamIntervalRef.current = null; // Reset the ref
-            }
-          }, 0); // Adjust the speed of streaming here
-        };
-
-        streamMessage(message);
-
-        if (SPEAKOUT) {
-          console.log("Speking out the message");
-          toggleAudio(finalMessage);
-        }
-      };
+      }
     }
   }, [toggleAudio]);
 
