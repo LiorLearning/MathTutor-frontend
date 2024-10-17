@@ -76,8 +76,11 @@ export function InterceptorChat() {
   const lastBotMessageRef = useRef<HTMLDivElement>(null);
   const chatWebsocketRef = useRef<WebSocket | null>(null);
   const htmlWebsocketRef = useRef<WebSocket | null>(null);
+
   const [htmlContent, setHtmlContent] = useState("");
   const [isCodeView, setIsCodeView] = useState(false);
+  const [embedLink, setEmbedLink] = useState("")
+
 
   const initHtmlWebSocket = useCallback((username: string) => {
     if (!htmlWebsocketRef.current) {

@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useRef, useEffect, useCallback, useMemo, use } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -22,7 +22,6 @@ import {
 const SPEAKOUT = false;
 const PLAYBACK_RATE = 1;
 
-
 export function Chat() {
   const searchParams = useSearchParams();
   const username = searchParams.get('username') || 'testuser';
@@ -38,6 +37,7 @@ export function Chat() {
 
   // HTML
   const [htmlContent, setHtmlContent] = useState("");
+  const [isHtmlLoading, setIsHtmlLoading] = useState(false); // New state for loading
   const htmlWebsocketRef = useRef<WebSocket | null>(null);
   
   // Text to Speech
@@ -48,8 +48,7 @@ export function Chat() {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const [isRecording, setIsRecording] = useState(false);
 
-
-  const generateTextToSpeech = useCallback(async (message: Message) => { // Wrapped in useCallback
+  const generateTextToSpeech = useCallback(async (message: Message) => {
     try {
       const response = await axios.post(`${SPEECH_API_BASE_URL}/openai-tts-proxy`, { text: message.content }, {
         headers: { 'Content-Type': 'application/json' },
@@ -80,7 +79,7 @@ export function Chat() {
     } catch (error) {
       console.error('Error generating text-to-speech:', error);
     }
-  }, []); // Add dependencies if needed
+  }, []);
 
   const toggleAudio = useCallback((message: Message) => {
     if (!message.audioUrl) {
@@ -137,22 +136,20 @@ export function Chat() {
         };
 
         if (message.startsWith("![Generated")) {
-          finalMessage.content = message; // Show the complete message instead of streaming
+          finalMessage.content = message; 
           setMessages(prevMessages => {
             const updatedMessages = prevMessages.filter(msg => msg.message_id !== finalMessage.message_id);
             return [...updatedMessages, finalMessage];
           });
 
         } else {
-          // Clear the previous streaming interval if it exists
           if (messageStreamIntervalRef.current) {
             clearInterval(messageStreamIntervalRef.current);
           }
 
-          // Stream the message content slowly
           const streamMessage = (fullMessage: string) => {
             let index = 0;
-            messageStreamIntervalRef.current = setInterval(() => { // Store the interval ID
+            messageStreamIntervalRef.current = setInterval(() => {
               if (index < fullMessage.length) {
                 finalMessage.content += fullMessage[index++];
                 setMessages(prevMessages => {
@@ -161,9 +158,9 @@ export function Chat() {
                 });
               } else {
                 clearInterval(messageStreamIntervalRef.current!);
-                messageStreamIntervalRef.current = null; // Reset the ref
+                messageStreamIntervalRef.current = null; 
               }
-            }, 0); // Adjust the speed of streaming here
+            }, 0);
           };
 
           streamMessage(message);
@@ -190,6 +187,10 @@ export function Chat() {
         const role = data.role;
         if (role === 'external') {
           setHtmlContent(message);
+          setIsHtmlLoading(false); // Reset loading state
+        } else if (role === 'loading') {
+          console.log("HTML Loading... ");
+          setIsHtmlLoading(true); // Set loading state
         }
       };
 
@@ -202,7 +203,6 @@ export function Chat() {
       };
     }
   }, []);
-
 
   const initAudioWebSocket = useCallback(() => {
     if (!sttAudioWebsocketRef.current) {
@@ -263,7 +263,6 @@ export function Chat() {
       setIsRecording(false);
     }
   };
-
 
   useEffect(() => {
     const initializeChat = async () => {
@@ -389,7 +388,7 @@ export function Chat() {
     if (scrollElement) {
       scrollElement.scrollTo({
         top: scrollElement.scrollHeight,
-        behavior: 'smooth' // Smooth scrolling effect
+        behavior: 'smooth' 
       });
     }
   }, [messages]);
@@ -566,7 +565,17 @@ export function Chat() {
             )}
         </div>
       </div>
-      <div className="w-1/2 p-4">
+      <div className="w-1/2 p-4 relative">
+        {isHtmlLoading && (
+          <motion.div 
+            className="absolute inset-0 bg-gray-200 opacity-50 flex items-center justify-center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-gray-900"></div>
+          </motion.div>
+        )}
         <iframe 
           srcDoc={htmlContent} 
           style={{ width: '100%', height: '95%', border: '2px solid #ccc', borderRadius: '4px' }} 
