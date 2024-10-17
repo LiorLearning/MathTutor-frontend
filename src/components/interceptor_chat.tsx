@@ -395,30 +395,32 @@ export function InterceptorChat() {
       </div>
       <div className="w-2/5 p-4 flex flex-col h-full">
         <div className="flex justify-between items-center mb-4">
-          <Button onClick={generateHtml}>
+          <Button onClick={generateHtml} className="mr-2">
             Generate HTML
           </Button>
-          <Button onClick={sendHtmlContent}>
+          <Button onClick={sendHtmlContent} className="mr-2">
             Send
           </Button>
-          <div className="flex items-center space-x-2">
-            <Switch
-              id="loading-message"
-              checked={sendLoadingMessage}
-              onCheckedChange={setSendLoadingMessage} // New toggle for loading message
-            />
-            <Label htmlFor="loading-message">
-              Send Loading Message
-            </Label>
-            <Switch
-              id="code-view"
-              checked={isCodeView}
-              onCheckedChange={setIsCodeView}
-            />
-            <Label htmlFor="code-view">
-              {isCodeView ? "Code View" : "Rendered View"}
-            </Label>
-          </div>
+        </div>
+        <div className="flex items-center mb-4">
+          <Switch
+            id="loading-message"
+            checked={sendLoadingMessage}
+            onCheckedChange={setSendLoadingMessage} // New toggle for loading message
+            className="mr-2"
+          />
+          <Label htmlFor="loading-message" className="mr-4">
+            Send Loading Message
+          </Label>
+          <Switch
+            id="code-view"
+            checked={isCodeView}
+            onCheckedChange={setIsCodeView}
+            className="mr-2"
+          />
+          <Label htmlFor="code-view">
+            {isCodeView ? "Code View" : "Rendered View"}
+          </Label>
         </div>
         {isCodeView ? (
           <Textarea
