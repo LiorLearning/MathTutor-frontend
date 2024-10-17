@@ -49,9 +49,12 @@ export function Chat() {
   const [isRecording, setIsRecording] = useState(false);
   const sttAudioWebsocketRef = useRef<WebSocket | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
-  const audioContextRef = useRef<AudioContext | null>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
   const sourceNodeRef = useRef<MediaStreamAudioSourceNode | null>(null);
   const processorNodeRef = useRef<ScriptProcessorNode | null>(null);
+  let fullAudioData: Float32Array[] = [];
+
 
   const getTTS = useCallback(async (message: string): Promise<string> => {
     let audioUrl = '';
@@ -229,7 +232,7 @@ export function Chat() {
   const initAudioWebSocket = useCallback(() => {
     if (!sttAudioWebsocketRef.current) {
       sttAudioWebsocketRef.current = new WebSocket(
-        `${process.env.NEXT_PUBLIC_WS_BASE_URL}/speech/transcribe`
+        `${process.env.NEXT_PUBLIC_WS_BASE_URL}/speech/transcribe/deepgram`
       );
       sttAudioWebsocketRef.current.onopen = () => {
         console.log("Audio WebSocket connection established");
@@ -253,35 +256,16 @@ export function Chat() {
 
   const startRecording = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        audio: { 
-          sampleRate: 16000,
-          channelCount: 1,
-          echoCancellation: true,
-          noiseSuppression: true
-        } 
-      });
-      
-      streamRef.current = stream;
-      
-      audioContextRef.current = new AudioContext({ sampleRate: 16000 });
-      sourceNodeRef.current = audioContextRef.current.createMediaStreamSource(stream);
-      processorNodeRef.current = audioContextRef.current.createScriptProcessor(1024, 1, 1);
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mediaRecorderRef.current = new MediaRecorder(stream);
 
-      sourceNodeRef.current.connect(processorNodeRef.current);
-      processorNodeRef.current.connect(audioContextRef.current.destination);
-
-      processorNodeRef.current.onaudioprocess = (e) => {
-        const inputData = e.inputBuffer.getChannelData(0);
-        const audioData = new Int16Array(inputData.length);
-        for (let i = 0; i < inputData.length; i++) {
-          audioData[i] = Math.max(-1, Math.min(1, inputData[i])) * 0x7FFF;
-        }
-        if (sttAudioWebsocketRef.current?.readyState === WebSocket.OPEN) {
-          sttAudioWebsocketRef.current.send(audioData.buffer);
+      mediaRecorderRef.current.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
         }
       };
 
+      mediaRecorderRef.current.start();
       setIsRecording(true);
     } catch (err) {
       console.error('Error accessing microphone:', err);
@@ -289,27 +273,25 @@ export function Chat() {
   };
 
   const stopRecording = () => {
-    if (isRecording) {
-      setIsRecording(false); // Set recording to false on UI
-      // Stop all tracks on the active stream
-      streamRef.current?.getTracks().forEach(track => track.stop());
+    if (isRecording && mediaRecorderRef.current) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
 
-      // Disconnect and null out audio nodes
-      if (sourceNodeRef.current && processorNodeRef.current && audioContextRef.current) {
-        sourceNodeRef.current.disconnect();
-        processorNodeRef.current.disconnect();
-        audioContextRef.current.close();
-      }
+      mediaRecorderRef.current.onstop = () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        audioChunksRef.current = [];
 
-      // Reset all refs
-      streamRef.current = null;
-      audioContextRef.current = null;
-      sourceNodeRef.current = null;
-      processorNodeRef.current = null;
+        if (sttAudioWebsocketRef.current?.readyState === WebSocket.OPEN) {
+          sttAudioWebsocketRef.current.send(audioBlob);
+        }
+
+        // Stop all tracks in the stream
+        mediaRecorderRef.current?.stream.getTracks().forEach(track => track.stop());
+      };
 
       setTimeout(() => {
-        handleSendMessage(); // Call send message after waiting for 2 seconds
-      }, 2000); // Wait for 2 seconds before stopping
+        handleSendMessage();
+      }, 2000);
     }
   };
 
