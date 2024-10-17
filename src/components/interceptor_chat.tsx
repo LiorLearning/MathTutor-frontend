@@ -64,68 +64,6 @@ function UserSidebar({ username }: { username: string }) {
   );
 }
 
-export default function HtmlContentSidebar({ username }: { username: string }) {
-  const [htmlContent, setHtmlContent] = useState("")
-  const [isCodeView, setIsCodeView] = useState(false)
-
-  const generateHtml = useCallback(() => {
-    const websocket = new WebSocket(`${process.env.NEXT_PUBLIC_WS_BASE_URL}/chat/generate_html/${username}`)
-
-    setHtmlContent("")
-    
-    websocket.onopen = () => {
-      console.log("WebSocket connection established for HTML generation")
-    }
-
-    websocket.onmessage = (event) => {
-      setHtmlContent(prevHtml => prevHtml + event.data)
-    }
-
-    return () => {
-      websocket.close()
-    }
-  }, [username])
-
-  const handleHtmlChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setHtmlContent(event.target.value)
-  }
-
-  return (
-    <div className="w-2/5 p-4 flex flex-col h-full">
-      <div className="flex justify-between items-center mb-4">
-        <Button onClick={generateHtml}>
-          Generate HTML
-        </Button>
-        <div className="flex items-center space-x-2">
-          <Switch
-            id="code-view"
-            checked={isCodeView}
-            onCheckedChange={setIsCodeView}
-          />
-          <Label htmlFor="code-view">
-            {isCodeView ? "Code View" : "Rendered View"}
-          </Label>
-        </div>
-      </div>
-      {isCodeView ? (
-        <Textarea
-          value={htmlContent}
-          onChange={handleHtmlChange}
-          className="flex-grow font-mono text-sm"
-          placeholder="HTML code will appear here"
-        />
-      ) : (
-        <iframe 
-          srcDoc={htmlContent} 
-          className="flex-grow border-2 border-gray-300 rounded-md"
-          title="Generated HTML"
-        />
-      )}
-    </div>
-  )
-}
-
-
 export function InterceptorChat() {
   const searchParams = useSearchParams();
   const username = searchParams.get('username') || 'testuser';
@@ -137,6 +75,51 @@ export function InterceptorChat() {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const lastBotMessageRef = useRef<HTMLDivElement>(null);
   const chatWebsocketRef = useRef<WebSocket | null>(null);
+  const htmlWebsocketRef = useRef<WebSocket | null>(null);
+  const [htmlContent, setHtmlContent] = useState("");
+  const [isCodeView, setIsCodeView] = useState(false);
+
+  const initHtmlWebSocket = useCallback((username: string) => {
+    if (!htmlWebsocketRef.current) {
+      htmlWebsocketRef.current = new WebSocket(`${process.env.NEXT_PUBLIC_WS_BASE_URL}/chat/interceptor/html/${username}`);
+
+      htmlWebsocketRef.current.onopen = () => {
+        console.log('WebSocket connection established');
+      };
+
+      htmlWebsocketRef.current.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        const message = data.content;
+        setHtmlContent(prevHtml => prevHtml + message);
+      };
+
+      htmlWebsocketRef.current.onerror = (error) => {
+        console.error('WebSocket error:', error);
+      };
+
+      htmlWebsocketRef.current.onclose = () => {
+        console.log('WebSocket connection closed');
+      };
+    }
+  }, [username]);
+
+  const generateHtml = useCallback(() => {
+    if (htmlWebsocketRef.current) {
+      setHtmlContent("");
+      const message = { action: "GENERATE", content: "" };
+      htmlWebsocketRef.current.send(JSON.stringify(message));
+    }
+  }, [username]);
+
+  const handleHtmlChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setHtmlContent(event.target.value);
+  };
+
+  const sendHtmlContent = () => {
+    if (htmlWebsocketRef.current) {
+      htmlWebsocketRef.current.send(JSON.stringify({ action: "SEND", content: htmlContent }));
+    }
+  };
 
   const initChatWebSocket = useCallback((username: string) => {
     if (!chatWebsocketRef.current) {
@@ -169,10 +152,6 @@ export function InterceptorChat() {
     }
   }, [username]);
 
-  useEffect(() => {
-    console.log("Messages: ", messages)
-  }, [messages]);
-
   // Initialize chat and load history
   useEffect(() => {
     const initializeChat = async () => {
@@ -186,6 +165,7 @@ export function InterceptorChat() {
 
         // WebSocket setup
         initChatWebSocket(username);
+        initHtmlWebSocket(username);
         
       } catch (error) {
         console.error('Error initializing chat:', error);
@@ -199,17 +179,20 @@ export function InterceptorChat() {
     }
 
     const handleUnload = () => {
-      if (chatWebsocketRef.current) {
-        chatWebsocketRef.current.close();
-      }
+      chatWebsocketRef.current?.close()
+      htmlWebsocketRef.current?.close()
+      chatWebsocketRef.current = null;
+      htmlWebsocketRef.current = null;
     };
 
     window.addEventListener('beforeunload', handleUnload);
 
     return () => {
-      if (chatWebsocketRef.current) {
-        chatWebsocketRef.current.close();
-      }
+      chatWebsocketRef.current?.close()
+      htmlWebsocketRef.current?.close()
+      chatWebsocketRef.current = null;
+      htmlWebsocketRef.current = null;
+
       window.removeEventListener('beforeunload', handleUnload);
     }
 
@@ -407,7 +390,40 @@ export function InterceptorChat() {
           </Button>
         </div>
       </div>
-      <HtmlContentSidebar username={username} />
+      <div className="w-2/5 p-4 flex flex-col h-full">
+        <div className="flex justify-between items-center mb-4">
+          <Button onClick={generateHtml}>
+            Generate HTML
+          </Button>
+          <Button onClick={sendHtmlContent}>
+            Send
+          </Button>
+          <div className="flex items-center space-x-2">
+            <Switch
+              id="code-view"
+              checked={isCodeView}
+              onCheckedChange={setIsCodeView}
+            />
+            <Label htmlFor="code-view">
+              {isCodeView ? "Code View" : "Rendered View"}
+            </Label>
+          </div>
+        </div>
+        {isCodeView ? (
+          <Textarea
+            value={htmlContent}
+            onChange={handleHtmlChange}
+            className="flex-grow font-mono text-sm"
+            placeholder="HTML code will appear here"
+          />
+        ) : (
+          <iframe 
+            srcDoc={htmlContent} 
+            className="flex-grow border-2 border-gray-300 rounded-md"
+            title="Generated HTML"
+          />
+        )}
+      </div>
     </div>
   );
 }

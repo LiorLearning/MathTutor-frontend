@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useMemo, use } from 'react';
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -28,7 +28,6 @@ export function Chat() {
   const username = searchParams.get('username') || 'testuser';
   
   const [messages, setMessages] = useState<Message[]>([]);
-  const [htmlContent, setHtmlContent] = useState("");
   const [chatId, setChatId] = useState("");
   const [inputText, setInputText] = useState("");
   const [isLoading, setIsLoading] = useState(true);
@@ -36,6 +35,10 @@ export function Chat() {
   const lastBotMessageRef = useRef<HTMLDivElement>(null);
   const chatWebsocketRef = useRef<WebSocket | null>(null);
   const messageStreamIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // HTML
+  const [htmlContent, setHtmlContent] = useState("");
+  const htmlWebsocketRef = useRef<WebSocket | null>(null);
   
   // Text to Speech
   const ttsAudioRef = useRef<HTMLAudioElement | null>(null);
@@ -78,24 +81,6 @@ export function Chat() {
       console.error('Error generating text-to-speech:', error);
     }
   }, []); // Add dependencies if needed
-
-  const generateHtml = useCallback(() => {
-    const websocket = new WebSocket(`${process.env.NEXT_PUBLIC_WS_BASE_URL}/chat/generate_html/${username}`);
-
-    setHtmlContent('');
-    
-    websocket.onopen = () => {
-      console.log("WebSocket connection established for HTML generation");
-    };
-
-    websocket.onmessage = (event) => {
-      setHtmlContent(prevHtml => prevHtml + event.data);
-    };
-
-    return () => {
-      websocket.close();
-    };
-  }, [username]);
 
   const toggleAudio = useCallback((message: Message) => {
     if (!message.audioUrl) {
@@ -183,6 +168,34 @@ export function Chat() {
     }
   }, [toggleAudio]);
 
+  const initHtmlWebSocket = useCallback((username: string) => {
+    if (!htmlWebsocketRef.current) {
+      htmlWebsocketRef.current = new WebSocket(`${process.env.NEXT_PUBLIC_WS_BASE_URL}/chat/user/html/${username}`);
+
+      htmlWebsocketRef.current.onopen = () => {
+        console.log('WebSocket connection established');
+      };
+
+      htmlWebsocketRef.current.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        const message = data.content;
+        const role = data.role;
+        if (role === 'external') {
+          setHtmlContent(message);
+        }
+      };
+
+      htmlWebsocketRef.current.onerror = (error) => {
+        console.error('WebSocket error:', error);
+      };
+
+      htmlWebsocketRef.current.onclose = () => {
+        console.log('WebSocket connection closed');
+      };
+    }
+  }, []);
+
+
   const initAudioWebSocket = useCallback(() => {
     if (!sttAudioWebsocketRef.current) {
       sttAudioWebsocketRef.current = new WebSocket(
@@ -265,11 +278,17 @@ export function Chat() {
         }
 
         initChatWebSocket(username);
+        initHtmlWebSocket(username);
         initAudioWebSocket();
         
         return () => {
           sttAudioWebsocketRef.current?.close();
           chatWebsocketRef.current?.close();
+          htmlWebsocketRef.current?.close()
+
+          sttAudioWebsocketRef.current = null;
+          chatWebsocketRef.current = null;
+          htmlWebsocketRef.current = null;
         };
         
       } catch (error) {
@@ -540,12 +559,6 @@ export function Chat() {
         </div>
       </div>
       <div className="w-1/2 p-4">
-        <Button 
-          className="mb-4" 
-          onClick={generateHtml}
-        >
-          Generate HTML
-        </Button>
         <iframe 
           srcDoc={htmlContent} 
           style={{ width: '100%', height: '95%', border: '2px solid #ccc', borderRadius: '4px' }} 
