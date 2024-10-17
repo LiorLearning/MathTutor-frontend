@@ -80,7 +80,7 @@ export function InterceptorChat() {
 
   const [htmlContent, setHtmlContent] = useState("");
   const [isCodeView, setIsCodeView] = useState(false);
-  const [sendLoadingMessage, setSendLoadingMessage] = useState(false); // New state for loading message toggle
+  const [sendLoadingMessage, setSendLoadingMessage] = useState(true); // New state for loading message toggle
 
   const initHtmlWebSocket = useCallback(() => {
     if (!htmlWebsocketRef.current) {

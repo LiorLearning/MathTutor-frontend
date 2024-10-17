@@ -20,7 +20,7 @@ import {
   SPEECH_API_BASE_URL,
 } from '@/components/utils/chat_utils'
 
-const SPEAKOUT = false;
+const SPEAKOUT = true;
 const SPEED = 30;
 const PLAYBACK_RATE = 1;
 
@@ -143,9 +143,6 @@ export function Chat() {
           setMessages(prevMessages => prevMessages.slice(0, -1));
         }
 
-        const audioUrl = SPEAKOUT ? await getTTS(message) : '';
-        console.log('Audio URL:', audioUrl);
-
         const finalMessage: Message = {
           role: 'assistant',
           content: '',
@@ -156,6 +153,9 @@ export function Chat() {
         };
 
         if (message.startsWith("![Generated")) {
+          const audioUrl = SPEAKOUT ? await getTTS("Here is your generate image.") : '';
+          console.log('Audio URL:', audioUrl);
+          
           finalMessage.content = message; 
           setMessages(prevMessages => {
             const updatedMessages = prevMessages.filter(msg => msg.message_id !== finalMessage.message_id);
@@ -163,6 +163,9 @@ export function Chat() {
           });
 
         } else {
+          const audioUrl = SPEAKOUT ? await getTTS(message) : '';
+          console.log('Audio URL:', audioUrl);
+
           if (messageStreamIntervalRef.current) {
             clearInterval(messageStreamIntervalRef.current);
           }
@@ -187,7 +190,6 @@ export function Chat() {
               }
             }, SPEED);
           };
-
           streamMessage(message);
         }
       }
@@ -236,7 +238,6 @@ export function Chat() {
 
       sttAudioWebsocketRef.current.onmessage = (event) => {
         const transcribedText = event.data;
-        console.log("Transcribed text: ", transcribedText);
         setInputText(prevText => {
           const updatedText = prevText + ' ' + transcribedText;
           return updatedText;
@@ -255,6 +256,11 @@ export function Chat() {
 
   const startRecording = async () => {
     try {
+      // Pause the TTS audio if it's playing
+      if (ttsAudioRef.current && !ttsAudioRef.current.paused) {
+        ttsAudioRef.current.pause();
+      }
+
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       mediaRecorderRef.current = new MediaRecorder(stream);
 
@@ -426,13 +432,12 @@ export function Chat() {
     );
   };
 
-  const handleSendMessage = useCallback(async (text?: string) => {
-    const messageText = text ?? inputText;
-    if (messageText.trim() === "") return;
+  const handleSendMessage = useCallback(async () => {
+    if (inputText.trim() === "") return;
 
     const userMessage: Message = {
       role: 'user',
-      content: messageText,
+      content: inputText,
       audioUrl: '',
       message_id: `temp-${Date.now()}`,
       timestamp: new Date().toISOString()
@@ -444,8 +449,8 @@ export function Chat() {
     setMessages(prevMessages => [...prevMessages, userMessage]);
     setInputText("");
 
-    chatWebsocketRef.current?.send(messageText);
-  }, []);
+    chatWebsocketRef.current?.send(inputText);
+  }, [inputText]);
 
   const messageComponents = useMemo(() => (
     Array.isArray(messages) && messages.map((message, index) => (
@@ -479,10 +484,10 @@ export function Chat() {
                   <Image
                     src={src || ''}
                     alt={alt || ''}
-                    width={500}
+                    width={300}
                     height={300}
                     className="rounded-lg"
-                    style={{ objectFit: 'contain', width: '100%', height: 'auto' }}
+                    style={{ objectFit: 'contain', width: '80%', height: 'auto' }}
                   />
                 ),
               }}
@@ -548,10 +553,7 @@ export function Chat() {
           <Button 
             size="icon" 
             className="h-12 w-12" 
-            onClick={() => {
-              console.log("Send button clicked");
-              handleSendMessage();
-            }}
+            onClick={handleSendMessage}
             disabled={inputText.trim() === ''}
           >
             <Send className="h-5 w-5" />
@@ -610,7 +612,7 @@ export function Chat() {
         )}
         <iframe 
           srcDoc={htmlContent} 
-          style={{ width: '100%', height: '95%', border: '2px solid #ccc', borderRadius: '4px' }} 
+          style={{ width: '100%', height: '100%', border: '2px solid #ccc', borderRadius: '4px' }} 
           title="Generated HTML"
         />
       </div>
