@@ -48,13 +48,9 @@ export function Chat() {
   // Speech to Text
   const [isRecording, setIsRecording] = useState(false);
   const sttAudioWebsocketRef = useRef<WebSocket | null>(null);
-  const streamRef = useRef<MediaStream | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
-  const sourceNodeRef = useRef<MediaStreamAudioSourceNode | null>(null);
-  const processorNodeRef = useRef<ScriptProcessorNode | null>(null);
-  let fullAudioData: Float32Array[] = [];
-
+  
 
   const getTTS = useCallback(async (message: string): Promise<string> => {
     let audioUrl = '';
@@ -241,7 +237,10 @@ export function Chat() {
       sttAudioWebsocketRef.current.onmessage = (event) => {
         const transcribedText = event.data;
         console.log("Transcribed text: ", transcribedText);
-        setInputText(prevText => prevText + ' ' + transcribedText);
+        setInputText(prevText => {
+          const updatedText = prevText + ' ' + transcribedText;
+          return updatedText;
+        });
       };
 
       sttAudioWebsocketRef.current.onclose = () => {
@@ -288,10 +287,6 @@ export function Chat() {
         // Stop all tracks in the stream
         mediaRecorderRef.current?.stream.getTracks().forEach(track => track.stop());
       };
-
-      setTimeout(() => {
-        handleSendMessage();
-      }, 2000);
     }
   };
 
@@ -431,12 +426,13 @@ export function Chat() {
     );
   };
 
-  const handleSendMessage = useCallback(async () => {
-    if (inputText.trim() === "") return;
+  const handleSendMessage = useCallback(async (text?: string) => {
+    const messageText = text ?? inputText;
+    if (messageText.trim() === "") return;
 
     const userMessage: Message = {
       role: 'user',
-      content: inputText,
+      content: messageText,
       audioUrl: '',
       message_id: `temp-${Date.now()}`,
       timestamp: new Date().toISOString()
@@ -448,8 +444,8 @@ export function Chat() {
     setMessages(prevMessages => [...prevMessages, userMessage]);
     setInputText("");
 
-    chatWebsocketRef.current?.send(inputText);
-  }, [inputText]);
+    chatWebsocketRef.current?.send(messageText);
+  }, []);
 
   const messageComponents = useMemo(() => (
     Array.isArray(messages) && messages.map((message, index) => (
@@ -552,7 +548,10 @@ export function Chat() {
           <Button 
             size="icon" 
             className="h-12 w-12" 
-            onClick={handleSendMessage}
+            onClick={() => {
+              console.log("Send button clicked");
+              handleSendMessage();
+            }}
             disabled={inputText.trim() === ''}
           >
             <Send className="h-5 w-5" />
