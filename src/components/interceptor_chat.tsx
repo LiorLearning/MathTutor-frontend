@@ -79,8 +79,8 @@ export function InterceptorChat() {
 
   const [htmlContent, setHtmlContent] = useState("");
   const [isCodeView, setIsCodeView] = useState(false);
-  const [embedLink, setEmbedLink] = useState("")
-
+  const [embedLink, setEmbedLink] = useState("");
+  const [sendLoadingMessage, setSendLoadingMessage] = useState(false); // New state for loading message toggle
 
   const initHtmlWebSocket = useCallback((username: string) => {
     if (!htmlWebsocketRef.current) {
@@ -109,10 +109,10 @@ export function InterceptorChat() {
   const generateHtml = useCallback(() => {
     if (htmlWebsocketRef.current) {
       setHtmlContent("");
-      const message = { action: "GENERATE", content: "" };
+      const message = { action: "GENERATE", content: sendLoadingMessage ? "loading" : "" }; // Send loading message if toggle is on
       htmlWebsocketRef.current.send(JSON.stringify(message));
     }
-  }, [username]);
+  }, [username, sendLoadingMessage]); // Include sendLoadingMessage in dependencies
 
   const handleHtmlChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
     setHtmlContent(event.target.value);
@@ -402,6 +402,14 @@ export function InterceptorChat() {
             Send
           </Button>
           <div className="flex items-center space-x-2">
+            <Switch
+              id="loading-message"
+              checked={sendLoadingMessage}
+              onCheckedChange={setSendLoadingMessage} // New toggle for loading message
+            />
+            <Label htmlFor="loading-message">
+              Send Loading Message
+            </Label>
             <Switch
               id="code-view"
               checked={isCodeView}
