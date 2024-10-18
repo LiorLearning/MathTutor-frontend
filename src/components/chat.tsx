@@ -29,7 +29,7 @@ const INTERRUPT = 'interrupt';
 const ASSISTANT = 'assistant';
 const USER = 'user';
 
-const ERROR_TIMEOUT = 5000;
+const ERROR_TIMEOUT = 10000;
 
 
 export function Chat() {
@@ -43,7 +43,6 @@ export function Chat() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSendingMessage, setIsSendingMessage] = useState(false);
   const [sendMessageTimeout, setSendMessageTimeout] = useState<NodeJS.Timeout | null>(null);
-
 
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const lastBotMessageRef = useRef<HTMLDivElement>(null);
@@ -180,15 +179,12 @@ export function Chat() {
         };
 
         if (message.startsWith("![Generated")) {
-          const audioUrl = SPEAKOUT ? await getTTS("Here is your generate image.") : '';
-          console.log('Audio URL:', audioUrl);
-          
+          const audioUrl = '';
           finalMessage.content = message; 
           setMessages(prevMessages => {
             const updatedMessages = prevMessages.filter(msg => msg.message_id !== finalMessage.message_id);
             return [...updatedMessages, finalMessage];
           });
-
         } else {
           const audioUrl = SPEAKOUT ? await getTTS(message) : '';
           console.log('Audio URL:', audioUrl);
@@ -518,16 +514,30 @@ export function Chat() {
                 ul: (props) => <ul className="list-disc pl-5" {...props} />,
                 ol: (props) => <ol className="list-decimal pl-5" {...props} />,
                 br: () => <br key={Math.random()} />,
-                img: ({ src, alt }) => (
-                  <Image
-                    src={src || ''}
-                    alt={alt || ''}
-                    width={300}
-                    height={300}
-                    className="rounded-lg"
-                    style={{ objectFit: 'contain', width: '80%', height: 'auto' }}
-                  />
-                ),
+                img: ({ src, alt }) => {
+                  const [isLoading, setIsLoading] = useState(true);
+
+                  const handleLoad = () => setIsLoading(false);
+
+                  return (
+                    <div className="relative">
+                      {isLoading && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-gray-200">
+                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+                        </div>
+                      )}
+                      <Image
+                        src={src || ''}
+                        alt={alt || ''}
+                        width={300}
+                        height={300}
+                        className="rounded-lg"
+                        style={{ objectFit: 'contain', width: '80%', height: 'auto' }}
+                        onLoad={handleLoad}
+                      />
+                    </div>
+                  );
+                },
               }}
             >
               {message.content}
