@@ -29,6 +29,8 @@ const INTERRUPT = 'interrupt';
 const ASSISTANT = 'assistant';
 const USER = 'user';
 
+const ERROR_TIMEOUT = 5000;
+
 
 export function Chat() {
   const searchParams = useSearchParams();
@@ -38,8 +40,14 @@ export function Chat() {
   const [chatId, setChatId] = useState("");
   const [inputText, setInputText] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isSendingMessage, setIsSendingMessage] = useState(false);
+  const [sendMessageTimeout, setSendMessageTimeout] = useState<NodeJS.Timeout | null>(null);
+
+
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const lastBotMessageRef = useRef<HTMLDivElement>(null);
+
   const chatWebsocketRef = useRef<WebSocket | null>(null);
   const messageStreamIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -153,6 +161,13 @@ export function Chat() {
 
         if (role === CORRECTION) {
           setMessages(prevMessages => prevMessages.slice(0, -1));
+        }
+
+        setIsSendingMessage(false);
+        setErrorMessage(null);
+        if (sendMessageTimeout) {
+          clearTimeout(sendMessageTimeout);
+          setSendMessageTimeout(null);
         }
 
         const finalMessage: Message = {
@@ -465,6 +480,12 @@ export function Chat() {
 
     setMessages(prevMessages => [...prevMessages, userMessage]);
     setInputText("");
+    setIsSendingMessage(true);
+    setErrorMessage(null);
+    const timeout = setTimeout(() => {
+      setErrorMessage("Message sending is taking longer than expected. Please reload the page.");
+    }, ERROR_TIMEOUT);
+    setSendMessageTimeout(timeout);
 
     chatWebsocketRef.current?.send(inputText);
   }, [inputText]);
@@ -555,66 +576,78 @@ export function Chat() {
           </div>
         </ScrollArea>
         
-        <div className="p-6 border-t flex items-center space-x-2">
-          <Input 
-            className="flex-grow h-12"
-            placeholder="Type your message..." 
-            value={inputText}
-            onChange={(e) => setInputText(e.target.value)}
-            onKeyPress={(e) => {
-              if (e.key === 'Enter') {
-                handleSendMessage();
-              }
-            }}
-          />
-          <Button 
-            size="icon" 
-            className="h-12 w-12" 
-            onClick={handleSendMessage}
-            disabled={inputText.trim() === ''}
-          >
-            <Send className="h-5 w-5" />
-          </Button>
-          <Button
-              onClick={isRecording ? stopRecording : startRecording}
-              className={`w-16 h-16 rounded-full flex items-center justify-center transition-colors ${
-                isRecording ? 'bg-red-500 hover:bg-red-600' : 'bg-blue-500 hover:bg-blue-600'
-              }`}
-              aria-label={isRecording ? 'Stop recording' : 'Start recording'}
-            >
-              {isRecording ? (
-                <Square className="w-6 h-6 text-white" />
-              ) : (
-                <Mic className="w-6 h-6 text-white" />
-              )}
-            </Button>
-            {isRecording && (
-              <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2">
-                <motion.div
-                  className="flex space-x-1"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                >
-                  {[0, 1, 2, 3, 4].map((i) => (
-                    <motion.div
-                      key={i}
-                      className="w-1 h-8 bg-blue-500 rounded-full"
-                      animate={{
-                        height: [8, 32, 8],
-                      }}
-                      transition={{
-                        duration: 0.5,
-                        repeat: Infinity,
-                        repeatType: 'reverse',
-                        delay: i * 0.1,
-                      }}
-                    />
-                  ))}
-                </motion.div>
+        {isSendingMessage ? (
+          <div className="flex items-center justify-center h-12 w-full">
+            {errorMessage ? (
+              <div className="mt-4 text-red-500">
+                {errorMessage}
               </div>
+            ) : (
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
             )}
-        </div>
+          </div>
+        ) : (
+          <div className="p-6 border-t flex items-center space-x-2">
+            <Input 
+              className="flex-grow h-12"
+              placeholder="Type your message..." 
+              value={inputText}
+              onChange={(e) => setInputText(e.target.value)}
+              onKeyPress={(e) => {
+                if (e.key === 'Enter') {
+                  handleSendMessage();
+                }
+              }}
+            />
+            <Button 
+              size="icon" 
+              className="h-12 w-12" 
+              onClick={handleSendMessage}
+              disabled={inputText.trim() === ''}
+            >
+              <Send className="h-5 w-5" />
+            </Button>
+            <Button
+                onClick={isRecording ? stopRecording : startRecording}
+                className={`w-16 h-16 rounded-full flex items-center justify-center transition-colors ${
+                  isRecording ? 'bg-red-500 hover:bg-red-600' : 'bg-blue-500 hover:bg-blue-600'
+                }`}
+                aria-label={isRecording ? 'Stop recording' : 'Start recording'}
+              >
+                {isRecording ? (
+                  <Square className="w-6 h-6 text-white" />
+                ) : (
+                  <Mic className="w-6 h-6 text-white" />
+                )}
+              </Button>
+              {isRecording && (
+                <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2">
+                  <motion.div
+                    className="flex space-x-1"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                  >
+                    {[0, 1, 2, 3, 4].map((i) => (
+                      <motion.div
+                        key={i}
+                        className="w-1 h-8 bg-blue-500 rounded-full"
+                        animate={{
+                          height: [8, 32, 8],
+                        }}
+                        transition={{
+                          duration: 0.5,
+                          repeat: Infinity,
+                          repeatType: 'reverse',
+                          delay: i * 0.1,
+                        }}
+                      />
+                    ))}
+                  </motion.div>
+                </div>
+              )}
+          </div>
+        )}
       </div>
       <div className="w-1/2 p-4 relative">
         {isHtmlLoading && (
