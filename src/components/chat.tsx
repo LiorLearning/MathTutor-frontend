@@ -20,9 +20,15 @@ import {
   SPEECH_API_BASE_URL,
 } from '@/components/utils/chat_utils'
 
-const SPEAKOUT = true;
+const SPEAKOUT = false;
 const SPEED = 30;
 const PLAYBACK_RATE = 1;
+
+const CORRECTION = 'correction';
+const INTERRUPT = 'interrupt';
+const ASSISTANT = 'assistant';
+const USER = 'user';
+
 
 export function Chat() {
   const searchParams = useSearchParams();
@@ -139,12 +145,18 @@ export function Chat() {
       chatWebsocketRef.current.onmessage = async (event) => {
         const data = JSON.parse(event.data);
         const message = data.content;
-        if (data.role === 'correction') {
+        const role = data.role;
+
+        if (role === INTERRUPT) {
+          console.log("Interrupt...");
+        }
+
+        if (role === CORRECTION) {
           setMessages(prevMessages => prevMessages.slice(0, -1));
         }
 
         const finalMessage: Message = {
-          role: 'assistant',
+          role: ASSISTANT,
           content: '',
           audioUrl: '',
           message_id: `bot-${Date.now()}`,
@@ -321,7 +333,6 @@ export function Chat() {
         initAudioWebSocket();
         
         return () => {
-          stopRecording();
           sttAudioWebsocketRef.current?.close();
           chatWebsocketRef.current?.close();
           htmlWebsocketRef.current?.close()
@@ -396,6 +407,12 @@ export function Chat() {
   }, [username, chatId, initChatWebSocket, initAudioWebSocket, initHtmlWebSocket]);
 
   useEffect(() => {
+    if (sttAudioWebsocketRef.current === null) {
+      stopRecording();
+    }
+  }, [sttAudioWebsocketRef, stopRecording])
+
+  useEffect(() => {
     const audio = new Audio();
     ttsAudioRef.current = audio;
     audio.addEventListener('ended', () => {
@@ -436,7 +453,7 @@ export function Chat() {
     if (inputText.trim() === "") return;
 
     const userMessage: Message = {
-      role: 'user',
+      role: USER,
       content: inputText,
       audioUrl: '',
       message_id: `temp-${Date.now()}`,
@@ -457,16 +474,16 @@ export function Chat() {
       <div 
         key={message.message_id} 
         className="flex flex-col items-center justify-center h-full"
-        ref={index === messages.length - 1 && message.role === 'assistant' ? lastBotMessageRef : null}
+        ref={index === messages.length - 1 && message.role === ASSISTANT ? lastBotMessageRef : null}
       >
-        <div className={`max-w-[90%] ${message.role === 'user' ? 'self-end' : 'self-start'}`}>
+        <div className={`max-w-[90%] ${message.role === USER ? 'self-end' : 'self-start'}`}>
           <div
             className={`rounded-3xl p-4 ${
-              message.role === 'user'
+              message.role === USER
                 ? 'bg-blue-500 text-white'
                 : 'bg-gray-50 text-gray-800'
-            } ${message.role === 'assistant' && index < messages.length - 1 ? 'opacity-50' : ''} 
-            ${message.role === 'assistant' && index === messages.length - 1 ? 'opacity-100' : ''}`}
+            } ${message.role === ASSISTANT && index < messages.length - 1 ? 'opacity-50' : ''} 
+            ${message.role === ASSISTANT && index === messages.length - 1 ? 'opacity-100' : ''}`}
           >
             <ReactMarkdown
               remarkPlugins={[remarkGfm, remarkBreaks]}
@@ -494,7 +511,7 @@ export function Chat() {
             >
               {message.content}
             </ReactMarkdown>
-            {message.role === 'assistant' && (
+            {message.role === ASSISTANT && (
               <div className="mt-2 flex justify-end">
                 <Button 
                   size="sm"

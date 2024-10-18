@@ -28,7 +28,7 @@ function UserSidebar({ username }: { username: string }) {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const response = await axios.get<Student>(`${MODEL_API_BASE_URL}/users?user_id=${username}`);
+        const response = await axios.get<Student>(`${MODEL_API_BASE_URL}/users/${username}`);
         setStudentDetails(response.data);
       } catch (error) {
         console.error('Error fetching user data:', error);
