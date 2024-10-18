@@ -82,6 +82,11 @@ export function InterceptorChat() {
   const [isCodeView, setIsCodeView] = useState(false);
   const [sendLoadingMessage, setSendLoadingMessage] = useState(true); // New state for loading message toggle
 
+  // Media Stream
+  const mediaStreamWebsocketRef = useRef<WebSocket | null>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const [peerConnection, setPeerConnection] = useState<RTCPeerConnection | null>(null);
+
   const initHtmlWebSocket = useCallback(() => {
     if (!htmlWebsocketRef.current) {
       htmlWebsocketRef.current = new WebSocket(`${process.env.NEXT_PUBLIC_WS_BASE_URL}/chat/interceptor/html/${username}`);
@@ -155,6 +160,58 @@ export function InterceptorChat() {
     }
   }, [username]);
 
+  const initMediaStreamWebSocket = useCallback((username: string) => {
+    if (!mediaStreamWebsocketRef.current) {
+      console.log('Initializing Media Stream WebSocket for admin');
+      mediaStreamWebsocketRef.current = new WebSocket(`${process.env.NEXT_PUBLIC_WS_BASE_URL}/speech/media_stream/interceptor/${username}`);
+      
+      mediaStreamWebsocketRef.current.onmessage = async (event) => {
+        const message = JSON.parse(event.data);
+        console.log('Received message from Media Stream WebSocket:', message);
+        
+        if (message.type === 'offer') {
+          const pc = new RTCPeerConnection();
+          setPeerConnection(pc);
+          
+          pc.onicecandidate = (e) => {
+            if (e.candidate) {
+              console.log('Sending ICE candidate:', e.candidate);
+              mediaStreamWebsocketRef.current?.send(JSON.stringify({ type: 'candidate', candidate: e.candidate }));
+            }
+          };
+          
+          pc.ontrack = (event) => {
+            if (videoRef.current) {
+              videoRef.current.srcObject = event.streams[0];
+              console.log('Received track from Media Stream:', event.streams[0]);
+            }
+          };
+          
+          await pc.setRemoteDescription(new RTCSessionDescription(message.offer));
+          const answer = await pc.createAnswer();
+          await pc.setLocalDescription(answer);
+          
+          mediaStreamWebsocketRef.current?.send(JSON.stringify({ type: 'answer', answer }));
+          console.log('Sent answer:', answer);
+        } else if (message.type === 'candidate' && peerConnection) {
+          await peerConnection.addIceCandidate(new RTCIceCandidate(message.candidate));
+        }
+      };
+  
+      mediaStreamWebsocketRef.current.onopen = () => {
+        console.log('Media Stream WebSocket connection established');
+      };
+  
+      mediaStreamWebsocketRef.current.onerror = (error) => {
+        console.error('Media Stream WebSocket error:', error);
+      };
+  
+      mediaStreamWebsocketRef.current.onclose = () => {
+        console.log('Media Stream WebSocket connection closed');
+      };      
+    }
+  }, [peerConnection]);
+
   // Initialize chat and load history
   useEffect(() => {
     const initializeChat = async () => {
@@ -169,6 +226,7 @@ export function InterceptorChat() {
         // WebSocket setup
         initChatWebSocket();
         initHtmlWebSocket();
+        initMediaStreamWebSocket(username);
         
       } catch (error) {
         console.error('Error initializing chat:', error);
@@ -184,8 +242,10 @@ export function InterceptorChat() {
     const handleUnload = () => {
       chatWebsocketRef.current?.close()
       htmlWebsocketRef.current?.close()
+      mediaStreamWebsocketRef.current?.close()
       chatWebsocketRef.current = null;
       htmlWebsocketRef.current = null;
+      mediaStreamWebsocketRef.current = null;
     };
 
     window.addEventListener('beforeunload', handleUnload);
@@ -193,8 +253,10 @@ export function InterceptorChat() {
     return () => {
       chatWebsocketRef.current?.close()
       htmlWebsocketRef.current?.close()
+      mediaStreamWebsocketRef.current?.close()
       chatWebsocketRef.current = null;
       htmlWebsocketRef.current = null;
+      mediaStreamWebsocketRef.current = null;
 
       window.removeEventListener('beforeunload', handleUnload);
     }
@@ -432,11 +494,16 @@ export function InterceptorChat() {
             placeholder="HTML code will appear here"
           />
         ) : (
-          <iframe 
-            srcDoc={htmlContent} 
-            className="flex-grow border-2 border-gray-300 rounded-md"
-            title="Generated HTML"
-          />
+          <div className="flex">
+            <iframe 
+              srcDoc={htmlContent} 
+              className="flex-grow border-2 border-gray-300 rounded-md"
+              title="Generated HTML"
+            />
+            <div className="w-2/5">
+              <video ref={videoRef} autoPlay playsInline />
+            </div>
+          </div>
         )}
       </div>
     </div>
