@@ -4,6 +4,7 @@ export interface Message {
     audioUrl: string; // Added audioUrl to store audio
     timestamp: string;
     message_id: string;
+    isImage?: boolean;
     isPlaying?: boolean; // Added isPlaying to track audio state per message
 }
   

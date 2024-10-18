@@ -20,7 +20,7 @@ import {
   SPEECH_API_BASE_URL,
 } from '@/components/utils/chat_utils'
 
-const SPEAKOUT = false;
+const SPEAKOUT = true;
 const SPEED = 30;
 const PLAYBACK_RATE = 1;
 
@@ -82,6 +82,9 @@ export function Chat() {
   }, []);
 
   const setMessageAudioAndPlay = useCallback(async (message: Message, audioUrl: string) => {
+    if (message.isImage === true) {
+      return
+    }
     try {
       setMessages(prevMessages => {
         return [
@@ -108,35 +111,30 @@ export function Chat() {
   }, []);
 
   const toggleAudio = useCallback(async (message: Message) => {
-    if (message.audioUrl !== '') {
-      console.log('Generating text-to-speech for message:', message);
+    if (!message.audioUrl && !message.isImage) {
       const audioUrl = await getTTS(message.content);
       setMessageAudioAndPlay(message, audioUrl);
+
     } else {
-      if (message.isPlaying) {
-        console.log('Pausing audio for message ID:', message.message_id);
+      const isPlaying = message.isPlaying;
+      console.log(`${isPlaying ? 'Pausing' : 'Playing'} audio for message ID:`, message.message_id);
+      
+      if (isPlaying) {
         ttsAudioRef.current?.pause();
-        message.isPlaying = false;
-        setMessages(prevMessages => 
-          prevMessages.map(msg => 
-            msg.message_id === message.message_id ? { ...msg, isPlaying: false } : msg
-          )
-        );
       } else {
-        console.log('Playing audio for message ID:', message.message_id);
-        if (ttsAudioRef.current) {
-          ttsAudioRef.current.src = message.audioUrl;
-          ttsAudioRef.current.playbackRate = PLAYBACK_RATE;
-          ttsAudioRef.current.play().catch(error => {
-            console.error('Playback failed:', error);
-          });
+        if (message.audioUrl) {
+          await setMessageAudioAndPlay(message, message.audioUrl);
+        } else {
+          const audioUrl = await getTTS(message.content);
+          await setMessageAudioAndPlay(message, audioUrl);
         }
-        setMessages(prevMessages => 
-          prevMessages.map(msg => 
-            msg.message_id === message.message_id ? { ...msg, isPlaying: true } : msg
-          )
-        );
       }
+      
+      setMessages(prevMessages => 
+        prevMessages.map(msg => 
+          msg.message_id === message.message_id ? { ...msg, isPlaying: !isPlaying } : msg
+        )
+      );
     }
   }, [setMessageAudioAndPlay, getTTS]);
 
@@ -155,8 +153,13 @@ export function Chat() {
         const role = data.role;
 
         if (role === INTERRUPT) {
-          console.log("Interrupt...");
+          ttsAudioRef.current?.pause();
+          return;
         }
+
+        const isImage = message.startsWith("![Generated");
+
+        const audioUrl = isImage ? '' : (SPEAKOUT ? await getTTS(message) : ''); 
 
         if (role === CORRECTION) {
           setMessages(prevMessages => prevMessages.slice(0, -1));
@@ -175,19 +178,17 @@ export function Chat() {
           audioUrl: '',
           message_id: `bot-${Date.now()}`,
           timestamp: new Date().toISOString(),
-          isPlaying: false
+          isPlaying: false,
+          isImage: isImage
         };
 
-        if (message.startsWith("![Generated")) {
+        if (isImage) {
           finalMessage.content = message; 
           setMessages(prevMessages => {
             const updatedMessages = prevMessages.filter(msg => msg.message_id !== finalMessage.message_id);
             return [...updatedMessages, finalMessage];
           });
         } else {
-          const audioUrl = SPEAKOUT ? await getTTS(message) : '';
-          // console.log('Audio URL:', audioUrl);
-
           if (messageStreamIntervalRef.current) {
             clearInterval(messageStreamIntervalRef.current);
           }
