@@ -52,7 +52,7 @@ export function Chat() {
 
   // HTML
   const [htmlContent, setHtmlContent] = useState("");
-  const [isHtmlLoading, setIsHtmlLoading] = useState(false); // New state for loading
+  const [isHtmlLoading, setIsHtmlLoading] = useState(false);
   const htmlWebsocketRef = useRef<WebSocket | null>(null);
   
   // Text to Speech
@@ -179,7 +179,6 @@ export function Chat() {
         };
 
         if (message.startsWith("![Generated")) {
-          const audioUrl = '';
           finalMessage.content = message; 
           setMessages(prevMessages => {
             const updatedMessages = prevMessages.filter(msg => msg.message_id !== finalMessage.message_id);
@@ -187,7 +186,7 @@ export function Chat() {
           });
         } else {
           const audioUrl = SPEAKOUT ? await getTTS(message) : '';
-          console.log('Audio URL:', audioUrl);
+          // console.log('Audio URL:', audioUrl);
 
           if (messageStreamIntervalRef.current) {
             clearInterval(messageStreamIntervalRef.current);
@@ -253,7 +252,7 @@ export function Chat() {
   const initAudioWebSocket = useCallback(() => {
     if (!sttAudioWebsocketRef.current) {
       sttAudioWebsocketRef.current = new WebSocket(
-        `${process.env.NEXT_PUBLIC_WS_BASE_URL}/speech/transcribe/deepgram`
+        `${process.env.NEXT_PUBLIC_WS_BASE_URL}/speech/transcribe/deepgram/${username}`
       );
       sttAudioWebsocketRef.current.onopen = () => {
         console.log("Audio WebSocket connection established");
@@ -479,7 +478,7 @@ export function Chat() {
     setIsSendingMessage(true);
     setErrorMessage(null);
     const timeout = setTimeout(() => {
-      setErrorMessage("Message sending is taking longer than expected. Please reload the page.");
+      setErrorMessage("Try reloading the page...");
     }, ERROR_TIMEOUT);
     setSendMessageTimeout(timeout);
 
@@ -508,8 +507,8 @@ export function Chat() {
                 h1: (props) => <h1 className="text-4xl font-bold my-4" {...props} />,
                 h2: (props) => <h2 className="text-3xl font-bold my-3" {...props} />,
                 h3: (props) => <h3 className="text-2xl font-bold my-2" {...props} />,
-                p: (props) => <p className="" {...props} />,
-                a: (props) => <a className="text-blue-500 underline" {...props} />,
+                p: (props) => <div className="" {...props} />, // Changed <p> to <div>
+                a: (props) => <a className="text-blue-200 underline" {...props} />,
                 blockquote: (props) => <blockquote className="border-l-4 pl-4 italic text-gray-600" {...props} />,
                 ul: (props) => <ul className="list-disc pl-5" {...props} />,
                 ol: (props) => <ol className="list-decimal pl-5" {...props} />,
