@@ -63,11 +63,6 @@ export function Chat() {
   const sttAudioWebsocketRef = useRef<WebSocket | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
-
-  // Media Stream
-  const mediaStreamWebsocketRef = useRef<WebSocket | null>(null);
-  const videoRef = useRef<HTMLVideoElement | null>(null);
-  const [peerConnection, setPeerConnection] = useState<RTCPeerConnection | null>(null);
   
 
   const getTTS = useCallback(async (message: string): Promise<string> => {
@@ -255,61 +250,6 @@ export function Chat() {
     }
   }, []);
 
-  const initMediaStreamWebSocket = useCallback((username: string) => {
-    if (!mediaStreamWebsocketRef.current) {
-      console.log('Initializing Media Stream WebSocket for user:', username);
-      mediaStreamWebsocketRef.current = new WebSocket(`${process.env.NEXT_PUBLIC_WS_BASE_URL}/speech/media_stream/user/${username}`);
-      
-      mediaStreamWebsocketRef.current.onmessage = async (event) => {
-        const message = JSON.parse(event.data);
-        console.log('Received message from Media Stream WebSocket:', message);
-        
-        if (message.type === 'answer' && peerConnection) {
-          await peerConnection.setRemoteDescription(new RTCSessionDescription(message.answer));
-        } else if (message.type === 'candidate' && peerConnection) {
-          await peerConnection.addIceCandidate(new RTCIceCandidate(message.candidate));
-        }
-      };
-  
-      mediaStreamWebsocketRef.current.onopen = async () => {
-        console.log('Media Stream WebSocket connection established');
-        const pc = new RTCPeerConnection();
-        setPeerConnection(pc);
-
-        pc.onicecandidate = (e) => {
-          if (e.candidate) {
-            console.log('Sending ICE candidate:', e.candidate);
-            mediaStreamWebsocketRef.current?.send(JSON.stringify({ type: 'candidate', candidate: e.candidate }));
-          }
-        };
-
-        try {
-          const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-          stream.getTracks().forEach(track => pc.addTrack(track, stream));
-          if (videoRef.current) {
-            videoRef.current.srcObject = stream;
-          }
-
-          const offer = await pc.createOffer();
-          await pc.setLocalDescription(offer);
-
-          mediaStreamWebsocketRef.current?.send(JSON.stringify({ type: 'offer', offer }));
-          console.log('Sent offer:', offer);
-        } catch (error) {
-          console.error('Error accessing media devices:', error);
-        }
-      };
-  
-      mediaStreamWebsocketRef.current.onerror = (error) => {
-        console.error('Media Stream WebSocket error:', error);
-      };
-  
-      mediaStreamWebsocketRef.current.onclose = () => {
-        console.log('Media Stream WebSocket connection closed');
-      };      
-    }
-  }, [peerConnection]);
-
   const initAudioWebSocket = useCallback(() => {
     if (!sttAudioWebsocketRef.current) {
       sttAudioWebsocketRef.current = new WebSocket(
@@ -402,18 +342,15 @@ export function Chat() {
         initChatWebSocket(username);
         initHtmlWebSocket(username);
         initAudioWebSocket();
-        initMediaStreamWebSocket(username);
         
         return () => {
           sttAudioWebsocketRef.current?.close();
           chatWebsocketRef.current?.close();
-          htmlWebsocketRef.current?.close();
-          mediaStreamWebsocketRef.current?.close();
+          htmlWebsocketRef.current?.close()
 
           sttAudioWebsocketRef.current = null;
           chatWebsocketRef.current = null;
           htmlWebsocketRef.current = null;
-          mediaStreamWebsocketRef.current = null;
         };
         
       } catch (error) {
@@ -735,12 +672,9 @@ export function Chat() {
         )}
         <iframe 
           srcDoc={htmlContent} 
-          className="flex-grow border-2 border-gray-300 rounded-md"
+          style={{ width: '100%', height: '100%', border: '2px solid #ccc', borderRadius: '4px' }} 
           title="Generated HTML"
         />
-        <div className="w-2/5">
-          <video ref={videoRef} autoPlay playsInline />
-        </div>
       </div>
     </div>
   );
