@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Send, Pause, Volume2, Square, Mic, PanelRightCloseIcon, PanelLeftCloseIcon } from "lucide-react"
 import { useSearchParams } from 'next/navigation'
 import axios from 'axios'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { 
   Message, 
   StartChatResponse, 
@@ -32,6 +32,8 @@ const ERROR_TIMEOUT = 10000;
 export function Chat() {
   const searchParams = useSearchParams();
   const username = searchParams.get('username') || 'testuser';
+
+  const [showPopup, setShowPopup] = useState(true);
   
   const [messages, setMessages] = useState<Message[]>([]);
   const [chatId, setChatId] = useState("");
@@ -65,6 +67,14 @@ export function Chat() {
   const toggleVideoFeed = () => {
     setIsVideoVisible(prev => !prev); // Toggle visibility
   };
+
+  const handleEnterClass = () => {
+    if (username.trim() === "") {
+      setErrorMessage("Please enter your name")
+      return
+    }
+    setShowPopup(false)
+  }
 
   const getTTS = useCallback(async (message: string): Promise<string> => {
     let audioUrl = '';
@@ -520,7 +530,31 @@ export function Chat() {
   }
   return (
     <div className="flex flex-col lg:flex-row h-screen bg-background">
-      <div className="w-full lg:w-1/2 flex flex-col p-4 border-r border-border">
+      <AnimatePresence>
+        {showPopup && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            className="absolute inset-0 flex items-center justify-center bg-black/50 z-50"
+          >
+            <motion.div
+              className="bg-card p-8 rounded-lg shadow-lg w-full max-w-md"
+              initial={{ y: -50 }}
+              animate={{ y: 0 }}
+            >
+              <h2 className="text-2xl font-bold mb-4">Welcome to MathTutor</h2>
+              <Button onClick={handleEnterClass} className="w-full">
+                Enter Class
+              </Button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {!showPopup && (
+        <React.Fragment>
+          <div className="w-full lg:w-1/2 flex flex-col p-4 border-r border-border">
         <header className="p-4 border-b border-border">
           <div className="flex justify-between items-center">
             <h1 className="text-xl font-bold">MathTutor</h1>
@@ -570,15 +604,15 @@ export function Chat() {
             <div className="relative">
               <Button
                 onClick={isRecording ? stopRecording : startRecording}
-                className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors ${
-                  isRecording ? 'bg-destructive hover:bg-destructive/90' : 'bg-primary hover:bg-primary/90'
+                className={`w-16 h-16 rounded-full flex items-center justify-center transition-colors ${
+                  isRecording ? 'bg-destructive hover:bg-destructive/90' : 'bg-blue-500 hover:bg-blue-400'
                 }`}
                 aria-label={isRecording ? 'Stop recording' : 'Start recording'}
               >
                 {isRecording ? (
-                  <Square className="w-6 h-6 text-primary-foreground" />
+                  <Square className="w-8 h-8 text-blue-foreground" />
                 ) : (
-                  <Mic className="w-6 h-6 text-primary-foreground" />
+                  <Mic className="w-8 h-8 text-blue-foreground" />
                 )}
               </Button>
               {isRecording && (
@@ -645,6 +679,9 @@ export function Chat() {
           {isVideoVisible ? <PanelRightCloseIcon className="h-4 w-4" /> : <PanelLeftCloseIcon className="h-4 w-4" />}
         </button>
       </div>
+
+        </React.Fragment>
+    )}
     </div>
   );
 }
