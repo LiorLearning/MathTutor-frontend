@@ -5,6 +5,15 @@ import { Mic, MicOff, Video, VideoOff } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Button } from "@/components/ui/button"
 
+// Define type for WebSocket messages
+type WebSocketMessage = {
+  type: string;
+  offer?: RTCSessionDescriptionInit;
+  answer?: RTCSessionDescriptionInit;
+  candidate?: RTCIceCandidateInit;
+  state?: boolean;
+};
+
 const UserVideo: React.FC<{ username: string }> = ({ username }) => {
   const peerConnection = useRef<RTCPeerConnection | null>(null);
   const ws = useRef<WebSocket | null>(null);
@@ -106,6 +115,12 @@ const UserVideo: React.FC<{ username: string }> = ({ username }) => {
     }
   };
 
+  const sendWebSocketMessage = (message: WebSocketMessage) => {
+    if (ws.current?.readyState === WebSocket.OPEN) {
+      ws.current.send(JSON.stringify(message));
+    }
+  };
+
   const connectWebSocket = useCallback(() => {
     if (ws.current?.readyState === WebSocket.OPEN) return;
 
@@ -129,7 +144,6 @@ const UserVideo: React.FC<{ username: string }> = ({ username }) => {
           console.log('Setting remote description with answer');
           await peerConnection.current.setRemoteDescription(new RTCSessionDescription(data.answer));
 
-          // Process any queued ICE candidates
           while (iceCandidatesQueue.current.length) {
             const candidate = iceCandidatesQueue.current.shift();
             if (candidate) {
@@ -165,31 +179,23 @@ const UserVideo: React.FC<{ username: string }> = ({ username }) => {
     };
   }, []);
 
-  const sendWebSocketMessage = (message: any) => {
-    if (ws.current?.readyState === WebSocket.OPEN) {
-      ws.current.send(JSON.stringify(message));
-    }
-  };
-
+  
   const toggleAudio = async () => {
     const newAudioState = !isAudioOn;
     setIsAudioOn(newAudioState);
 
-    // Notify admin about audio state change
     sendWebSocketMessage({ type: 'audio-toggle', state: newAudioState });
 
-    // Clean up existing audio stream
     const cleanupAudioTracks = () => {
         if (localStream.current) {
             const audioTracks = localStream.current.getAudioTracks();
             audioTracks.forEach(track => {
-                track.enabled = false;  // Immediately disable the track
-                track.stop();  // Release the microphone
+                track.enabled = false;
+                track.stop();
                 localStream.current?.removeTrack(track);
             });
         }
 
-        // Clean up peer connection tracks
         if (peerConnection.current) {
             peerConnection.current.getSenders()
                 .filter(sender => sender.track?.kind === 'audio')
@@ -203,15 +209,12 @@ const UserVideo: React.FC<{ username: string }> = ({ username }) => {
         }
     };
 
-    // If turning audio off, cleanup existing tracks
     if (!newAudioState) {
         cleanupAudioTracks();
-        // Renegotiate connection to inform peer about removed track
         await createAndSendOffer();
         return;
     }
 
-    // If turning audio back on, get new audio stream
     if (newAudioState) {
         try {
             const newStream = await navigator.mediaDevices.getUserMedia({ 
@@ -223,23 +226,20 @@ const UserVideo: React.FC<{ username: string }> = ({ username }) => {
             });
             const audioTrack = newStream.getAudioTracks()[0];
             
-            // Add new track to existing stream
             if (localStream.current) {
                 localStream.current.addTrack(audioTrack);
             } else {
                 localStream.current = new MediaStream([audioTrack]);
             }
 
-            // Add new track to peer connection
             if (peerConnection.current) {
                 peerConnection.current.addTrack(audioTrack, localStream.current);
-                // Renegotiate connection
                 await createAndSendOffer();
             }
         } catch (error) {
             console.error('Error restarting audio:', error);
-            setIsAudioOn(false); // Revert state if failed
-            cleanupAudioTracks(); // Ensure cleanup on error
+            setIsAudioOn(false);
+            cleanupAudioTracks();
             throw new Error(`Failed to start audio: ${error}`);
         }
     }
@@ -249,21 +249,18 @@ const UserVideo: React.FC<{ username: string }> = ({ username }) => {
     const newVideoState = !isVideoOn;
     setIsVideoOn(newVideoState);
 
-    // Notify admin about video state change
     sendWebSocketMessage({ type: 'video-toggle', state: newVideoState });
 
-    // Clean up existing video stream
     const cleanupVideoTracks = () => {
         if (localStream.current) {
             const videoTracks = localStream.current.getVideoTracks();
             videoTracks.forEach(track => {
-                track.enabled = false;  // Immediately disable the track
-                track.stop();  // Release the camera
+                track.enabled = false;
+                track.stop();
                 localStream.current?.removeTrack(track);
             });
         }
 
-        // Clean up peer connection tracks
         if (peerConnection.current) {
             peerConnection.current.getSenders()
                 .filter(sender => sender.track?.kind === 'video')
@@ -276,22 +273,18 @@ const UserVideo: React.FC<{ username: string }> = ({ username }) => {
                 });
         }
 
-        // Clear video element
         const videoElement = document.getElementById('user-video') as HTMLVideoElement;
         if (videoElement && videoElement.srcObject) {
             videoElement.srcObject = null;
         }
     };
 
-    // If turning video off, cleanup existing tracks
     if (!newVideoState) {
         cleanupVideoTracks();
-        // Renegotiate connection to inform peer about removed track
         await createAndSendOffer();
         return;
     }
 
-    // If turning video back on, get new video stream
     if (newVideoState) {
         try {
             const newStream = await navigator.mediaDevices.getUserMedia({ 
@@ -302,29 +295,25 @@ const UserVideo: React.FC<{ username: string }> = ({ username }) => {
             });
             const videoTrack = newStream.getVideoTracks()[0];
             
-            // Add new track to existing stream
             if (localStream.current) {
                 localStream.current.addTrack(videoTrack);
             } else {
                 localStream.current = new MediaStream([videoTrack]);
             }
 
-            // Update video element
             const videoElement = document.getElementById('user-video') as HTMLVideoElement;
             if (videoElement) {
                 videoElement.srcObject = localStream.current;
             }
 
-            // Add new track to peer connection
             if (peerConnection.current) {
                 peerConnection.current.addTrack(videoTrack, localStream.current);
-                // Renegotiate connection
                 await createAndSendOffer();
             }
         } catch (error) {
             console.error('Error restarting video:', error);
-            setIsVideoOn(false); // Revert state if failed
-            cleanupVideoTracks(); // Ensure cleanup on error
+            setIsVideoOn(false);
+            cleanupVideoTracks();
         }
     }
 };
@@ -400,7 +389,7 @@ const UserVideo: React.FC<{ username: string }> = ({ username }) => {
         </div>
       </div>
     </div>
-  )
+  );
 };
 
 export default UserVideo;

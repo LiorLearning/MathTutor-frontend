@@ -6,17 +6,14 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Send, Pause, Volume2, Square, Mic } from "lucide-react"
 import { useSearchParams } from 'next/navigation'
-import Image from 'next/image'
 import axios from 'axios'
 import { motion } from 'framer-motion'
-import ReactMarkdown from 'react-markdown'
-import remarkGfm from 'remark-gfm'
-import remarkBreaks from 'remark-breaks';
 import { 
   Message, 
   StartChatResponse, 
   GetChatHistoryResponse,
   API_BASE_URL,
+  MarkdownComponent,
   SPEECH_API_BASE_URL,
 } from '@/components/utils/chat_utils';
 import UserVideo from '@/components/webrtc/user';
@@ -31,7 +28,6 @@ const ASSISTANT = 'assistant';
 const USER = 'user';
 
 const ERROR_TIMEOUT = 10000;
-
 
 export function Chat() {
   const searchParams = useSearchParams();
@@ -64,7 +60,6 @@ export function Chat() {
   const sttAudioWebsocketRef = useRef<WebSocket | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
-  
 
   const getTTS = useCallback(async (message: string): Promise<string> => {
     let audioUrl = '';
@@ -83,23 +78,18 @@ export function Chat() {
   }, []);
 
   const setMessageAudioAndPlay = useCallback(async (message: Message, audioUrl: string) => {
-    if (message.isImage === true) {
-      return
-    }
+    if (message.isImage) return;
+
     try {
-      setMessages(prevMessages => {
-        return [
-          ...prevMessages.slice(0, -1),
-          { ...message, audioUrl },
-        ];
-      });
+      setMessages(prevMessages => [
+        ...prevMessages.slice(0, -1),
+        { ...message, audioUrl },
+      ]);
 
       if (ttsAudioRef.current) {
         ttsAudioRef.current.src = audioUrl;
         ttsAudioRef.current.playbackRate = PLAYBACK_RATE;
-        ttsAudioRef.current.play().catch(error => {
-          console.error('Playback failed:', error);
-        });
+        await ttsAudioRef.current.play();
         setMessages(prevMessages => 
           prevMessages.map(msg => 
             msg.message_id === message.message_id ? { ...msg, isPlaying: true } : msg
@@ -107,7 +97,7 @@ export function Chat() {
         );
       }
     } catch (error) {
-      
+      console.error('Playback failed:', error);
     }
   }, []);
 
@@ -115,7 +105,6 @@ export function Chat() {
     if (!message.audioUrl && !message.isImage) {
       const audioUrl = await getTTS(message.content);
       setMessageAudioAndPlay(message, audioUrl);
-
     } else {
       const isPlaying = message.isPlaying;
       console.log(`${isPlaying ? 'Pausing' : 'Playing'} audio for message ID:`, message.message_id);
@@ -159,7 +148,6 @@ export function Chat() {
         }
 
         const isImage = message.startsWith("![Generated");
-
         const audioUrl = isImage ? '' : (SPEAKOUT ? await getTTS(message) : ''); 
 
         if (role === CORRECTION) {
@@ -195,11 +183,11 @@ export function Chat() {
           }
 
           const streamMessage = (fullMessage: string) => {
-            const messageChunks = fullMessage.split(' '); // Split the message into chunks by whitespace
+            const messageChunks = fullMessage.split(' ');
             let index = 0;
             messageStreamIntervalRef.current = setInterval(() => {
               if (index < messageChunks.length) {
-                finalMessage.content += messageChunks[index++] + ' '; // Add chunk and a space
+                finalMessage.content += messageChunks[index++] + ' ';
                 setMessages(prevMessages => {
                   const updatedMessages = prevMessages.filter(msg => msg.message_id !== finalMessage.message_id);
                   return [...updatedMessages, finalMessage];
@@ -234,10 +222,10 @@ export function Chat() {
         const role = data.role;
         if (role === 'external') {
           setHtmlContent(message);
-          setIsHtmlLoading(false); // Reset loading state
+          setIsHtmlLoading(false);
         } else if (role === 'loading') {
           console.log("HTML Loading... ");
-          setIsHtmlLoading(true); // Set loading state
+          setIsHtmlLoading(true);
         }
       };
 
@@ -262,10 +250,7 @@ export function Chat() {
 
       sttAudioWebsocketRef.current.onmessage = (event) => {
         const transcribedText = event.data;
-        setInputText(prevText => {
-          const updatedText = prevText + ' ' + transcribedText;
-          return updatedText;
-        });
+        setInputText(prevText => prevText + ' ' + transcribedText);
       };
 
       sttAudioWebsocketRef.current.onclose = () => {
@@ -280,7 +265,6 @@ export function Chat() {
 
   const startRecording = async () => {
     try {
-      // Pause the TTS audio if it's playing
       if (ttsAudioRef.current && !ttsAudioRef.current.paused) {
         ttsAudioRef.current.pause();
       }
@@ -314,7 +298,6 @@ export function Chat() {
           sttAudioWebsocketRef.current.send(audioBlob);
         }
 
-        // Stop all tracks in the stream
         mediaRecorderRef.current?.stream.getTracks().forEach(track => track.stop());
       };
     }
@@ -347,7 +330,7 @@ export function Chat() {
         return () => {
           sttAudioWebsocketRef.current?.close();
           chatWebsocketRef.current?.close();
-          htmlWebsocketRef.current?.close()
+          htmlWebsocketRef.current?.close();
 
           sttAudioWebsocketRef.current = null;
           chatWebsocketRef.current = null;
@@ -422,7 +405,7 @@ export function Chat() {
     if (sttAudioWebsocketRef.current === null) {
       stopRecording();
     }
-  }, [sttAudioWebsocketRef, stopRecording])
+  }, [sttAudioWebsocketRef, stopRecording]);
 
   useEffect(() => {
     const audio = new Audio();
@@ -503,46 +486,7 @@ export function Chat() {
             } ${message.role === ASSISTANT && index < messages.length - 1 ? 'opacity-50' : ''} 
             ${message.role === ASSISTANT && index === messages.length - 1 ? 'opacity-100' : ''}`}
           >
-            <ReactMarkdown
-              remarkPlugins={[remarkGfm, remarkBreaks]}
-              components={{
-                h1: (props) => <h1 className="text-4xl font-bold my-4" {...props} />,
-                h2: (props) => <h2 className="text-3xl font-bold my-3" {...props} />,
-                h3: (props) => <h3 className="text-2xl font-bold my-2" {...props} />,
-                p: (props) => <div className="" {...props} />, // Changed <p> to <div>
-                a: (props) => <a className="text-blue-200 underline" {...props} />,
-                blockquote: (props) => <blockquote className="border-l-4 pl-4 italic text-gray-600" {...props} />,
-                ul: (props) => <ul className="list-disc pl-5" {...props} />,
-                ol: (props) => <ol className="list-decimal pl-5" {...props} />,
-                br: () => <br key={Math.random()} />,
-                img: ({ src, alt }) => {
-                  const [isLoading, setIsLoading] = useState(true);
-
-                  const handleLoad = () => setIsLoading(false);
-
-                  return (
-                    <div className="relative">
-                      {isLoading && (
-                        <div className="absolute inset-0 flex items-center justify-center bg-gray-200">
-                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-                        </div>
-                      )}
-                      <Image
-                        src={src || ''}
-                        alt={alt || ''}
-                        width={300}
-                        height={300}
-                        className="rounded-lg"
-                        style={{ objectFit: 'contain', width: '80%', height: 'auto' }}
-                        onLoad={handleLoad}
-                      />
-                    </div>
-                  );
-                },
-              }}
-            >
-              {message.content}
-            </ReactMarkdown>
+            <MarkdownComponent content={message.content} />
             {message.role === ASSISTANT && (
               <div className="mt-2 flex justify-end">
                 <Button 

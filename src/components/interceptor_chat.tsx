@@ -10,15 +10,12 @@ import { Label } from "@/components/ui/label"
 import { Send, User } from "lucide-react"
 import { useSearchParams } from 'next/navigation'
 import axios from 'axios'
-import Image from 'next/image'
-import ReactMarkdown from 'react-markdown'
-import remarkGfm from 'remark-gfm'
-import remarkBreaks from 'remark-breaks'
 
 import { 
   Message, 
   GetChatHistoryResponse,
   API_BASE_URL,
+  MarkdownComponent,
 } from '@/components/utils/chat_utils'
 import { Student, MODEL_API_BASE_URL } from '@/components/utils/admin_utils'
 import AdminVideo from '@/components/webrtc/admin';
@@ -285,32 +282,7 @@ export function InterceptorChat() {
             } ${message.role === 'assistant' && index < messages.length - 1 ? 'opacity-50' : ''} 
             ${message.role === 'assistant' && index === messages.length - 1 ? 'opacity-100' : ''}`}
           >
-            <ReactMarkdown
-              remarkPlugins={[remarkGfm, remarkBreaks]}
-              components={{
-                h1: (props) => <h1 className="text-4xl font-bold my-4" {...props} />,
-                h2: (props) => <h2 className="text-3xl font-bold my-3" {...props} />,
-                h3: (props) => <h3 className="text-2xl font-bold my-2" {...props} />,
-                p: (props) => <p className="" {...props} />,
-                a: (props) => <a className="text-blue-500 underline" {...props} />,
-                blockquote: (props) => <blockquote className="border-l-4 pl-4 italic text-gray-600" {...props} />,
-                ul: (props) => <ul className="list-disc pl-5" {...props} />,
-                ol: (props) => <ol className="list-decimal pl-5" {...props} />,
-                br: () => <br key={Math.random()} />,
-                img: ({ src, alt }) => (
-                  <Image
-                    src={src || ''}
-                    alt={alt || ''}
-                    width={500}
-                    height={300}
-                    className="rounded-lg"
-                    style={{ objectFit: 'contain', width: '100%', height: 'auto' }}
-                  />
-                ),
-              }}
-            >
-              {message.content}
-            </ReactMarkdown>
+            <MarkdownComponent content={message.content} />
           </div>
           <div className="text-xs text-gray-500 mt-1">
             {new Date(message.timestamp).toLocaleTimeString()}

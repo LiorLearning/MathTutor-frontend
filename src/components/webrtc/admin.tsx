@@ -2,13 +2,21 @@
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 
+// Define type for WebSocket messages
+type WebSocketMessage = {
+  type: string;
+  offer?: RTCSessionDescriptionInit;
+  answer?: RTCSessionDescriptionInit;
+  candidate?: RTCIceCandidateInit;
+  state?: boolean;
+};
+
 const AdminVideo: React.FC<{ username: string }> = ({ username }) => {
   const peerConnection = useRef<RTCPeerConnection | null>(null);
   const ws = useRef<WebSocket | null>(null);
   const iceCandidatesQueue = useRef<RTCIceCandidateInit[]>([]);
   const [isAudioOn, setIsAudioOn] = useState(true);
   const [isVideoOn, setIsVideoOn] = useState(true);
-  const [isConnected, setIsConnected] = useState(false);
   const remoteStream = useRef<MediaStream | null>(null);
 
   const createPeerConnection = useCallback(() => {
@@ -74,7 +82,6 @@ const AdminVideo: React.FC<{ username: string }> = ({ username }) => {
 
     ws.current.onopen = async () => {
       console.log("WebSocket connection opened");
-      setIsConnected(true);
       await requestUserStream();
     };
 
@@ -84,7 +91,6 @@ const AdminVideo: React.FC<{ username: string }> = ({ username }) => {
 
     ws.current.onclose = () => {
       console.log("WebSocket connection closed");
-      setIsConnected(false);
       setTimeout(connectWebSocket, 2000);
     };
 
@@ -203,7 +209,7 @@ const AdminVideo: React.FC<{ username: string }> = ({ username }) => {
     }
   };
 
-  const sendWebSocketMessage = (message: any) => {
+  const sendWebSocketMessage = (message: WebSocketMessage) => {
     if (ws.current?.readyState === WebSocket.OPEN) {
       ws.current.send(JSON.stringify(message));
     } else {
@@ -227,23 +233,6 @@ const AdminVideo: React.FC<{ username: string }> = ({ username }) => {
     if (videoElement) {
       videoElement.style.display = newState ? 'block' : 'none';
     }
-  };
-
-  const handleDisconnect = () => {
-    if (peerConnection.current) {
-      peerConnection.current.close();
-      peerConnection.current = null;
-    }
-    if (ws.current) {
-      ws.current.close();
-      ws.current = null;
-    }
-    if (remoteStream.current) {
-      remoteStream.current.getTracks().forEach(track => track.stop());
-      remoteStream.current = null;
-    }
-    setIsConnected(false);
-    window.location.reload();
   };
 
   useEffect(() => {
