@@ -5,7 +5,7 @@ import { Mic, MicOff, Video, VideoOff } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Button } from "@/components/ui/button"
 
-const UserVideo = () => {
+const UserVideo: React.FC<{ username: string }> = ({ username }) => {
   const peerConnection = useRef<RTCPeerConnection | null>(null);
   const ws = useRef<WebSocket | null>(null);
   const localStream = useRef<MediaStream | null>(null);
@@ -109,7 +109,7 @@ const UserVideo = () => {
   const connectWebSocket = useCallback(() => {
     if (ws.current?.readyState === WebSocket.OPEN) return;
 
-    ws.current = new WebSocket(`${process.env.NEXT_PUBLIC_WS_BASE_URL}/rtc/user`);
+    ws.current = new WebSocket(`${process.env.NEXT_PUBLIC_WS_BASE_URL}/rtc/user/${username}`);
 
     ws.current.onopen = async () => {
       setIsConnected(true);
@@ -357,7 +357,7 @@ const UserVideo = () => {
           {!isVideoOn && (
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="w-20 h-20 bg-gray-700 rounded-full flex items-center justify-center">
-                <span className="text-2xl text-white">ME</span>
+                <span className="text-2xl text-white">{username}</span>
               </div>
             </div>
           )}

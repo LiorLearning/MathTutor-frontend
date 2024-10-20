@@ -679,7 +679,7 @@ export function Chat() {
           />
         </div>
         <div className="absolute right-4 bottom-4 p-2" style={{ height: '20%', width: '20%' }}>
-          <UserVideo />
+          <UserVideo username={username} />
         </div>
       </div>
     </div>

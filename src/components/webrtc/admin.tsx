@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 
-const AdminVideo = () => {
+const AdminVideo: React.FC<{ username: string }> = ({ username }) => {
   const peerConnection = useRef<RTCPeerConnection | null>(null);
   const ws = useRef<WebSocket | null>(null);
   const iceCandidatesQueue = useRef<RTCIceCandidateInit[]>([]);
@@ -70,7 +70,7 @@ const AdminVideo = () => {
   const connectWebSocket = useCallback(() => {
     if (ws.current?.readyState === WebSocket.OPEN) return;
 
-    ws.current = new WebSocket(`${process.env.NEXT_PUBLIC_WS_BASE_URL}/rtc/admin`);
+    ws.current = new WebSocket(`${process.env.NEXT_PUBLIC_WS_BASE_URL}/rtc/admin/${username}`);
 
     ws.current.onopen = async () => {
       console.log("WebSocket connection opened");
