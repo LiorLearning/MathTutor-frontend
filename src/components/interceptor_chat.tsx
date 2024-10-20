@@ -7,9 +7,9 @@ import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
-import { Send, User } from "lucide-react"
 import { useSearchParams } from 'next/navigation'
 import axios from 'axios'
+import { Send, User, PanelRightCloseIcon, PanelLeftCloseIcon } from "lucide-react"
 
 import { 
   Message, 
@@ -79,6 +79,11 @@ export function InterceptorChat() {
   const [htmlContent, setHtmlContent] = useState("");
   const [isCodeView, setIsCodeView] = useState(false);
   const [sendLoadingMessage, setSendLoadingMessage] = useState(true); // New state for loading message toggle
+
+  const [isVideoVisible, setIsVideoVisible] = useState(true); // State to manage visibility
+  const toggleVideoFeed = () => {
+    setIsVideoVisible(prev => !prev); // Toggle visibility
+  };
 
   const initHtmlWebSocket = useCallback(() => {
     if (!htmlWebsocketRef.current) {
@@ -299,17 +304,17 @@ export function InterceptorChat() {
   }
 
   return (
-    <div className="flex h-screen bg-white">
+    <div className="flex h-screen bg-background">
       <UserSidebar username={username} />
-      <div className="flex flex-col flex-grow w-2/5">
-        <header className="p-4 border-b">
+      <div className="flex flex-col flex-grow w-1/2">
+        <header className="p-4 border-b border-border">
           <div className="flex justify-between items-center">
-            <h1 className="text-xl font-bold">MathTutor</h1>
+            <h1 className="text-xl font-bold text-primary-foreground">MathTutor</h1>
             <div className="flex items-center gap-2">
-              <User className="h-5 w-5" />
-              <h3 className="text-lg text-gray-500">{username}</h3>
+              <User className="h-5 w-5 text-muted-foreground" />
+              <h3 className="text-lg text-muted-foreground">{username}</h3>
               <Button 
-                className="bg-red-500 text-white" 
+                className="bg-destructive text-white" 
                 onClick={handleDeleteChat}
               >
                 Delete Chat
@@ -324,7 +329,7 @@ export function InterceptorChat() {
           </div>
         </ScrollArea>
 
-        <div className="p-6 border-t flex items-center bg-gray-200">
+        <div className="p-6 border-t border-border flex items-center bg-muted">
           <Input 
             className="flex-grow mr-2 h-12 bg-white"
             placeholder="Update last assistant message..." 
@@ -346,7 +351,7 @@ export function InterceptorChat() {
           </Button>
         </div>
         
-        <div className="p-6 border-t flex items-center bg-blue-200">
+        <div className="p-6 border-t border-border flex items-center bg-muted">
           <Input 
             className="flex-grow mr-2 h-12 bg-white"
             placeholder="Send follow up message..." 
@@ -368,7 +373,7 @@ export function InterceptorChat() {
           </Button>
         </div>
       </div>
-      <div className="w-2/5 p-4 flex flex-col h-full">
+      <div className="w-1/2 p-4 flex flex-col h-full">
         <div className="flex justify-between items-center mb-4">
           <Button onClick={generateHtml} className="mr-2">
             Generate HTML
@@ -407,13 +412,25 @@ export function InterceptorChat() {
         ) : (
           <iframe 
             srcDoc={htmlContent} 
-            className="flex-grow border-2 border-gray-300 rounded-md"
+            className="flex-grow border-2 border-border rounded-md"
             title="Generated HTML"
           />
         )}
-        <div className="absolute right-0 bottom-0 p-4" style={{ height: '20%', width: '20%' }}>
-          <AdminVideo username={username} />
-        </div>
+        <div className="fixed right-4 bottom-4 lg:w-64 lg:h-48 w-32 h-24">
+        <AdminVideo 
+          username={username} 
+          style={{ 
+            visibility: isVideoVisible ? 'visible' : 'hidden', // Hide the video feed
+            position: isVideoVisible ? 'static' : 'absolute', // Keep it in the flow or move it off-screen
+          }} 
+        />
+        <button 
+          onClick={toggleVideoFeed} 
+          className="absolute top-0 right-0 bg-gray-800 text-white p-2 rounded"
+        >
+          {isVideoVisible ? <PanelRightCloseIcon className="h-4 w-4" /> : <PanelLeftCloseIcon className="h-4 w-4" />}
+        </button>
+      </div>
       </div>
     </div>
   );

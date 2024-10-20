@@ -11,7 +11,7 @@ type WebSocketMessage = {
   state?: boolean;
 };
 
-const AdminVideo: React.FC<{ username: string }> = ({ username }) => {
+const AdminVideo: React.FC<{ username: string; style?: React.CSSProperties }> = ({ username, style }) => {
   const peerConnection = useRef<RTCPeerConnection | null>(null);
   const ws = useRef<WebSocket | null>(null);
   const iceCandidatesQueue = useRef<RTCIceCandidateInit[]>([]);
@@ -238,27 +238,25 @@ const AdminVideo: React.FC<{ username: string }> = ({ username }) => {
   }, [createPeerConnection, connectWebSocket]);
 
   return (
-    <div className="flex flex-col items-center justify-center p-1">
-      <div className="w-full max-w-[90%] bg-white rounded-lg shadow overflow-hidden">
-        <div className="relative aspect-video bg-gray-900">
-          <video
-            id="admin-video"
-            autoPlay
-            playsInline
-            muted={!isAudioOn}
-            className={`w-full h-full object-cover ${isVideoOn ? "" : "hidden"}`}
-            style={{ transform: "scaleX(-1)" }}
-          />
-          {!isVideoOn && (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="w-24 h-24 bg-gray-700 rounded-full flex items-center justify-center">
-                <span className="text-4xl text-white">JD</span>
-              </div>
+    <div className="w-full h-full bg-card rounded-lg shadow-lg overflow-hidden flex flex-col" style={style}>
+      <div className="relative aspect-video bg-muted flex-grow">
+        <video
+          id="admin-video"
+          autoPlay
+          playsInline
+          muted={!isAudioOn}
+          className={`w-full h-full object-cover ${isVideoOn ? "" : "hidden"}`}
+          style={{ transform: "scaleX(-1)" }}
+        />
+        {!isVideoOn && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="w-12 h-12 lg:w-20 lg:h-20 bg-muted-foreground rounded-full flex items-center justify-center">
+              <span className="text-lg lg:text-2xl text-primary-foreground">{username[0]}</span>
             </div>
-          )}
-          <div className="absolute top-4 left-4 bg-gray-900 bg-opacity-50 text-white px-2 py-1 rounded-md">
-            Remote User
           </div>
+        )}
+        <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex space-x-2">
+          Remote User
         </div>
       </div>
     </div>
