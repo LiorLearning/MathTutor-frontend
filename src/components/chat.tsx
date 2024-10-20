@@ -18,7 +18,8 @@ import {
   GetChatHistoryResponse,
   API_BASE_URL,
   SPEECH_API_BASE_URL,
-} from '@/components/utils/chat_utils'
+} from '@/components/utils/chat_utils';
+import UserVideo from '@/components/webrtc/user';
 
 const SPEAKOUT = true;
 const SPEED = 30;
@@ -659,22 +660,27 @@ export function Chat() {
           </div>
         )}
       </div>
-      <div className="w-1/2 p-4 relative">
-        {isHtmlLoading && (
-          <motion.div 
-            className="absolute inset-0 bg-gray-200 opacity-50 flex items-center justify-center"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
-            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-gray-900"></div>
-          </motion.div>
-        )}
-        <iframe 
-          srcDoc={htmlContent} 
-          style={{ width: '100%', height: '100%', border: '2px solid #ccc', borderRadius: '4px' }} 
-          title="Generated HTML"
-        />
+      <div className="flex flex-col w-full">
+        <div className="w-full p-4 relative" style={{ height: '80%' }}>
+          {isHtmlLoading && (
+            <motion.div 
+              className="absolute inset-0 bg-gray-200 opacity-50 flex items-center justify-center"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-gray-900"></div>
+            </motion.div>
+          )}
+          <iframe 
+            srcDoc={htmlContent} 
+            className="w-full h-full border-2 border-gray-300 rounded-lg" 
+            title="Generated HTML"
+          />
+        </div>
+        <div className="absolute right-4 bottom-4 p-2" style={{ height: '20%', width: '20%' }}>
+          <UserVideo />
+        </div>
       </div>
     </div>
   );

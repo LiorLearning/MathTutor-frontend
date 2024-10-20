@@ -21,6 +21,7 @@ import {
   API_BASE_URL,
 } from '@/components/utils/chat_utils'
 import { Student, MODEL_API_BASE_URL } from '@/components/utils/admin_utils'
+import AdminVideo from '@/components/webrtc/admin';
 
 function UserSidebar({ username }: { username: string }) {
   const [studentDetails, setStudentDetails] = useState<Student | null>(null);
@@ -438,6 +439,9 @@ export function InterceptorChat() {
             title="Generated HTML"
           />
         )}
+        <div className="absolute right-0 bottom-0 p-4" style={{ height: '20%', width: '20%' }}>
+          <AdminVideo />
+        </div>
       </div>
     </div>
   );
