@@ -4,7 +4,7 @@ import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Send, Pause, Volume2, Square, Mic } from "lucide-react"
+import { Send, Pause, Volume2, Square, Mic, PanelRightCloseIcon, PanelLeftCloseIcon } from "lucide-react"
 import { useSearchParams } from 'next/navigation'
 import axios from 'axios'
 import { motion } from 'framer-motion'
@@ -60,6 +60,11 @@ export function Chat() {
   const sttAudioWebsocketRef = useRef<WebSocket | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
+
+  const [isVideoVisible, setIsVideoVisible] = useState(true); // State to manage visibility
+  const toggleVideoFeed = () => {
+    setIsVideoVisible(prev => !prev); // Toggle visibility
+  };
 
   const getTTS = useCallback(async (message: string): Promise<string> => {
     let audioUrl = '';
@@ -514,13 +519,13 @@ export function Chat() {
     </div>;
   }
   return (
-    <div className="flex h-screen mx-auto bg-white">
-      <div className="w-1/2 flex flex-col p-4 border-r">
-        <header className="p-4 border-b">
+    <div className="flex flex-col lg:flex-row h-screen bg-background">
+      <div className="w-full lg:w-1/2 flex flex-col p-4 border-r border-border">
+        <header className="p-4 border-b border-border">
           <div className="flex justify-between items-center">
             <h1 className="text-xl font-bold">MathTutor</h1>
             <div className="flex items-center gap-2">
-              <h3 className="text-lg text-gray-500">{username}</h3>
+              <h3 className="text-lg text-muted-foreground">{username}</h3>
             </div>
           </div>
         </header>
@@ -534,15 +539,15 @@ export function Chat() {
         {isSendingMessage ? (
           <div className="flex items-center justify-center h-12 w-full">
             {errorMessage ? (
-              <div className="mt-4 text-red-500">
+              <div className="mt-4 text-destructive">
                 {errorMessage}
               </div>
             ) : (
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
             )}
           </div>
         ) : (
-          <div className="p-6 border-t flex items-center space-x-2">
+          <div className="p-4 border-t border-border flex items-center space-x-2">
             <Input 
               className="flex-grow h-12"
               placeholder="Type your message..." 
@@ -562,17 +567,18 @@ export function Chat() {
             >
               <Send className="h-5 w-5" />
             </Button>
-            <Button
+            <div className="relative">
+              <Button
                 onClick={isRecording ? stopRecording : startRecording}
-                className={`w-16 h-16 rounded-full flex items-center justify-center transition-colors ${
-                  isRecording ? 'bg-red-500 hover:bg-red-600' : 'bg-blue-500 hover:bg-blue-600'
+                className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors ${
+                  isRecording ? 'bg-destructive hover:bg-destructive/90' : 'bg-primary hover:bg-primary/90'
                 }`}
                 aria-label={isRecording ? 'Stop recording' : 'Start recording'}
               >
                 {isRecording ? (
-                  <Square className="w-6 h-6 text-white" />
+                  <Square className="w-6 h-6 text-primary-foreground" />
                 ) : (
-                  <Mic className="w-6 h-6 text-white" />
+                  <Mic className="w-6 h-6 text-primary-foreground" />
                 )}
               </Button>
               {isRecording && (
@@ -586,7 +592,7 @@ export function Chat() {
                     {[0, 1, 2, 3, 4].map((i) => (
                       <motion.div
                         key={i}
-                        className="w-1 h-8 bg-blue-500 rounded-full"
+                        className="w-1 h-8 bg-primary rounded-full"
                         animate={{
                           height: [8, 32, 8],
                         }}
@@ -601,30 +607,43 @@ export function Chat() {
                   </motion.div>
                 </div>
               )}
+            </div>
           </div>
         )}
       </div>
-      <div className="flex flex-col w-full">
-        <div className="w-full p-4 relative" style={{ height: '80%' }}>
+      <div className="flex-grow relative">
+        <div className="w-full h-full p-4">
           {isHtmlLoading && (
             <motion.div 
-              className="absolute inset-0 bg-gray-200 opacity-50 flex items-center justify-center"
+              className="absolute inset-0 bg-muted/50 flex items-center justify-center"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
             >
-              <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-gray-900"></div>
+              <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary"></div>
             </motion.div>
           )}
           <iframe 
             srcDoc={htmlContent} 
-            className="w-full h-full border-2 border-gray-300 rounded-lg" 
+            className="w-full h-full border-2 border-border rounded-lg" 
             title="Generated HTML"
           />
         </div>
-        <div className="absolute right-4 bottom-4 p-2" style={{ height: '20%', width: '20%' }}>
-          <UserVideo username={username} />
-        </div>
+      </div>
+      <div className="fixed right-4 top-4 lg:w-64 lg:h-48 w-32 h-24">
+        <UserVideo 
+          username={username} 
+          style={{ 
+            visibility: isVideoVisible ? 'visible' : 'hidden', // Hide the video feed
+            position: isVideoVisible ? 'static' : 'absolute', // Keep it in the flow or move it off-screen
+          }} 
+        />
+        <button 
+          onClick={toggleVideoFeed} 
+          className="absolute top-0 right-0 bg-gray-800 text-white p-2 rounded"
+        >
+          {isVideoVisible ? <PanelRightCloseIcon className="h-4 w-4" /> : <PanelLeftCloseIcon className="h-4 w-4" />}
+        </button>
       </div>
     </div>
   );

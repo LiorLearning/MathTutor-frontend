@@ -14,7 +14,7 @@ type WebSocketMessage = {
   state?: boolean;
 };
 
-const UserVideo: React.FC<{ username: string }> = ({ username }) => {
+const UserVideo: React.FC<{ username: string; style?: React.CSSProperties }> = ({ username, style }) => {
   const peerConnection = useRef<RTCPeerConnection | null>(null);
   const ws = useRef<WebSocket | null>(null);
   const localStream = useRef<MediaStream | null>(null);
@@ -328,60 +328,58 @@ const UserVideo: React.FC<{ username: string }> = ({ username }) => {
   }, [createPeerConnection, connectWebSocket]);
 
   return (
-    <div className="flex flex-col items-center justify-center p-1">
-      <div className="w-full max-w-[90%] bg-white rounded-lg shadow overflow-hidden">
-        <div className="relative aspect-video bg-gray-900">
-          <video
-            id="user-video"
-            autoPlay
-            playsInline
-            muted
-            className={`w-full h-full object-cover ${isVideoOn ? "" : "hidden"}`}
-            style={{ transform: "scaleX(-1)" }}
-          />
-          {!isVideoOn && (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="w-20 h-20 bg-gray-700 rounded-full flex items-center justify-center">
-                <span className="text-2xl text-white">{username}</span>
-              </div>
+    <div className="w-full h-full bg-card rounded-lg shadow-lg overflow-hidden flex flex-col" style={style}>
+      <div className="relative aspect-video bg-muted flex-grow">
+        <video
+          id="user-video"
+          autoPlay
+          playsInline
+          muted
+          className={`w-full h-full object-cover ${isVideoOn ? "" : "hidden"}`}
+          style={{ transform: "scaleX(-1)" }}
+        />
+        {!isVideoOn && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="w-12 h-12 lg:w-20 lg:h-20 bg-muted-foreground rounded-full flex items-center justify-center">
+              <span className="text-lg lg:text-2xl text-primary-foreground">{username[0]}</span>
             </div>
-          )}
-          <div className="absolute bottom-[2%] left-1/2 transform -translate-x-1/2 flex space-x-8">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="bg-gray-900 bg-opacity-50 hover:bg-opacity-75 text-white rounded-full"
-                    onClick={toggleAudio}
-                  >
-                    {isAudioOn ? <Mic className="h-3 w-3" /> : <MicOff className="h-3 w-3" />}
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>{isAudioOn ? "Turn off mic" : "Turn on mic"}</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="bg-gray-900 bg-opacity-50 hover:bg-opacity-75 text-white rounded-full"
-                    onClick={toggleVideo}
-                  >
-                    {isVideoOn ? <Video className="h-3 w-3" /> : <VideoOff className="h-3 w-3" />}
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>{isVideoOn ? "Turn off cam" : "Turn on cam"}</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
           </div>
+        )}
+        <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex space-x-2">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="bg-background/50 hover:bg-background/75 rounded-full w-8 h-8"
+                  onClick={toggleAudio}
+                >
+                  {isAudioOn ? <Mic className="h-4 w-4" /> : <MicOff className="h-4 w-4" />}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{isAudioOn ? "Turn off mic" : "Turn on mic"}</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="bg-background/50 hover:bg-background/75 rounded-full w-8 h-8"
+                  onClick={toggleVideo}
+                >
+                  {isVideoOn ? <Video className="h-4 w-4" /> : <VideoOff className="h-4 w-4" />}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{isVideoOn ? "Turn off cam" : "Turn on cam"}</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
       </div>
     </div>
