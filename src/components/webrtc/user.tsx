@@ -21,7 +21,6 @@ const UserVideo: React.FC<{ username: string }> = ({ username }) => {
   const iceCandidatesQueue = useRef<RTCIceCandidateInit[]>([]);
   const [isAudioOn, setIsAudioOn] = useState(false);
   const [isVideoOn, setIsVideoOn] = useState(false);
-  const [isConnected, setIsConnected] = useState(false);
 
   const startMedia = async () => {
     try {
@@ -127,8 +126,6 @@ const UserVideo: React.FC<{ username: string }> = ({ username }) => {
     ws.current = new WebSocket(`${process.env.NEXT_PUBLIC_WS_BASE_URL}/rtc/user/${username}`);
 
     ws.current.onopen = async () => {
-      setIsConnected(true);
-      
       await startMedia();
       await createAndSendOffer();
     };
@@ -174,7 +171,6 @@ const UserVideo: React.FC<{ username: string }> = ({ username }) => {
     };
 
     ws.current.onclose = () => {
-      setIsConnected(false);
       setTimeout(connectWebSocket, 1000);
     };
   }, []);

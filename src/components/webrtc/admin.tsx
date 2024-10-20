@@ -94,7 +94,7 @@ const AdminVideo: React.FC<{ username: string }> = ({ username }) => {
       setTimeout(connectWebSocket, 2000);
     };
 
-    ws.current.onmessage = async (message) => {
+    ws.current.onmessage = async (message: MessageEvent) => {
       try {
         const data = JSON.parse(message.data);
         await handleWebSocketMessage(data);
@@ -104,14 +104,14 @@ const AdminVideo: React.FC<{ username: string }> = ({ username }) => {
     };
   }, []);
 
-  const handleWebSocketMessage = async (data: any) => {
+  const handleWebSocketMessage = async (data: WebSocketMessage) => {
     try {
       if (data.type === 'answer') {
-        await handleAnswer(data.answer);
+        await handleAnswer(data.answer!);
       } else if (data.type === 'ice-candidate') {
-        await handleIceCandidate(data.candidate);
+        await handleIceCandidate(data.candidate!);
       } else if (data.type === 'offer') {
-        await handleIncomingOffer(data.offer);
+        await handleIncomingOffer(data.offer!);
       } else if (data.type === 'audio-toggle') {
         toggleAudio(data.state);
       } else if (data.type === 'video-toggle') {
@@ -125,21 +125,6 @@ const AdminVideo: React.FC<{ username: string }> = ({ username }) => {
   const requestUserStream = async () => {
     console.log("Requesting user stream");
     sendWebSocketMessage({ type: 'request-stream' });
-  };
-
-  const createAndSendOffer = async () => {
-    if (!peerConnection.current) return;
-
-    try {
-      const offer = await peerConnection.current.createOffer({
-        offerToReceiveAudio: true,
-        offerToReceiveVideo: true
-      });
-      await peerConnection.current.setLocalDescription(offer);
-      sendWebSocketMessage({ type: 'offer', offer });
-    } catch (error) {
-      console.error('Error creating offer:', error);
-    }
   };
 
   const handleAnswer = async (answer: RTCSessionDescriptionInit) => {
