@@ -60,24 +60,22 @@ export const UserArtifactComponent: React.FC<{ username: string; style?: React.C
   }, [username, initHtmlWebSocket]);
 
   return (
-    <div className="flex-grow relative">
-      <div className="w-full h-full p-4">
-        {isHtmlLoading && (
-          <motion.div 
-            className="absolute inset-0 bg-muted/50 flex items-center justify-center"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
-            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary"></div>
-          </motion.div>
-        )}
-        <iframe 
-          srcDoc={htmlContent} 
-          className="w-full h-full border-2 border-border rounded-lg" 
-          title="Generated HTML"
-        />
-      </div>
+    <div className="flex-grow relative w-full h-full">
+      {isHtmlLoading && (
+        <motion.div 
+          className="absolute inset-0 bg-muted/50 flex items-center justify-center"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+        >
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary"></div>
+        </motion.div>
+      )}
+      <iframe 
+        srcDoc={htmlContent} 
+        className="w-full h-full border-2 border-border rounded-lg" 
+        title="Generated HTML"
+      />
     </div>
   );
 }
