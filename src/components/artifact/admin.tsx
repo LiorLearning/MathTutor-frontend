@@ -53,7 +53,10 @@ export const AdminArtifactComponent: React.FC<{ username: string; style?: React.
       htmlWebsocketRef.current.send(JSON.stringify({ action: "SEND", content: htmlContent }));
     }
   };
-  
+
+  const clearHtmlContent = () => {
+    setHtmlContent(""); // Clear the HTML content
+  };
 
   useEffect(() => {
     const initializeChat = async () => {
@@ -83,6 +86,9 @@ export const AdminArtifactComponent: React.FC<{ username: string; style?: React.
             </Button>
             <Button onClick={sendHtmlContent} className="mr-2">
             Send
+            </Button>
+            <Button onClick={clearHtmlContent} className="mr-2">
+            Clear
             </Button>
         </div>
         <div className="flex items-center mb-4">

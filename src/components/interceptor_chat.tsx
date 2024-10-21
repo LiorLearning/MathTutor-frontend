@@ -230,7 +230,7 @@ export function InterceptorChat() {
           <div
             className={`rounded-3xl p-4 ${
               message.role === 'user'
-                ? 'bg-blue-500 text-white'
+                ? 'bg-primary text-white'
                 : 'bg-gray-200 text-gray-800'
             } ${message.role === 'assistant' && index < messages.length - 1 ? 'opacity-50' : ''} 
             ${message.role === 'assistant' && index === messages.length - 1 ? 'opacity-100' : ''}`}
@@ -299,7 +299,7 @@ export function InterceptorChat() {
           </Button>
         </div>
         
-        <div className="p-6 border-t border-border flex items-center bg-blue-200">
+        <div className="p-6 border-t border-border flex items-center bg-gray-500">
           <Input 
             className="flex-grow mr-2 h-12 bg-white"
             placeholder="Send follow up message..." 

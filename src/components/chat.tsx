@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Button } from "@/components/ui/button"
-import { Pause, Volume2, Square, Mic, ChevronLeft, ChevronRight } from "lucide-react"
+import { Pause, Volume2, Square, Mic, PanelRightCloseIcon, PanelLeftCloseIcon, ChevronLeft, ChevronRight } from "lucide-react"
 import { useSearchParams } from 'next/navigation'
 import axios from 'axios'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -60,11 +60,16 @@ export function Chat() {
 
   const [isVideoVisible, setIsVideoVisible] = useState(true); // State to manage visibility
 
-  const [isRightColumnCollapsed, setIsRightColumnCollapsed] = React.useState(false)
+  const [isRightColumnCollapsed, setIsRightColumnCollapsed] = React.useState(true)
+  const isRightColumnCollapsedRef = useRef<boolean>(isRightColumnCollapsed); // Create a ref
 
   const toggleRightColumn = () => {
-    setIsRightColumnCollapsed(!isRightColumnCollapsed)
-  }
+    setIsRightColumnCollapsed(prev => {
+      const newState = !prev; // Toggle the state
+      isRightColumnCollapsedRef.current = newState; // Update the ref
+      return newState;
+    });
+  };
   
   const toggleVideoFeed = () => {
     setIsVideoVisible(prev => !prev); // Toggle visibility
@@ -506,7 +511,7 @@ export function Chat() {
       {!showPopup && (
         <React.Fragment>
           <motion.div
-            className="flex-1 p-6 transition-all duration-300 ease-in-out"
+            className="flex-1 p-6 transition-all duration-200 ease-in-out"
             animate={{
               marginRight: isRightColumnCollapsed ? "15%" : "50%",
               marginLeft: isRightColumnCollapsed ? "15%": "0%",
@@ -621,12 +626,15 @@ export function Chat() {
           </motion.div>
 
           <motion.div
-            className="fixed right-0 top-0 h-full w-[50%] bg-secondary p-6 shadow-lg transition-all duration-300 ease-in-out"
+            className="fixed right-0 top-0 h-full w-[50%] bg-secondary p-6 shadow-lg transition-all duration-200 ease-in-out"
             animate={{
               x: isRightColumnCollapsed ? "100%" : "0%",
             }}
           >
-            <UserArtifactComponent username={username}/>
+            <UserArtifactComponent 
+            username={username} 
+            isRightColumnCollapsed={isRightColumnCollapsedRef}
+            toggleRightColumn={toggleRightColumn} />
           </motion.div>
 
           <div className="fixed right-4 top-4 lg:w-64 lg:h-48 w-32 h-24">
@@ -641,7 +649,7 @@ export function Chat() {
               onClick={toggleVideoFeed} 
               className="absolute top-0 right-0 bg-gray-800 text-white p-2 rounded"
             >
-              {isVideoVisible ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+              {isVideoVisible ? <PanelRightCloseIcon className="h-4 w-4" /> : <PanelLeftCloseIcon className="h-4 w-4" />}
             </button>
           </div>
 

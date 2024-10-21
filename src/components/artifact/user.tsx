@@ -3,7 +3,20 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 
-export const UserArtifactComponent: React.FC<{ username: string; style?: React.CSSProperties }> = ({ username, style }) => {
+interface UserArtifactProps {
+  username: string;
+  style?: React.CSSProperties;
+  isRightColumnCollapsed: React.MutableRefObject<boolean>;
+  toggleRightColumn: (override?: boolean) => void;
+}
+
+
+export const UserArtifactComponent: React.FC<UserArtifactProps> = ({ 
+  username, 
+  style, 
+  isRightColumnCollapsed, 
+  toggleRightColumn, 
+}) => {
   const [htmlContent, setHtmlContent] = useState("");
   const [isHtmlLoading, setIsHtmlLoading] = useState(false);
   const htmlWebsocketRef = useRef<WebSocket | null>(null);
@@ -17,8 +30,19 @@ export const UserArtifactComponent: React.FC<{ username: string; style?: React.C
       };
 
       htmlWebsocketRef.current.onmessage = (event) => {
+        if(isRightColumnCollapsed.current) {
+          toggleRightColumn();
+        }
+
         const data = JSON.parse(event.data);
         const message = data.content;
+
+        if (message === "") {
+          if(!isRightColumnCollapsed.current) {
+            toggleRightColumn();
+          }
+        }
+
         const role = data.role;
         if (role === 'external') {
           setHtmlContent(message);
