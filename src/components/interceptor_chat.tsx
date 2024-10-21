@@ -4,9 +4,6 @@ import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Switch } from "@/components/ui/switch"
-import { Textarea } from "@/components/ui/textarea"
-import { Label } from "@/components/ui/label"
 import { useSearchParams } from 'next/navigation'
 import axios from 'axios'
 import { Send, User, PanelRightCloseIcon, PanelLeftCloseIcon } from "lucide-react"
@@ -19,6 +16,7 @@ import {
 } from '@/components/utils/chat_utils'
 import { Student, MODEL_API_BASE_URL } from '@/components/utils/admin_utils'
 import AdminVideo from '@/components/webrtc/admin';
+import { AdminArtifactComponent } from '@/components/artifact/admin';
 
 function UserSidebar({ username }: { username: string }) {
   const [studentDetails, setStudentDetails] = useState<Student | null>(null);
@@ -74,58 +72,13 @@ export function InterceptorChat() {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const lastBotMessageRef = useRef<HTMLDivElement>(null);
   const chatWebsocketRef = useRef<WebSocket | null>(null);
-  const htmlWebsocketRef = useRef<WebSocket | null>(null);
-
-  const [htmlContent, setHtmlContent] = useState("");
-  const [isCodeView, setIsCodeView] = useState(false);
-  const [sendLoadingMessage, setSendLoadingMessage] = useState(true); // New state for loading message toggle
+  
 
   const [isVideoVisible, setIsVideoVisible] = useState(true); // State to manage visibility
   const toggleVideoFeed = () => {
     setIsVideoVisible(prev => !prev); // Toggle visibility
   };
 
-  const initHtmlWebSocket = useCallback(() => {
-    if (!htmlWebsocketRef.current) {
-      htmlWebsocketRef.current = new WebSocket(`${process.env.NEXT_PUBLIC_WS_BASE_URL}/chat/interceptor/html/${username}`);
-
-      htmlWebsocketRef.current.onopen = () => {
-        console.log('WebSocket connection established');
-      };
-
-      htmlWebsocketRef.current.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-        const message = data.content;
-        setHtmlContent(prevHtml => prevHtml + message);
-      };
-
-      htmlWebsocketRef.current.onerror = (error) => {
-        console.error('WebSocket error:', error);
-      };
-
-      htmlWebsocketRef.current.onclose = () => {
-        console.log('WebSocket connection closed');
-      };
-    }
-  }, [username]);
-
-  const generateHtml = useCallback(() => {
-    if (htmlWebsocketRef.current) {
-      setHtmlContent("");
-      const message = { action: "GENERATE", content: sendLoadingMessage ? "loading" : "" }; // Send loading message if toggle is on
-      htmlWebsocketRef.current.send(JSON.stringify(message));
-    }
-  }, [sendLoadingMessage]); // Include sendLoadingMessage in dependencies
-
-  const handleHtmlChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setHtmlContent(event.target.value);
-  };
-
-  const sendHtmlContent = () => {
-    if (htmlWebsocketRef.current) {
-      htmlWebsocketRef.current.send(JSON.stringify({ action: "SEND", content: htmlContent }));
-    }
-  };
 
   const initChatWebSocket = useCallback(() => {
     if (!chatWebsocketRef.current) {
@@ -171,7 +124,6 @@ export function InterceptorChat() {
 
         // WebSocket setup
         initChatWebSocket();
-        initHtmlWebSocket();
         
       } catch (error) {
         console.error('Error initializing chat:', error);
@@ -186,23 +138,19 @@ export function InterceptorChat() {
 
     const handleUnload = () => {
       chatWebsocketRef.current?.close()
-      htmlWebsocketRef.current?.close()
       chatWebsocketRef.current = null;
-      htmlWebsocketRef.current = null;
     };
 
     window.addEventListener('beforeunload', handleUnload);
 
     return () => {
       chatWebsocketRef.current?.close()
-      htmlWebsocketRef.current?.close()
       chatWebsocketRef.current = null;
-      htmlWebsocketRef.current = null;
 
       window.removeEventListener('beforeunload', handleUnload);
     }
 
-  }, [username, initChatWebSocket, initHtmlWebSocket]);
+  }, [username, initChatWebSocket]);
 
   useEffect(() => {
     if (scrollAreaRef.current) {
@@ -374,48 +322,7 @@ export function InterceptorChat() {
         </div>
       </div>
       <div className="w-1/2 p-4 flex flex-col h-full">
-        <div className="flex justify-between items-center mb-4">
-          <Button onClick={generateHtml} className="mr-2">
-            Generate HTML
-          </Button>
-          <Button onClick={sendHtmlContent} className="mr-2">
-            Send
-          </Button>
-        </div>
-        <div className="flex items-center mb-4">
-          <Switch
-            id="loading-message"
-            checked={sendLoadingMessage}
-            onCheckedChange={setSendLoadingMessage} // New toggle for loading message
-            className="mr-2"
-          />
-          <Label htmlFor="loading-message" className="mr-4">
-            Send Loading Message
-          </Label>
-          <Switch
-            id="code-view"
-            checked={isCodeView}
-            onCheckedChange={setIsCodeView}
-            className="mr-2"
-          />
-          <Label htmlFor="code-view">
-            {isCodeView ? "Code View" : "Rendered View"}
-          </Label>
-        </div>
-        {isCodeView ? (
-          <Textarea
-            value={htmlContent}
-            onChange={handleHtmlChange}
-            className="flex-grow font-mono text-sm"
-            placeholder="HTML code will appear here"
-          />
-        ) : (
-          <iframe 
-            srcDoc={htmlContent} 
-            className="flex-grow border-2 border-border rounded-md"
-            title="Generated HTML"
-          />
-        )}
+        <AdminArtifactComponent username={username} />
         <div className="fixed right-4 bottom-4 lg:w-64 lg:h-48 w-32 h-24">
         <AdminVideo 
           username={username} 

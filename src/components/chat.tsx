@@ -17,6 +17,7 @@ import {
   SPEECH_API_BASE_URL,
 } from '@/components/utils/chat_utils';
 import UserVideo from '@/components/webrtc/user';
+import { UserArtifactComponent } from '@/components/artifact/user';
 
 const SPEAKOUT = true;
 const SPEED = 30;
@@ -49,10 +50,6 @@ export function Chat() {
   const chatWebsocketRef = useRef<WebSocket | null>(null);
   const messageStreamIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  // HTML
-  const [htmlContent, setHtmlContent] = useState("");
-  const [isHtmlLoading, setIsHtmlLoading] = useState(false);
-  const htmlWebsocketRef = useRef<WebSocket | null>(null);
   
   // Text to Speech
   const ttsAudioRef = useRef<HTMLAudioElement | null>(null);
@@ -64,6 +61,7 @@ export function Chat() {
   const audioChunksRef = useRef<Blob[]>([]);
 
   const [isVideoVisible, setIsVideoVisible] = useState(true); // State to manage visibility
+  
   const toggleVideoFeed = () => {
     setIsVideoVisible(prev => !prev); // Toggle visibility
   };
@@ -223,36 +221,6 @@ export function Chat() {
     }
   }, [getTTS, setMessageAudioAndPlay]);
 
-  const initHtmlWebSocket = useCallback((username: string) => {
-    if (!htmlWebsocketRef.current) {
-      htmlWebsocketRef.current = new WebSocket(`${process.env.NEXT_PUBLIC_WS_BASE_URL}/chat/user/html/${username}`);
-
-      htmlWebsocketRef.current.onopen = () => {
-        console.log('WebSocket connection established');
-      };
-
-      htmlWebsocketRef.current.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-        const message = data.content;
-        const role = data.role;
-        if (role === 'external') {
-          setHtmlContent(message);
-          setIsHtmlLoading(false);
-        } else if (role === 'loading') {
-          console.log("HTML Loading... ");
-          setIsHtmlLoading(true);
-        }
-      };
-
-      htmlWebsocketRef.current.onerror = (error) => {
-        console.error('WebSocket error:', error);
-      };
-
-      htmlWebsocketRef.current.onclose = () => {
-        console.log('WebSocket connection closed');
-      };
-    }
-  }, []);
 
   const initAudioWebSocket = useCallback(() => {
     if (!sttAudioWebsocketRef.current) {
@@ -339,17 +307,15 @@ export function Chat() {
         }
 
         initChatWebSocket(username);
-        initHtmlWebSocket(username);
+        
         initAudioWebSocket();
         
         return () => {
           sttAudioWebsocketRef.current?.close();
           chatWebsocketRef.current?.close();
-          htmlWebsocketRef.current?.close();
-
+          
           sttAudioWebsocketRef.current = null;
           chatWebsocketRef.current = null;
-          htmlWebsocketRef.current = null;
         };
         
       } catch (error) {
@@ -414,7 +380,7 @@ export function Chat() {
       document.removeEventListener('visibilitychange', handleVisibilityChange);      
     }
 
-  }, [username, chatId, initChatWebSocket, initAudioWebSocket, initHtmlWebSocket]);
+  }, [username, chatId, initChatWebSocket, initAudioWebSocket]);
 
   useEffect(() => {
     if (sttAudioWebsocketRef.current === null) {
@@ -555,133 +521,117 @@ export function Chat() {
       {!showPopup && (
         <React.Fragment>
           <div className="w-full lg:w-1/2 flex flex-col p-4 border-r border-border">
-        <header className="p-4 border-b border-border">
-          <div className="flex justify-between items-center">
-            <h1 className="text-xl font-bold">MathTutor</h1>
-            <div className="flex items-center gap-2">
-              <h3 className="text-lg text-muted-foreground">{username}</h3>
-            </div>
-          </div>
-        </header>
+            <header className="p-4 border-b border-border">
+              <div className="flex justify-between items-center">
+                <h1 className="text-xl font-bold">MathTutor</h1>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-lg text-muted-foreground">{username}</h3>
+                </div>
+              </div>
+            </header>
 
-        <ScrollArea ref={scrollAreaRef} className="flex-grow p-4">
-          <div className="space-y-6">
-            {messageComponents}
-          </div>
-        </ScrollArea>
-        
-        {isSendingMessage ? (
-          <div className="flex items-center justify-center h-12 w-full">
-            {errorMessage ? (
-              <div className="mt-4 text-destructive">
-                {errorMessage}
+            <ScrollArea ref={scrollAreaRef} className="flex-grow p-4">
+              <div className="space-y-6">
+                {messageComponents}
+              </div>
+            </ScrollArea>
+            
+            {isSendingMessage ? (
+              <div className="flex items-center justify-center h-12 w-full">
+                {errorMessage ? (
+                  <div className="mt-4 text-destructive">
+                    {errorMessage}
+                  </div>
+                ) : (
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                )}
               </div>
             ) : (
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              <div className="p-4 border-t border-border flex items-center space-x-2">
+                <Input 
+                  className="flex-grow h-12"
+                  placeholder="Type your message..." 
+                  value={inputText}
+                  onChange={(e) => setInputText(e.target.value)}
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter') {
+                      handleSendMessage();
+                    }
+                  }}
+                />
+                <Button 
+                  size="icon" 
+                  className="h-12 w-12" 
+                  onClick={handleSendMessage}
+                  disabled={inputText.trim() === ''}
+                >
+                  <Send className="h-5 w-5" />
+                </Button>
+                <div className="relative">
+                  <Button
+                    onClick={isRecording ? stopRecording : startRecording}
+                    className={`w-16 h-16 rounded-full flex items-center justify-center transition-colors ${
+                      isRecording ? 'bg-destructive hover:bg-destructive/90' : 'bg-blue-500 hover:bg-blue-400'
+                    }`}
+                    aria-label={isRecording ? 'Stop recording' : 'Start recording'}
+                  >
+                    {isRecording ? (
+                      <Square className="w-8 h-8 text-blue-foreground" />
+                    ) : (
+                      <Mic className="w-8 h-8 text-blue-foreground" />
+                    )}
+                  </Button>
+                  {isRecording && (
+                    <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2">
+                      <motion.div
+                        className="flex space-x-1"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                      >
+                        {[0, 1, 2, 3, 4].map((i) => (
+                          <motion.div
+                            key={i}
+                            className="w-1 h-8 bg-primary rounded-full"
+                            animate={{
+                              height: [8, 32, 8],
+                            }}
+                            transition={{
+                              duration: 0.5,
+                              repeat: Infinity,
+                              repeatType: 'reverse',
+                              delay: i * 0.1,
+                            }}
+                          />
+                        ))}
+                      </motion.div>
+                    </div>
+                  )}
+                </div>
+              </div>
             )}
           </div>
-        ) : (
-          <div className="p-4 border-t border-border flex items-center space-x-2">
-            <Input 
-              className="flex-grow h-12"
-              placeholder="Type your message..." 
-              value={inputText}
-              onChange={(e) => setInputText(e.target.value)}
-              onKeyPress={(e) => {
-                if (e.key === 'Enter') {
-                  handleSendMessage();
-                }
-              }}
+
+          <UserArtifactComponent username={username}/>
+          
+          <div className="fixed right-4 top-4 lg:w-64 lg:h-48 w-32 h-24">
+            <UserVideo 
+              username={username} 
+              style={{ 
+                visibility: isVideoVisible ? 'visible' : 'hidden', // Hide the video feed
+                position: isVideoVisible ? 'static' : 'absolute', // Keep it in the flow or move it off-screen
+              }} 
             />
-            <Button 
-              size="icon" 
-              className="h-12 w-12" 
-              onClick={handleSendMessage}
-              disabled={inputText.trim() === ''}
+            <button 
+              onClick={toggleVideoFeed} 
+              className="absolute top-0 right-0 bg-gray-800 text-white p-2 rounded"
             >
-              <Send className="h-5 w-5" />
-            </Button>
-            <div className="relative">
-              <Button
-                onClick={isRecording ? stopRecording : startRecording}
-                className={`w-16 h-16 rounded-full flex items-center justify-center transition-colors ${
-                  isRecording ? 'bg-destructive hover:bg-destructive/90' : 'bg-blue-500 hover:bg-blue-400'
-                }`}
-                aria-label={isRecording ? 'Stop recording' : 'Start recording'}
-              >
-                {isRecording ? (
-                  <Square className="w-8 h-8 text-blue-foreground" />
-                ) : (
-                  <Mic className="w-8 h-8 text-blue-foreground" />
-                )}
-              </Button>
-              {isRecording && (
-                <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2">
-                  <motion.div
-                    className="flex space-x-1"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                  >
-                    {[0, 1, 2, 3, 4].map((i) => (
-                      <motion.div
-                        key={i}
-                        className="w-1 h-8 bg-primary rounded-full"
-                        animate={{
-                          height: [8, 32, 8],
-                        }}
-                        transition={{
-                          duration: 0.5,
-                          repeat: Infinity,
-                          repeatType: 'reverse',
-                          delay: i * 0.1,
-                        }}
-                      />
-                    ))}
-                  </motion.div>
-                </div>
-              )}
-            </div>
+              {isVideoVisible ? <PanelRightCloseIcon className="h-4 w-4" /> : <PanelLeftCloseIcon className="h-4 w-4" />}
+            </button>
           </div>
-        )}
-      </div>
-      <div className="flex-grow relative">
-        <div className="w-full h-full p-4">
-          {isHtmlLoading && (
-            <motion.div 
-              className="absolute inset-0 bg-muted/50 flex items-center justify-center"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-            >
-              <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary"></div>
-            </motion.div>
-          )}
-          <iframe 
-            srcDoc={htmlContent} 
-            className="w-full h-full border-2 border-border rounded-lg" 
-            title="Generated HTML"
-          />
-        </div>
-      </div>
-      <div className="fixed right-4 top-4 lg:w-64 lg:h-48 w-32 h-24">
-        <UserVideo 
-          username={username} 
-          style={{ 
-            visibility: isVideoVisible ? 'visible' : 'hidden', // Hide the video feed
-            position: isVideoVisible ? 'static' : 'absolute', // Keep it in the flow or move it off-screen
-          }} 
-        />
-        <button 
-          onClick={toggleVideoFeed} 
-          className="absolute top-0 right-0 bg-gray-800 text-white p-2 rounded"
-        >
-          {isVideoVisible ? <PanelRightCloseIcon className="h-4 w-4" /> : <PanelLeftCloseIcon className="h-4 w-4" />}
-        </button>
-      </div>
 
         </React.Fragment>
-    )}
+      )}
     </div>
   );
 }
