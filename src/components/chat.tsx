@@ -56,7 +56,6 @@ export function Chat() {
 
   // Speech to Text
   const [isRecording, setIsRecording] = useState(false);
-  const sttAudioWebsocketRef = useRef<WebSocket | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
 
@@ -222,30 +221,6 @@ export function Chat() {
   }, [getTTS, setMessageAudioAndPlay]);
 
 
-  const initAudioWebSocket = useCallback(() => {
-    if (!sttAudioWebsocketRef.current) {
-      sttAudioWebsocketRef.current = new WebSocket(
-        `${process.env.NEXT_PUBLIC_WS_BASE_URL}/speech/transcribe/deepgram/${username}`
-      );
-      sttAudioWebsocketRef.current.onopen = () => {
-        console.log("Audio WebSocket connection established");
-      }
-
-      sttAudioWebsocketRef.current.onmessage = (event) => {
-        const transcribedText = event.data;
-        setInputText(prevText => prevText + ' ' + transcribedText);
-      };
-
-      sttAudioWebsocketRef.current.onclose = () => {
-        console.log("Audio WebSocket connection closed");
-      };
-
-      sttAudioWebsocketRef.current.onerror = (error) => {
-        console.error("Audio WebSocket error: ", error);
-      };
-    }
-  }, []);
-
   const startRecording = async () => {
     try {
       if (ttsAudioRef.current && !ttsAudioRef.current.paused) {
@@ -277,8 +252,11 @@ export function Chat() {
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
         audioChunksRef.current = [];
 
-        if (sttAudioWebsocketRef.current?.readyState === WebSocket.OPEN) {
-          sttAudioWebsocketRef.current.send(audioBlob);
+        // if (sttAudioWebsocketRef.current?.readyState === WebSocket.OPEN) {
+        //   sttAudioWebsocketRef.current.send(audioBlob);
+        // }
+        if (chatWebsocketRef.current?.readyState == WebSocket.OPEN) {
+          chatWebsocketRef.current.send(audioBlob);
         }
 
         mediaRecorderRef.current?.stream.getTracks().forEach(track => track.stop());
@@ -308,13 +286,11 @@ export function Chat() {
 
         initChatWebSocket(username);
         
-        initAudioWebSocket();
-        
         return () => {
-          sttAudioWebsocketRef.current?.close();
+          // sttAudioWebsocketRef.current?.close();
           chatWebsocketRef.current?.close();
           
-          sttAudioWebsocketRef.current = null;
+          // sttAudioWebsocketRef.current = null;
           chatWebsocketRef.current = null;
         };
         
@@ -380,13 +356,13 @@ export function Chat() {
       document.removeEventListener('visibilitychange', handleVisibilityChange);      
     }
 
-  }, [username, chatId, initChatWebSocket, initAudioWebSocket]);
+  }, [username, chatId, initChatWebSocket]);
 
   useEffect(() => {
-    if (sttAudioWebsocketRef.current === null) {
+    if (chatWebsocketRef.current === null) {
       stopRecording();
     }
-  }, [sttAudioWebsocketRef, stopRecording]);
+  }, [chatWebsocketRef, stopRecording]);
 
   useEffect(() => {
     const audio = new Audio();

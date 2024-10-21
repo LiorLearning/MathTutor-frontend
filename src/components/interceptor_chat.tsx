@@ -299,7 +299,7 @@ export function InterceptorChat() {
           </Button>
         </div>
         
-        <div className="p-6 border-t border-border flex items-center bg-muted">
+        <div className="p-6 border-t border-border flex items-center bg-blue-200">
           <Input 
             className="flex-grow mr-2 h-12 bg-white"
             placeholder="Send follow up message..." 
