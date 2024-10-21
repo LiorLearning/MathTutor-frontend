@@ -27,6 +27,7 @@ const CORRECTION = 'correction';
 const INTERRUPT = 'interrupt';
 const ASSISTANT = 'assistant';
 const USER = 'user';
+const NOTEXT = 'notext';
 
 const ERROR_TIMEOUT = 10000;
 
@@ -38,7 +39,6 @@ export function Chat() {
   
   const [messages, setMessages] = useState<Message[]>([]);
   const [chatId, setChatId] = useState("");
-  const [inputText, setInputText] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSendingMessage, setIsSendingMessage] = useState(false);
@@ -154,17 +154,36 @@ export function Chat() {
         const message = data.content;
         const role = data.role;
 
-        if (role === INTERRUPT) {
-          ttsAudioRef.current?.pause();
-          return;
+        switch (role) {
+          case NOTEXT:
+            setIsSendingMessage(false);
+            return;
+
+          case USER:
+            const userMessage: Message = {
+              role: USER,
+              content: message,
+              audioUrl: '',
+              message_id: `temp-${Date.now()}`,
+              timestamp: new Date().toISOString()
+            };
+            setMessages(prevMessages => [...prevMessages, userMessage]);
+            return;
+
+          case INTERRUPT:
+            ttsAudioRef.current?.pause();
+            return;
+
+          case CORRECTION:
+            setMessages(prevMessages => prevMessages.slice(0, -1));
+            break;
+
+          default:
+            break;
         }
 
         const isImage = message.startsWith("![Generated");
         const audioUrl = isImage ? '' : (SPEAKOUT ? await getTTS(message) : ''); 
-
-        if (role === CORRECTION) {
-          setMessages(prevMessages => prevMessages.slice(0, -1));
-        }
 
         setIsSendingMessage(false);
         setErrorMessage(null);
@@ -252,12 +271,7 @@ export function Chat() {
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
         audioChunksRef.current = [];
 
-        // if (sttAudioWebsocketRef.current?.readyState === WebSocket.OPEN) {
-        //   sttAudioWebsocketRef.current.send(audioBlob);
-        // }
-        if (chatWebsocketRef.current?.readyState == WebSocket.OPEN) {
-          chatWebsocketRef.current.send(audioBlob);
-        }
+        handleSendMessage(audioBlob);
 
         mediaRecorderRef.current?.stream.getTracks().forEach(track => track.stop());
       };
@@ -401,31 +415,21 @@ export function Chat() {
     );
   };
 
-  const handleSendMessage = useCallback(async () => {
-    if (inputText.trim() === "") return;
-
-    const userMessage: Message = {
-      role: USER,
-      content: inputText,
-      audioUrl: '',
-      message_id: `temp-${Date.now()}`,
-      timestamp: new Date().toISOString()
-    };
+  const handleSendMessage = useCallback(async (audioBlob: Blob) => {
+    if (chatWebsocketRef.current?.readyState == WebSocket.OPEN) {
+      chatWebsocketRef.current.send(audioBlob);
+    }
 
     ttsAudioRef.current?.pause();
     resetIsPlaying();
 
-    setMessages(prevMessages => [...prevMessages, userMessage]);
-    setInputText("");
     setIsSendingMessage(true);
     setErrorMessage(null);
     const timeout = setTimeout(() => {
       setErrorMessage("Try reloading the page...");
     }, ERROR_TIMEOUT);
     setSendMessageTimeout(timeout);
-
-    chatWebsocketRef.current?.send(inputText);
-  }, [inputText]);
+  }, []);
 
   const messageComponents = useMemo(() => (
     Array.isArray(messages) && messages.map((message, index) => (
@@ -438,7 +442,7 @@ export function Chat() {
           <div
             className={`rounded-3xl p-4 ${
               message.role === USER
-                ? 'bg-blue-500 text-white'
+                ? 'bg-primary text-white'
                 : 'bg-gray-50 text-gray-800'
             } ${message.role === ASSISTANT && index < messages.length - 1 ? 'opacity-50' : ''} 
             ${message.role === ASSISTANT && index === messages.length - 1 ? 'opacity-100' : ''}`}
@@ -523,66 +527,81 @@ export function Chat() {
                 )}
               </div>
             ) : (
-              <div className="p-4 border-t border-border flex items-center space-x-2">
-                <Input 
-                  className="flex-grow h-12"
-                  placeholder="Type your message..." 
-                  value={inputText}
-                  onChange={(e) => setInputText(e.target.value)}
-                  onKeyPress={(e) => {
-                    if (e.key === 'Enter') {
-                      handleSendMessage();
-                    }
-                  }}
-                />
-                <Button 
-                  size="icon" 
-                  className="h-12 w-12" 
-                  onClick={handleSendMessage}
-                  disabled={inputText.trim() === ''}
-                >
-                  <Send className="h-5 w-5" />
-                </Button>
-                <div className="relative">
+              <div className="p-4 border-t border-border flex items-center justify-center">
+                <div className="relative flex flex-col items-center">
+                  <AnimatePresence>
+                    {isRecording ? (
+                      <motion.div
+                        key="recording"
+                        className="absolute -top-16"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 10 }}
+                      >
+                        <div className="flex space-x-1">
+                          {[...Array(5)].map((_, i) => (
+                            <motion.div
+                              key={i}
+                              className="w-1 bg-primary rounded-full"
+                              animate={{
+                                height: [8, 32, 16, 24, 8],
+                              }}
+                              transition={{
+                                duration: 1.5,
+                                repeat: Infinity,
+                                repeatType: "reverse",
+                                ease: "easeInOut",
+                                delay: i * 0.2,
+                              }}
+                            />
+                          ))}
+                        </div>
+                      </motion.div>
+                    ) : (
+                      <motion.div
+                        key="not-recording"
+                        className="absolute -top-12"
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.8 }}
+                      >
+                        <motion.div
+                          className="w-4 h-4 bg-muted-foreground rounded-full"
+                          animate={{
+                            scale: [1, 1.2, 1],
+                          }}
+                          transition={{
+                            duration: 2,
+                            repeat: Infinity,
+                            ease: "easeInOut",
+                          }}
+                        />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                   <Button
                     onClick={isRecording ? stopRecording : startRecording}
                     className={`w-16 h-16 rounded-full flex items-center justify-center transition-colors ${
-                      isRecording ? 'bg-destructive hover:bg-destructive/90' : 'bg-blue-500 hover:bg-blue-400'
+                      isRecording ? "bg-destructive hover:bg-destructive/90" : "bg-primary hover:bg-primary/90"
                     }`}
-                    aria-label={isRecording ? 'Stop recording' : 'Start recording'}
+                    aria-label={isRecording ? "Stop recording" : "Start recording"}
                   >
-                    {isRecording ? (
-                      <Square className="w-8 h-8 text-blue-foreground" />
-                    ) : (
-                      <Mic className="w-8 h-8 text-blue-foreground" />
-                    )}
-                  </Button>
-                  {isRecording && (
-                    <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2">
+                    <AnimatePresence mode="wait">
                       <motion.div
-                        className="flex space-x-1"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
+                        key={isRecording ? "stop" : "start"}
+                        initial={{ opacity: 0, scale: 0.5 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.5 }}
+                        transition={{ duration: 0.2 }}
                       >
-                        {[0, 1, 2, 3, 4].map((i) => (
-                          <motion.div
-                            key={i}
-                            className="w-1 h-8 bg-primary rounded-full"
-                            animate={{
-                              height: [8, 32, 8],
-                            }}
-                            transition={{
-                              duration: 0.5,
-                              repeat: Infinity,
-                              repeatType: 'reverse',
-                              delay: i * 0.1,
-                            }}
-                          />
-                        ))}
+                        {isRecording ? (
+                          <Square className="w-8 h-8 text-destructive-foreground" />
+                        ) : (
+                          <Mic className="w-8 h-8 text-primary-foreground" />
+                        )}
                       </motion.div>
-                    </div>
-                  )}
+                    </AnimatePresence>
+                  </Button>
                 </div>
               </div>
             )}
