@@ -80,7 +80,7 @@ export const MarkdownComponent: React.FC<{ content: string }> = ({ content }) =>
             h5: (props) => <h5 className="text-lg font-medium my-1" {...props} />,
             h6: (props) => <h6 className="text-base font-medium my-1" {...props} />,
             p: (props) => <p className="my-2" {...props} />,
-            a: (props) => <a className="text-blue-500 hover:underline" {...props} />,
+            a: (props) => <a className="text-blue-500 hover:underline" target="_blank" rel="noopener noreferrer" {...props} />,
             ul: (props) => <ul className="list-disc pl-6 my-2" {...props} />,
             ol: (props) => <ol className="list-decimal pl-6 my-2" {...props} />,
             li: (props) => <li className="my-0.5" {...props} />,
