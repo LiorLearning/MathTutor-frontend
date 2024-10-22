@@ -45,13 +45,16 @@ export function Chat() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSendingMessage, setIsSendingMessage] = useState(false);
   const [sendMessageTimeout, setSendMessageTimeout] = useState<NodeJS.Timeout | null>(null);
-  const [textInput, setTextInput] = useState(""); // New state for text input
+  const [textInput, setTextInput] = useState("");
+  const [processingMessage, setProcessingMessage] = useState(false);
 
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const lastBotMessageRef = useRef<HTMLDivElement>(null);
 
   const chatWebsocketRef = useRef<WebSocket | null>(null);
   const messageStreamIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  const isLastMessagePauseRef = useRef<boolean>(false);
 
   
   // Text to Speech
@@ -174,6 +177,7 @@ export function Chat() {
 
           case PAUSE:
             console.log("Received PAUSE signal, setting rethinking state to true.");
+            isLastMessagePauseRef.current = true;
             setMessages(prevMessages => prevMessages.slice(0, -1));
             setMessages(prevMessages => [
               ...prevMessages,
@@ -205,8 +209,8 @@ export function Chat() {
             return;
 
           case CORRECTION:
-            console.log("Received CORRECTION signal, removing last message.");
             setMessages(prevMessages => prevMessages.slice(0, -1));
+            isLastMessagePauseRef.current = false;
             break;
 
           default:
@@ -236,7 +240,9 @@ export function Chat() {
 
         if (isImage) {
           finalMessage.content = message; 
-          console.log("Updating messages with image content:", finalMessage);
+          if (isLastMessagePauseRef.current) {
+            return;
+          }
           setMessages(prevMessages => {
             const updatedMessages = prevMessages.filter(msg => msg.message_id !== finalMessage.message_id);
             return [...updatedMessages, finalMessage];
@@ -250,9 +256,14 @@ export function Chat() {
             const messageChunks = fullMessage.split(' ');
             let index = 0;
             messageStreamIntervalRef.current = setInterval(() => {
+              if (isLastMessagePauseRef.current) {
+                clearInterval(messageStreamIntervalRef.current!);
+                messageStreamIntervalRef.current = null; 
+                return;
+              }
+
               if (index < messageChunks.length) {
                 finalMessage.content += messageChunks[index++] + ' ';
-                console.log("Streaming message content:", finalMessage.content); // Log streaming content
                 setMessages(prevMessages => {
                   const updatedMessages = prevMessages.filter(msg => msg.message_id !== finalMessage.message_id);
                   return [...updatedMessages, finalMessage];

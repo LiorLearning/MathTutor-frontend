@@ -179,6 +179,7 @@ export function InterceptorChat() {
     }
   };
 
+  // Follow up message
   const handleSendMessage = useCallback(async () => {
     if (inputText.trim() === "") return;
 
@@ -201,6 +202,7 @@ export function InterceptorChat() {
     }
   }, [inputText]);
 
+  // Correction message
   const handleCorrectionMessage = useCallback(async () => {
     if (correctionText.trim() === "") return;
 
@@ -225,6 +227,7 @@ export function InterceptorChat() {
     }
   }, [correctionText]);
 
+  // Pause message
   const handlePauseMessage = useCallback(async () => {
     setPausedMessage(true);
     if (chatWebsocketRef.current) {
