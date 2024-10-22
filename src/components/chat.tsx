@@ -177,7 +177,12 @@ export function Chat() {
           case PAUSE:
             console.log("Received PAUSE signal, setting rethinking state to true.");
             isLastMessagePauseRef.current = true;
-            setMessages(prevMessages => prevMessages.slice(0, -1));
+            setMessages(prevMessages => {
+                if (prevMessages[prevMessages.length - 1]?.role === ASSISTANT) {
+                    return prevMessages.slice(0, -1);
+                }
+                return prevMessages;
+            });
             setMessages(prevMessages => [
               ...prevMessages,
               { 
