@@ -46,7 +46,6 @@ export function Chat() {
   const [isSendingMessage, setIsSendingMessage] = useState(false);
   const [sendMessageTimeout, setSendMessageTimeout] = useState<NodeJS.Timeout | null>(null);
   const [textInput, setTextInput] = useState("");
-  const [processingMessage, setProcessingMessage] = useState(false);
 
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const lastBotMessageRef = useRef<HTMLDivElement>(null);

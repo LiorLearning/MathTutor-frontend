@@ -5,7 +5,6 @@ import { motion } from 'framer-motion';
 
 interface UserArtifactProps {
   username: string;
-  style?: React.CSSProperties;
   isRightColumnCollapsed: React.MutableRefObject<boolean>;
   toggleRightColumn: (override?: boolean) => void;
 }
@@ -13,7 +12,6 @@ interface UserArtifactProps {
 
 export const UserArtifactComponent: React.FC<UserArtifactProps> = ({ 
   username, 
-  style, 
   isRightColumnCollapsed, 
   toggleRightColumn, 
 }) => {

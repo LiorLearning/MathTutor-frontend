@@ -6,11 +6,10 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { toast, useToast } from "@/hooks/use-toast"
+import { useToast } from "@/hooks/use-toast"
 import { ChevronDown, ChevronUp, Trash2, Pencil } from 'lucide-react'
 import axios from 'axios'
 import { Prompt, MODEL_API_BASE_URL } from '@/components/utils/admin_utils'
-import { useFormState } from 'react-dom'
 
 interface NewPrompt {
   name: string;

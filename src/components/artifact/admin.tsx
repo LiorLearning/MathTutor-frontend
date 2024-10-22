@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 
-export const AdminArtifactComponent: React.FC<{ username: string; style?: React.CSSProperties }> = ({ username, style }) => {
+export const AdminArtifactComponent: React.FC<{ username: string }> = ({ username }) => {
   const [htmlContent, setHtmlContent] = useState("");
   const htmlWebsocketRef = useRef<WebSocket | null>(null);
   const [isCodeView, setIsCodeView] = useState(false);
