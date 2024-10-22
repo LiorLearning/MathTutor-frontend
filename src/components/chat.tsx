@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Button } from "@/components/ui/button"
-import { Pause, Volume2, Square, Mic, PanelRightCloseIcon, PanelLeftCloseIcon, ChevronLeft, ChevronRight } from "lucide-react"
+import { Pause, Volume2, Square, Mic, PanelRightCloseIcon, PanelLeftCloseIcon, ChevronLeft, ChevronRight, Send } from "lucide-react"
 import { useSearchParams } from 'next/navigation'
 import axios from 'axios'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -45,6 +45,7 @@ export function Chat() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSendingMessage, setIsSendingMessage] = useState(false);
   const [sendMessageTimeout, setSendMessageTimeout] = useState<NodeJS.Timeout | null>(null);
+  const [textInput, setTextInput] = useState(""); // New state for text input
 
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const lastBotMessageRef = useRef<HTMLDivElement>(null);
@@ -305,6 +306,28 @@ export function Chat() {
     }
   };
 
+  const handleTextSend = async () => {
+    if (textInput.trim() === "") return; // Prevent sending empty messages
+
+    // Dummy message
+    if (chatWebsocketRef.current?.readyState == WebSocket.OPEN) {
+      chatWebsocketRef.current.send(textInput);
+    }
+
+    handleSendMessage(textInput);
+
+    const userMessage: Message = {
+      role: USER,
+      content: textInput,
+      audioUrl: '',
+      message_id: `temp-${Date.now()}`,
+      timestamp: new Date().toISOString()
+    };
+
+    setMessages(prevMessages => [...prevMessages, userMessage]);
+    setTextInput(""); // Clear the input after sending
+  };
+
   useEffect(() => {
     const initializeChat = async () => {
       try {
@@ -442,9 +465,9 @@ export function Chat() {
     );
   };
 
-  const handleSendMessage = useCallback(async (audioBlob: Blob) => {
+  const handleSendMessage = useCallback(async (message: Blob | string) => {
     if (chatWebsocketRef.current?.readyState == WebSocket.OPEN) {
-      chatWebsocketRef.current.send(audioBlob);
+      chatWebsocketRef.current.send(message);
     }
 
     ttsAudioRef.current?.pause();
@@ -682,6 +705,27 @@ export function Chat() {
                         </motion.div>
                       </AnimatePresence>
                     </Button>
+                    <div className="max-w-3xl mx-auto relative py-2">
+                      <input
+                        type="text"
+                        value={textInput}
+                        onChange={(e) => setTextInput(e.target.value)}
+                        placeholder="Submit answer..."
+                        className="w-full text-black placeholder-gray-400 rounded-lg px-4 py-3 pr-12 focus:outline-none focus:ring-2 focus:ring-gray-600 border border-gray-600"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            handleTextSend();
+                          }
+                        }}
+                      />
+                      <button
+                        onClick={handleTextSend}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-black transition-colors"
+                        aria-label="Send message"
+                      >
+                        <Send size={20} />
+                      </button>
+                    </div>
                   </div>
                 </div>
               )}
