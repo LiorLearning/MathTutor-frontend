@@ -14,3 +14,11 @@ export interface Student {
     country: string;
     user_context: string;
   }
+
+export interface Prompt {
+    id: string;
+    name: string;
+    desc: string
+    content: string;
+    created_at: string;
+}

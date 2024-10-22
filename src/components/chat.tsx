@@ -689,33 +689,11 @@ export function Chat() {
                       )}
                     </AnimatePresence>
                     
-                    <div className="flex">
-                    <div className="relative py-2 ml-4">
-                        <input
-                          type="text"
-                          value={textInput}
-                          onChange={(e) => setTextInput(e.target.value)}
-                          placeholder="Answer..."
-                          className="w-full text-black placeholder-gray-400 rounded-lg px-4 py-3 pr-12 focus:outline-none focus:ring-2 focus:ring-gray-600 border border-gray-600"
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                              handleTextSend();
-                            }
-                          }}
-                        />
-                        <button
-                          onClick={handleTextSend}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-black transition-colors"
-                          aria-label="Send message"
-                        >
-                          <Send size={20} />
-                        </button>
-                      </div>
-                      
-                      <div className="flex justify-center w-full">
+                    <div className="flex flex-col items-center gap-4 max-w-xs mx-auto">
+                      <div className="flex justify-center w-1/2">
                         <Button
                           onClick={isRecording ? stopRecording : startRecording}
-                          className={`w-16 h-16 rounded-full flex items-center justify-center transition-colors ${
+                          className={`w-full h-12 rounded-full flex items-center justify-center transition-colors ${
                             isRecording ? "bg-destructive hover:bg-destructive/90" : "bg-primary hover:bg-primary/90"
                           }`}
                           aria-label={isRecording ? "Stop recording" : "Start recording"}
@@ -738,6 +716,27 @@ export function Chat() {
                         </Button>
                       </div>
                       
+                      <div className="relative w-1/2">
+                        <input
+                          type="text"
+                          value={textInput}
+                          onChange={(e) => setTextInput(e.target.value)}
+                          placeholder="Type"
+                          className="w-full text-black placeholder-gray-400 rounded-2xl px-4 py-3 pr-12 text-xs focus:outline-none focus:ring-2 focus:ring-gray-600 border border-gray-600"
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              handleTextSend();
+                            }
+                          }}
+                        />
+                        <button
+                          onClick={handleTextSend}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-black transition-colors"
+                          aria-label="Send message"
+                        >
+                          <Send size={20} />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
