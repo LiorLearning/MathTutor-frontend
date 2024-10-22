@@ -69,19 +69,19 @@ export function ManageStudentsComponent() {
             <CardContent>
               <div className="flex flex-col space-y-4 w-3/5 mx-auto">
                 <Link href={`/admin/schedule?username=${username}`}>
-                  <Button className="bg-blue-500 hover:bg-blue-600 text-white flex items-center justify-center w-full">
+                  <Button className="bg-primary text-white flex items-center justify-center w-full">
                     <CalendarPlus className="mr-2 h-4 w-4" />
                     Schedule New Class
                   </Button>
                 </Link>
                 <Link href={`/admin/interceptor?username=${username}`}>
-                  <Button className="bg-blue-500 hover:bg-blue-600 text-white flex items-center justify-center w-full">
+                  <Button className="bg-primary text-white flex items-center justify-center w-full">
                     <MessageCircle className="mr-2 h-4 w-4" />
                     Go to Interceptor Page
                   </Button>
                 </Link>
                 <Link href={`/chat?username=${username}`}>
-                  <Button className="bg-blue-500 hover:bg-blue-600 text-white flex items-center justify-center w-full">
+                  <Button className="bg-primary text-white flex items-center justify-center w-full">
                     <MessageCircle className="mr-2 h-4 w-4" />
                     Go to Chat Page
                   </Button>
@@ -120,7 +120,7 @@ export function ManageStudentsComponent() {
                   <td>May 15, 3:00 PM</td>
                   <td>45 minutes</td>
                   <td>
-                    <Button className="bg-blue-500 hover:bg-blue-600 text-white" size="sm">Reschedule</Button>
+                    <Button className="bg-primary text-white" size="sm">Reschedule</Button>
                   </td>
                 </tr>
                 <tr>
@@ -128,7 +128,7 @@ export function ManageStudentsComponent() {
                   <td>May 18, 4:00 PM</td>
                   <td>45 minutes</td>
                   <td>
-                    <Button className="bg-blue-500 hover:bg-blue-600 text-white" size="sm">Reschedule</Button>
+                    <Button className="bg-primary text-white" size="sm">Reschedule</Button>
                   </td>
                 </tr>
               </tbody>

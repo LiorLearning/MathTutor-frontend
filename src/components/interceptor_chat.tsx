@@ -354,7 +354,7 @@ export function InterceptorChat() {
       </div>
       <div className="w-1/2 p-4 flex flex-col h-full">
         <AdminArtifactComponent username={username} />
-        <div className="fixed right-4 bottom-4 lg:w-64 lg:h-48 w-32 h-24">
+        <div className="fixed left-4 bottom-4 lg:w-64 lg:h-48 w-32 h-24">
         <AdminVideo 
           username={username} 
           style={{ 
@@ -364,9 +364,9 @@ export function InterceptorChat() {
         />
         <button 
           onClick={toggleVideoFeed} 
-          className="absolute top-0 right-0 bg-gray-800 text-white p-2 rounded"
+          className="absolute left-0 bottom-0 bg-gray-800 text-white p-2 rounded"
         >
-          {isVideoVisible ? <PanelRightCloseIcon className="h-4 w-4" /> : <PanelLeftCloseIcon className="h-4 w-4" />}
+          {isVideoVisible ? <PanelLeftCloseIcon className="h-4 w-4" /> : <PanelRightCloseIcon className="h-4 w-4" />}
         </button>
       </div>
       </div>

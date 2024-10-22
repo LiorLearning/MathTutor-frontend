@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useToast } from "@/hooks/use-toast"
-import { ChevronDown, ChevronUp, Trash2, Pencil } from 'lucide-react'
+import { ChevronDown, ChevronUp, Trash2, Save } from 'lucide-react'
 import axios from 'axios'
 import { Prompt, MODEL_API_BASE_URL } from '@/components/utils/admin_utils'
 
@@ -206,7 +206,7 @@ export function PromptManagerComponent() {
                         onClick={() => handleUpdatePrompt(promptInput)} 
                         disabled={prompt.content === promptInput}
                       >
-                        <Pencil className="h-4 w-4" />
+                        <Save className="h-4 w-4" />
                       </Button>
                       <Button variant="ghost" size="sm" onClick={() => handleDeletePrompt(prompt.id)}>
                         <Trash2 className="h-4 w-4" />

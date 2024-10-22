@@ -5,9 +5,11 @@ import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 
 export const AdminArtifactComponent: React.FC<{ username: string }> = ({ username }) => {
   const [htmlContent, setHtmlContent] = useState("");
+  const [adminPrompt, setAdminPrompt] = useState("");
   const htmlWebsocketRef = useRef<WebSocket | null>(null);
   const [isCodeView, setIsCodeView] = useState(false);
   const [sendLoadingMessage, setSendLoadingMessage] = useState(true);
@@ -39,10 +41,15 @@ export const AdminArtifactComponent: React.FC<{ username: string }> = ({ usernam
   const generateHtml = useCallback(() => {
     if (htmlWebsocketRef.current) {
       setHtmlContent("");
-      const message = { action: "GENERATE", content: sendLoadingMessage ? "loading" : "" }; // Send loading message if toggle is on
+      const message = { 
+        action: "GENERATE", 
+        content: sendLoadingMessage ? "loading" : "",
+        prompt: adminPrompt,
+      };
       htmlWebsocketRef.current.send(JSON.stringify(message));
+      setAdminPrompt("");
     }
-  }, [sendLoadingMessage]); // Include sendLoadingMessage in dependencies
+  }, [sendLoadingMessage, adminPrompt]); // Include sendLoadingMessage in dependencies
 
   const handleHtmlChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
     setHtmlContent(event.target.value);
@@ -50,7 +57,11 @@ export const AdminArtifactComponent: React.FC<{ username: string }> = ({ usernam
 
   const sendHtmlContent = () => {
     if (htmlWebsocketRef.current) {
-      htmlWebsocketRef.current.send(JSON.stringify({ action: "SEND", content: htmlContent }));
+      htmlWebsocketRef.current.send(JSON.stringify({ 
+        action: "SEND", 
+        content: htmlContent,
+        prompt: ""
+      }));
     }
   };
 
@@ -81,9 +92,6 @@ export const AdminArtifactComponent: React.FC<{ username: string }> = ({ usernam
   return (
     <>
         <div className="flex justify-between items-center mb-4">
-            <Button onClick={generateHtml} className="mr-2">
-            Generate HTML
-            </Button>
             <Button onClick={sendHtmlContent} className="mr-2">
             Send
             </Button>
@@ -125,6 +133,27 @@ export const AdminArtifactComponent: React.FC<{ username: string }> = ({ usernam
             title="Generated HTML"
             />
         )}
+        <div className="flex items-center mt-4">
+          <div className="flex items-center w-full">
+            <Input 
+              value={adminPrompt} 
+              className="flex-grow mr-2 h-12" 
+              onChange={(e) => setAdminPrompt(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  generateHtml();
+                }
+              }}
+              placeholder="Enter prompt here..." 
+            />
+            <Button
+              onClick={generateHtml}
+              className="h-12" 
+            >
+              Generate Artifact
+            </Button>
+          </div>
+        </div>
     </>    
   );
 }
