@@ -104,6 +104,7 @@ export function PromptManagerComponent() {
     try {
       await axios.delete(`${MODEL_API_BASE_URL}/prompts/${id}`)
       setPrompt(emptyPrompt)
+      setSelectedName('');
       toast({ title: "Success", description: "Prompt deleted successfully" })
     } catch (error) {
       toast({ title: "Error", description: "Failed to delete prompt", variant: "destructive" })

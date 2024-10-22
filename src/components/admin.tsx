@@ -15,13 +15,17 @@ export function AdminPageComponent() {
             </CardHeader>
             <CardContent>
               <div className="flex flex-wrap gap-4">
-                <Button className="bg-blue-500 hover:bg-blue-600 text-white">
+                <Button className="bg-primary hover:bg-primary-600 text-white">
                   <CalendarPlus className="mr-2 h-4 w-4" />
                   Schedule Class
                 </Button>
-                <Button className="bg-blue-500 hover:bg-blue-600 text-white" onClick={() => window.location.assign('/admin/all-students')}>
+                <Button className="bg-primary hover:bg-primary-600 text-white" onClick={() => window.location.assign('/admin/all-students')}>
                   <Users className="mr-2 h-4 w-4" />
                   Manage Students
+                </Button>
+                <Button className="bg-primary hover:bg-primary-600 text-white" onClick={() => window.location.assign('/admin/prompt')}>
+                  <Users className="mr-2 h-4 w-4" />
+                  Manage Prompts
                 </Button>
               </div>
             </CardContent>

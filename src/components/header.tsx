@@ -10,7 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 export function Header() {
   return (
-    <header className="sticky top-0 z-50 w-full bg-blue-500 text-white shadow-md">
+    <header className="sticky top-0 z-50 w-full bg-primary text-white shadow-md">
       <div className="container mx-auto px-4 py-2">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold tracking-wider">
@@ -21,7 +21,7 @@ export function Header() {
               <Button variant="ghost" className="relative h-12 w-12 rounded-full p-0">
                 <Avatar className="h-12 w-12 border-2 border-white">
                   <AvatarImage src="/images/placeholder-avatar.jpg" alt="Kid's profile" />
-                  <AvatarFallback className="text-xl font-bold text-blue-500 bg-white">KB</AvatarFallback>
+                  <AvatarFallback className="text-xl font-bold text-primary bg-white">KB</AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
@@ -29,7 +29,7 @@ export function Header() {
               <div className="flex items-center p-4 space-x-4">
                 <Avatar className="h-10 w-10">
                   <AvatarImage src="/images/placeholder-avatar.jpg" alt="Kid's profile" />
-                  <AvatarFallback className="text-lg font-bold text-blue-500 bg-yellow-300">KB</AvatarFallback>
+                  <AvatarFallback className="text-lg font-bold text-primary bg-yellow-300">KB</AvatarFallback>
                 </Avatar>
                 <div>
                   <p className="text-sm font-medium text-gray-900">Math Explorer</p>
@@ -37,13 +37,13 @@ export function Header() {
                 </div>
               </div>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-sm py-2 cursor-pointer hover:bg-blue-100">
+              <DropdownMenuItem className="text-sm py-2 cursor-pointer hover:bg-primary-100">
                 My Achievements
               </DropdownMenuItem>
-              <DropdownMenuItem className="text-sm py-2 cursor-pointer hover:bg-blue-100">
+              <DropdownMenuItem className="text-sm py-2 cursor-pointer hover:bg-primary-100">
                 Change Avatar
               </DropdownMenuItem>
-              <DropdownMenuItem className="text-sm py-2 cursor-pointer hover:bg-blue-100">
+              <DropdownMenuItem className="text-sm py-2 cursor-pointer hover:bg-primary-100">
                 Settings
               </DropdownMenuItem>
               <DropdownMenuSeparator />
