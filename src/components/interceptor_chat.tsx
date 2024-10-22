@@ -18,6 +18,9 @@ import { Student, MODEL_API_BASE_URL } from '@/components/utils/admin_utils'
 import AdminVideo from '@/components/webrtc/admin';
 import { AdminArtifactComponent } from '@/components/artifact/admin';
 
+const USER = 'user';
+const ASSISTANT = 'assistant';
+
 function UserSidebar({ username }: { username: string }) {
   const [studentDetails, setStudentDetails] = useState<Student | null>(null);
 
@@ -95,15 +98,15 @@ export function InterceptorChat() {
         const message = data.content;
         if (data.role === 'correction') {
           setMessages(prevMessages => prevMessages.slice(0, -2));
-        } else if (data.role !== 'user' && data.role !== 'assistant') {
+        } else if (data.role !== USER && data.role !== ASSISTANT) {
           console.error("Error: Unrecognized role received in WebSocket message:", data.role);
         }
 
         const finalMessage: Message = {
-          role: data.role === 'user' ? 'user' : 'assistant',
+          role: data.role === USER ? USER : ASSISTANT,
           content: message,
           audioUrl: '',
-          message_id: data.role === 'user' ? `temp-${Date.now()}` : `bot-${Date.now()}`,
+          message_id: data.role === USER ? `temp-${Date.now()}` : `bot-${Date.now()}`,
           timestamp: new Date().toISOString(),
           isPlaying: false
         };
@@ -180,7 +183,7 @@ export function InterceptorChat() {
     if (inputText.trim() === "") return;
 
     const userMessage: Message = {
-      role: 'user',
+      role: USER,
       content: inputText,
       audioUrl: '',
       message_id: `temp-${Date.now()}`,
@@ -204,7 +207,7 @@ export function InterceptorChat() {
     setPausedMessage(false);
 
     const userMessage: Message = {
-      role: 'user',
+      role: USER,
       content: correctionText,
       audioUrl: '',
       message_id: `temp-${Date.now()}`,
@@ -237,16 +240,16 @@ export function InterceptorChat() {
       <div 
         key={message.message_id} 
         className="flex flex-col items-center justify-center h-full"
-        ref={index === messages.length - 1 && message.role === 'assistant' ? lastBotMessageRef : null}
+        ref={index === messages.length - 1 && message.role === ASSISTANT ? lastBotMessageRef : null}
       >
-        <div className={`max-w-[90%] ${message.role === 'user' ? 'self-end' : 'self-start'}`}>
+        <div className={`max-w-[90%] ${message.role === USER ? 'self-end' : 'self-start'}`}>
           <div
             className={`rounded-3xl p-4 ${
-              message.role === 'user'
+              message.role === USER
                 ? 'bg-primary text-white'
                 : 'bg-gray-200 text-gray-800'
-            } ${message.role === 'assistant' && index < messages.length - 1 ? 'opacity-50' : ''} 
-            ${message.role === 'assistant' && index === messages.length - 1 ? 'opacity-100' : ''}`}
+            } ${message.role === ASSISTANT && index < messages.length - 1 ? 'opacity-50' : ''} 
+            ${message.role === ASSISTANT && index === messages.length - 1 ? 'opacity-100' : ''}`}
           >
             <MarkdownComponent content={message.content} />
           </div>
@@ -308,6 +311,7 @@ export function InterceptorChat() {
             <Button 
               className="flex-grow h-12 bg-gray-500" 
               onClick={handlePauseMessage}
+              disabled={messages.length > 0 && messages[messages.length - 1].role === USER}
             >
               Update last assistant message...
             </Button>

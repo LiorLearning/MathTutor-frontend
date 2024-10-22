@@ -37,7 +37,7 @@ export function Chat() {
   const searchParams = useSearchParams();
   const username = searchParams.get('username') || 'testuser';
 
-  const [showPopup, setShowPopup] = useState(true);
+  const [showPopup, setShowPopup] = useState(false);
   
   const [messages, setMessages] = useState<Message[]>([]);
   const [chatId, setChatId] = useState("");
@@ -160,14 +160,15 @@ export function Chat() {
       }
 
       chatWebsocketRef.current.onmessage = async (event) => {
+        console.log("WebSocket message received:", event.data); // Log the received event data
         const data = JSON.parse(event.data);
         const message = data.content;
-        const role = data.role
-        
-        console.log("Messsages 4: ", messages)
+        const role = data.role;
+        console.log("Parsed message content:", message, "Role:", role); // Log parsed message and role
 
         switch (role) {
           case NOTEXT:
+            console.log("No text received, setting isSendingMessage to false.");
             setIsSendingMessage(false);
             return;
 
@@ -187,6 +188,7 @@ export function Chat() {
             return;
 
           case USER:
+            console.log("User message received:", message);
             const userMessage: Message = {
               role: USER,
               content: message,
@@ -198,20 +200,22 @@ export function Chat() {
             return;
 
           case INTERRUPT:
+            console.log("Received INTERRUPT signal, pausing audio.");
             ttsAudioRef.current?.pause();
             return;
 
           case CORRECTION:
-            console.log("Messsages 3: ", messages)
+            console.log("Received CORRECTION signal, removing last message.");
             setMessages(prevMessages => prevMessages.slice(0, -1));
             break;
 
           default:
+            console.log("Unknown role received:", role);
             break;
         }
 
         const isImage = message.startsWith("![Generated");
-        const audioUrl = isImage ? '' : (SPEAKOUT ? await getTTS(message) : ''); 
+        const audioUrl = isImage ? '' : (SPEAKOUT ? await getTTS(message) : '');
 
         setIsSendingMessage(false);
         setErrorMessage(null);
@@ -232,6 +236,7 @@ export function Chat() {
 
         if (isImage) {
           finalMessage.content = message; 
+          console.log("Updating messages with image content:", finalMessage);
           setMessages(prevMessages => {
             const updatedMessages = prevMessages.filter(msg => msg.message_id !== finalMessage.message_id);
             return [...updatedMessages, finalMessage];
@@ -247,6 +252,7 @@ export function Chat() {
             messageStreamIntervalRef.current = setInterval(() => {
               if (index < messageChunks.length) {
                 finalMessage.content += messageChunks[index++] + ' ';
+                console.log("Streaming message content:", finalMessage.content); // Log streaming content
                 setMessages(prevMessages => {
                   const updatedMessages = prevMessages.filter(msg => msg.message_id !== finalMessage.message_id);
                   return [...updatedMessages, finalMessage];
@@ -682,49 +688,56 @@ export function Chat() {
                         </motion.div>
                       )}
                     </AnimatePresence>
-                    <Button
-                      onClick={isRecording ? stopRecording : startRecording}
-                      className={`w-16 h-16 rounded-full flex items-center justify-center transition-colors ${
-                        isRecording ? "bg-destructive hover:bg-destructive/90" : "bg-primary hover:bg-primary/90"
-                      }`}
-                      aria-label={isRecording ? "Stop recording" : "Start recording"}
-                    >
-                      <AnimatePresence mode="wait">
-                        <motion.div
-                          key={isRecording ? "stop" : "start"}
-                          initial={{ opacity: 0, scale: 0.5 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          exit={{ opacity: 0, scale: 0.5 }}
-                          transition={{ duration: 0.2 }}
+                    
+                    <div className="flex">
+                    <div className="relative py-2 ml-4">
+                        <input
+                          type="text"
+                          value={textInput}
+                          onChange={(e) => setTextInput(e.target.value)}
+                          placeholder="Answer..."
+                          className="w-full text-black placeholder-gray-400 rounded-lg px-4 py-3 pr-12 focus:outline-none focus:ring-2 focus:ring-gray-600 border border-gray-600"
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              handleTextSend();
+                            }
+                          }}
+                        />
+                        <button
+                          onClick={handleTextSend}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-black transition-colors"
+                          aria-label="Send message"
                         >
-                          {isRecording ? (
-                            <Square className="w-8 h-8 text-destructive-foreground" />
-                          ) : (
-                            <Mic className="w-8 h-8 text-primary-foreground" />
-                          )}
-                        </motion.div>
-                      </AnimatePresence>
-                    </Button>
-                    <div className="max-w-3xl mx-auto relative py-2">
-                      <input
-                        type="text"
-                        value={textInput}
-                        onChange={(e) => setTextInput(e.target.value)}
-                        placeholder="Submit answer..."
-                        className="w-full text-black placeholder-gray-400 rounded-lg px-4 py-3 pr-12 focus:outline-none focus:ring-2 focus:ring-gray-600 border border-gray-600"
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            handleTextSend();
-                          }
-                        }}
-                      />
-                      <button
-                        onClick={handleTextSend}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-black transition-colors"
-                        aria-label="Send message"
-                      >
-                        <Send size={20} />
-                      </button>
+                          <Send size={20} />
+                        </button>
+                      </div>
+                      
+                      <div className="flex justify-center w-full">
+                        <Button
+                          onClick={isRecording ? stopRecording : startRecording}
+                          className={`w-16 h-16 rounded-full flex items-center justify-center transition-colors ${
+                            isRecording ? "bg-destructive hover:bg-destructive/90" : "bg-primary hover:bg-primary/90"
+                          }`}
+                          aria-label={isRecording ? "Stop recording" : "Start recording"}
+                        >
+                          <AnimatePresence mode="wait">
+                            <motion.div
+                              key={isRecording ? "stop" : "start"}
+                              initial={{ opacity: 0, scale: 0.5 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              exit={{ opacity: 0, scale: 0.5 }}
+                              transition={{ duration: 0.2 }}
+                            >
+                              {isRecording ? (
+                                <Square className="w-8 h-8 text-destructive-foreground" />
+                              ) : (
+                                <Mic className="w-8 h-8 text-primary-foreground" />
+                              )}
+                            </motion.div>
+                          </AnimatePresence>
+                        </Button>
+                      </div>
+                      
                     </div>
                   </div>
                 </div>
