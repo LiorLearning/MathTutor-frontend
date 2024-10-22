@@ -26,7 +26,10 @@ const CORRECTION = 'correction';
 const INTERRUPT = 'interrupt';
 const ASSISTANT = 'assistant';
 const USER = 'user';
+const PAUSE = 'pause';
 const NOTEXT = 'notext';
+
+const RETHINKING_MESSAGE = "Rethinking..."
 
 const ERROR_TIMEOUT = 10000;
 
@@ -58,10 +61,10 @@ export function Chat() {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
 
-  const [isVideoVisible, setIsVideoVisible] = useState(true); // State to manage visibility
+  const [isVideoVisible, setIsVideoVisible] = useState(true);
 
-  const [isRightColumnCollapsed, setIsRightColumnCollapsed] = React.useState(true)
-  const isRightColumnCollapsedRef = useRef<boolean>(isRightColumnCollapsed); // Create a ref
+  const [isRightColumnCollapsed, setIsRightColumnCollapsed] = React.useState(true);
+  const isRightColumnCollapsedRef = useRef<boolean>(isRightColumnCollapsed);
 
   const toggleRightColumn = () => {
     setIsRightColumnCollapsed(prev => {
@@ -76,10 +79,6 @@ export function Chat() {
   };
 
   const handleEnterClass = () => {
-    if (username.trim() === "") {
-      setErrorMessage("Please enter your name")
-      return
-    }
     setShowPopup(false)
   }
 
@@ -162,11 +161,28 @@ export function Chat() {
       chatWebsocketRef.current.onmessage = async (event) => {
         const data = JSON.parse(event.data);
         const message = data.content;
-        const role = data.role;
+        const role = data.role
+        
+        console.log("Messsages 4: ", messages)
 
         switch (role) {
           case NOTEXT:
             setIsSendingMessage(false);
+            return;
+
+          case PAUSE:
+            console.log("Received PAUSE signal, setting rethinking state to true.");
+            setMessages(prevMessages => prevMessages.slice(0, -1));
+            setMessages(prevMessages => [
+              ...prevMessages,
+              { 
+                role: ASSISTANT, 
+                content: RETHINKING_MESSAGE,
+                message_id: `bot-${Date.now()}`, 
+                timestamp: new Date().toISOString(),
+                audioUrl: '' 
+              }
+            ]);
             return;
 
           case USER:
@@ -185,6 +201,7 @@ export function Chat() {
             return;
 
           case CORRECTION:
+            console.log("Messsages 3: ", messages)
             setMessages(prevMessages => prevMessages.slice(0, -1));
             break;
 
@@ -305,7 +322,7 @@ export function Chat() {
             { headers: { 'Content-Type': 'application/json' } }
           );
 
-          setMessages(historyResponse.data || []);
+          setMessages(historyResponse.data);
         }
 
         initChatWebSocket(username);
@@ -457,7 +474,53 @@ export function Chat() {
             } ${message.role === ASSISTANT && index < messages.length - 1 ? 'opacity-50' : ''} 
             ${message.role === ASSISTANT && index === messages.length - 1 ? 'opacity-100' : ''}`}
           >
-            <MarkdownComponent content={message.content} />
+            {message.content === RETHINKING_MESSAGE && index === messages.length - 1 ? (
+              <div className="flex items-center justify-center bg-gray-50 rounded-lg px-32">
+              <motion.div
+                className="flex flex-col items-center gap-2"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.5 }}
+              >
+                <motion.div
+                  className="text-lg font-medium text-gray-600"
+                  initial={{ scale: 1 }}
+                  animate={{ 
+                    opacity: [0.5, 1, 0.5]
+                  }}
+                  transition={{
+                    duration: 2,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }}
+                >
+                  Rethinking...
+                </motion.div>
+                
+                {/* Subtle Dots Animation */}
+                <div className="flex gap-1"> {/* Reduced gap */}
+                  {[0, 1, 2].map((i) => (
+                    <motion.div
+                      key={i}
+                      className="w-2 h-2 bg-blue-500 rounded-full"
+                      initial={{ scale: 0.8, opacity: 0.5 }}
+                      animate={{ 
+                        scale: [0.8, 1.2, 0.8],
+                        opacity: [0.5, 1, 0.5]
+                      }}
+                      transition={{
+                        duration: 1,
+                        repeat: Infinity,
+                        delay: i * 0.2,
+                        ease: "easeInOut"
+                      }}
+                    />
+                  ))}
+                </div>
+              </motion.div>
+            </div>
+            ) : <MarkdownComponent content={message.content} /> }
+            
             {message.role === ASSISTANT && (
               <div className="mt-2 flex justify-end">
                 <Button 
@@ -643,7 +706,7 @@ export function Chat() {
               style={{ 
                 visibility: isVideoVisible ? 'visible' : 'hidden', // Hide the video feed
                 position: isVideoVisible ? 'static' : 'absolute', // Keep it in the flow or move it off-screen
-              }} 
+              }}
             />
             <button 
               onClick={toggleVideoFeed} 

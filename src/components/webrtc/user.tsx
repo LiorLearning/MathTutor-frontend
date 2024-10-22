@@ -14,7 +14,10 @@ type WebSocketMessage = {
   state?: boolean;
 };
 
-const UserVideo: React.FC<{ username: string; style?: React.CSSProperties }> = ({ username, style }) => {
+const UserVideo: React.FC<{
+  username: string; 
+  style?: React.CSSProperties 
+}> = ({ username, style }) => {
   const peerConnection = useRef<RTCPeerConnection | null>(null);
   const ws = useRef<WebSocket | null>(null);
   const localStream = useRef<MediaStream | null>(null);
