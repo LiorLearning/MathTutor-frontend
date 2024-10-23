@@ -1,8 +1,14 @@
 import Image from 'next/image'
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import rehypeRaw from 'rehype-raw'
+import rehypeRaw from 'rehype-raw';
+
+declare global {
+    interface Window {
+        MathJax: any;
+    }
+}
 
 export interface Message {
     role: 'user' | 'assistant';
@@ -67,7 +73,30 @@ export const isWebSocketClosed = (webSocket: WebSocket): boolean => {
 export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL + 'api/v1/chat';
 export const SPEECH_API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL + 'api/v1/speech';
 
+
 export const MarkdownComponent: React.FC<{ content: string }> = ({ content }) => {
+    useEffect(() => {
+        const script = document.createElement('script')
+        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.9/MathJax.js?config=TeX-MML-AM_CHTML'
+        script.async = true
+        document.body.appendChild(script)
+    
+        script.onload = () => {
+          window.MathJax.Hub.Config({
+            tex2jax: {
+              inlineMath: [['$', '$'], ['\$$', '\$$']],
+              displayMath: [['$$', '$$'], ['\\[', '\\]']],
+              processEscapes: true,
+            },
+          })
+          window.MathJax.Hub.Queue(['Typeset', window.MathJax.Hub])
+        }
+    
+        return () => {
+          document.body.removeChild(script)
+        }
+      }, [content])
+
     return (
         <ReactMarkdown
           remarkPlugins={[remarkGfm]}
