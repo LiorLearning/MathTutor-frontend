@@ -29,8 +29,15 @@ export const AdminArtifactComponent: React.FC<{ username: string }> = ({ usernam
 
       htmlWebsocketRef.current.onmessage = (event) => {
         const data = JSON.parse(event.data);
-        const message = data.content;
-        setHtmlContent(prevHtml => prevHtml + message);
+        const content = data.content;
+        const role = data.role;
+        
+        if (role == 'html') {
+          setHtmlContent(prevHtml => prevHtml + content);
+        }
+        else if (role == 'fetch') {
+          setUserHtmlContent(content);
+        }
       };
 
       htmlWebsocketRef.current.onerror = (error) => {
@@ -67,9 +74,19 @@ export const AdminArtifactComponent: React.FC<{ username: string }> = ({ usernam
         content: htmlContent,
         prompt: ""
       }));
-      setUserHtmlContent(htmlContent);
     }
   };
+
+  const fetchHtmlContent = () => {
+    if (htmlWebsocketRef.current) {
+      htmlWebsocketRef.current.send(JSON.stringify({ 
+        action: "FETCH", 
+        content: "",
+        prompt: ""
+      }));
+      setUserHtmlContent(htmlContent);
+    }
+  }
 
   const clearHtmlContent = () => {
     setHtmlContent(""); // Clear the HTML content
@@ -135,7 +152,12 @@ export const AdminArtifactComponent: React.FC<{ username: string }> = ({ usernam
             <Switch
               id="user-artifact"
               checked={seeUserHtml}
-              onCheckedChange={setSeeUserHtml}
+              onCheckedChange={(value) => {
+                setSeeUserHtml(value);
+                if (!value) {
+                  fetchHtmlContent();
+                }
+              }}
               className="mr-2"
             />
           </div>

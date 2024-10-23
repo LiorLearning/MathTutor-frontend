@@ -15,7 +15,7 @@ export const UserArtifactComponent: React.FC<UserArtifactProps> = ({
   isRightColumnCollapsed, 
   toggleRightColumn, 
 }) => {
-  const [htmlContent, setHtmlContent] = useState("");
+  const htmlContentRef = useRef<string>("");
   const [isHtmlLoading, setIsHtmlLoading] = useState(false);
   const htmlWebsocketRef = useRef<WebSocket | null>(null);
 
@@ -28,26 +28,29 @@ export const UserArtifactComponent: React.FC<UserArtifactProps> = ({
       };
 
       htmlWebsocketRef.current.onmessage = (event) => {
-        if(isRightColumnCollapsed.current) {
-          toggleRightColumn();
-        }
-
         const data = JSON.parse(event.data);
         const message = data.content;
-
-        if (message === "") {
-          if(!isRightColumnCollapsed.current) {
-            toggleRightColumn();
-          }
-        }
-
         const role = data.role;
+
         if (role === 'external') {
-          setHtmlContent(message);
+          htmlContentRef.current = message; // Update to use htmlContentRef
           setIsHtmlLoading(false);
+          
+          if(isRightColumnCollapsed.current) {
+            toggleRightColumn();
+          } else {
+            if (message === "") {
+              toggleRightColumn();
+            }
+          }
+
         } else if (role === 'loading') {
-          console.log("HTML Loading... ");
           setIsHtmlLoading(true);
+
+        } else if (role == 'fetch') {
+          if (htmlContentRef.current) {
+            sentHtmlContent(); // This will send the current htmlContent
+          }
         }
       };
 
@@ -60,7 +63,15 @@ export const UserArtifactComponent: React.FC<UserArtifactProps> = ({
       };
     }
   }, []);
-  
+
+  const sentHtmlContent = useCallback(() => {
+    if (htmlWebsocketRef.current) {
+      htmlWebsocketRef.current.send(JSON.stringify({ 
+        role: "fetch", 
+        content: htmlContentRef.current, // Update to use htmlContentRef
+      }));
+    }
+  }, []);
 
   useEffect(() => {
     const initializeChat = async () => {
@@ -94,7 +105,7 @@ export const UserArtifactComponent: React.FC<UserArtifactProps> = ({
         </motion.div>
       )}
       <iframe 
-        srcDoc={htmlContent} 
+        srcDoc={htmlContentRef.current} // Update to use htmlContentRef
         className="w-full h-full border-2 border-border rounded-lg" 
         title="Generated HTML"
       />
