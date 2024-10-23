@@ -163,6 +163,8 @@ export function Chat() {
 
       chatWebsocketRef.current.onmessage = async (event) => {
         console.log("WebSocket message received:", event.data); // Log the received event data
+        setErrorMessage(null);
+
         const data = JSON.parse(event.data);
         const message = data.content;
         const role = data.role;
@@ -226,7 +228,6 @@ export function Chat() {
         const audioUrl = isImage ? '' : (SPEAKOUT ? await getTTS(message) : '');
 
         setIsSendingMessage(false);
-        setErrorMessage(null);
         if (sendMessageTimeout) {
           clearTimeout(sendMessageTimeout);
           setSendMessageTimeout(null);
@@ -475,7 +476,7 @@ export function Chat() {
     if (scrollElement) {
       scrollElement.scrollTo({
         top: scrollElement.scrollHeight,
-        behavior: 'smooth' 
+        behavior: 'auto' 
       });
     }
   }, [messages]);
