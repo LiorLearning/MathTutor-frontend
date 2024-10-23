@@ -76,26 +76,26 @@ export const SPEECH_API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL + 'api/v
 
 export const MarkdownComponent: React.FC<{ content: string }> = ({ content }) => {
     useEffect(() => {
-        const script = document.createElement('script')
-        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.9/MathJax.js?config=TeX-MML-AM_CHTML'
-        script.async = true
-        document.body.appendChild(script)
+        const script = document.createElement('script');
+        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.9/MathJax.js?config=TeX-MML-AM_CHTML';
+        script.async = true;
+        document.body.appendChild(script);
     
         script.onload = () => {
-          window.MathJax.Hub.Config({
-            tex2jax: {
-              inlineMath: [['$', '$'], ['\$$', '\$$']],
-              displayMath: [['$$', '$$'], ['\\[', '\\]']],
-              processEscapes: true,
-            },
-          })
-          window.MathJax.Hub.Queue(['Typeset', window.MathJax.Hub])
-        }
+            (window.MathJax as any).Hub.Config({
+                tex2jax: {
+                    inlineMath: [['$', '$'], ['\\$$', '\\$$']],
+                    displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                    processEscapes: true,
+                },
+            });
+            (window.MathJax as any).Hub.Queue(['Typeset', (window.MathJax as any).Hub]);
+        };
     
         return () => {
-          document.body.removeChild(script)
-        }
-      }, [content])
+            document.body.removeChild(script);
+        };
+    }, [content]);
 
     return (
         <ReactMarkdown

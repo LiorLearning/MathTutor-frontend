@@ -31,7 +31,7 @@ const NOTEXT = 'notext';
 
 const RETHINKING_MESSAGE = "Rethinking..."
 
-const ERROR_TIMEOUT = 20000;
+const ERROR_TIMEOUT = 60000;
 
 export function Chat() {
   const searchParams = useSearchParams();
