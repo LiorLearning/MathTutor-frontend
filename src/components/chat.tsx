@@ -42,7 +42,7 @@ export function Chat() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [chatId, setChatId] = useState("");
   const [isLoading, setIsLoading] = useState(true);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  // const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSendingMessage, setIsSendingMessage] = useState(false);
   const [sendMessageTimeout, setSendMessageTimeout] = useState<NodeJS.Timeout | null>(null);
   const [textInput, setTextInput] = useState("");
@@ -163,7 +163,7 @@ export function Chat() {
 
       chatWebsocketRef.current.onmessage = async (event) => {
         console.log("WebSocket message received:", event.data); // Log the received event data
-        setErrorMessage(null);
+        // setErrorMessage(null);
 
         const data = JSON.parse(event.data);
         const message = data.content;
@@ -496,11 +496,11 @@ export function Chat() {
     resetIsPlaying();
 
     setIsSendingMessage(true);
-    setErrorMessage(null);
-    const timeout = setTimeout(() => {
-      setErrorMessage("Try reloading the page...");
-    }, ERROR_TIMEOUT);
-    setSendMessageTimeout(timeout);
+    // setErrorMessage(null);
+    // const timeout = setTimeout(() => {
+    //   setErrorMessage("Try reloading the page...");
+    // }, ERROR_TIMEOUT);
+    // setSendMessageTimeout(timeout);
   }, []);
 
   const messageComponents = useMemo(() => (
@@ -643,13 +643,7 @@ export function Chat() {
               
               {isSendingMessage ? (
                 <div className="flex items-center justify-center h-12 w-full">
-                  {errorMessage ? (
-                    <div className="mt-4 text-destructive">
-                      {errorMessage}
-                    </div>
-                  ) : (
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                  )}
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
                 </div>
               ) : (
                 <div className="p-4 border-t border-border flex items-center justify-center">
