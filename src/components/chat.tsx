@@ -22,6 +22,7 @@ import { MessageLoader } from '@/components/message-loader';
 const SPEAKOUT = true;
 const SPEED = 30;
 const PLAYBACK_RATE = 1;
+const PAGE_SIZE = 10;
 
 const CORRECTION = 'correction';
 const INTERRUPT = 'interrupt';
@@ -69,6 +70,47 @@ export function Chat() {
 
   const [isRightColumnCollapsed, setIsRightColumnCollapsed] = React.useState(true);
   const isRightColumnCollapsedRef = useRef<boolean>(isRightColumnCollapsed);
+
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [initialScrollComplete, setInitialScrollComplete] = useState(false);
+
+  const previousScrollHeight = useRef(0);
+
+  const loadMoreMessages = async () => {
+    if (isLoadingMore || !hasMore) return;
+
+    try {
+      setIsLoadingMore(true);
+      const nextPage = currentPage + 1;
+      
+      const historyResponse = await axios.get<GetChatHistoryResponse>(
+        `${API_BASE_URL}/chat_history?user_id=${username}&page=${nextPage}&page_size=${PAGE_SIZE}`,
+        { headers: { 'Content-Type': 'application/json' } }
+      );
+
+      if (historyResponse.data.length === 0) {
+        setHasMore(false);
+        return;
+      }
+
+      // Save the current scroll height before adding new messages
+      const scrollElement = scrollAreaRef.current?.querySelector('[data-radix-scroll-area-viewport]');
+      if (scrollElement) {
+        previousScrollHeight.current = scrollElement.scrollHeight;
+      }
+
+      setMessages(prevMessages => [...historyResponse.data, ...prevMessages]);
+      setCurrentPage(nextPage);
+    } catch (error) {
+      console.error('Error loading more messages:', error);
+    } finally {
+      setIsLoadingMore(false);
+    }
+  };
+
 
   const toggleRightColumn = () => {
     setIsRightColumnCollapsed(prev => {
@@ -364,20 +406,18 @@ export function Chat() {
           setChatId(response.data.chat_id);
           
           const historyResponse = await axios.get<GetChatHistoryResponse>(
-            `${API_BASE_URL}/chat_history?user_id=${username}`,
+            `${API_BASE_URL}/chat_history?user_id=${username}&page=1&page_size=${PAGE_SIZE}`,
             { headers: { 'Content-Type': 'application/json' } }
           );
 
           setMessages(historyResponse.data);
+          setHasMore(historyResponse.data.length === PAGE_SIZE);
         }
 
         initChatWebSocket(username);
         
         return () => {
-          // sttAudioWebsocketRef.current?.close();
           chatWebsocketRef.current?.close();
-          
-          // sttAudioWebsocketRef.current = null;
           chatWebsocketRef.current = null;
         };
         
@@ -474,13 +514,38 @@ export function Chat() {
 
   useEffect(() => {
     const scrollElement = scrollAreaRef.current?.querySelector('[data-radix-scroll-area-viewport]');
-    if (scrollElement) {
+    if (!scrollElement) return;
+
+    if (!initialScrollComplete) {
+      // Initial scroll to bottom for new chat
       scrollElement.scrollTo({
         top: scrollElement.scrollHeight,
-        behavior: 'auto' 
+        behavior: 'auto'
       });
+      setInitialScrollComplete(true);
+    } else {
+      // Maintain scroll position when loading older messages
+      const newScrollPosition = scrollElement.scrollHeight - previousScrollHeight.current;
+      if (newScrollPosition > 0) {
+        scrollElement.scrollTop = newScrollPosition;
+      }
     }
-  }, [messages]);
+  }, [messages, initialScrollComplete]);
+
+  useEffect(() => {
+    const scrollElement = scrollAreaRef.current?.querySelector('[data-radix-scroll-area-viewport]');
+    if (!scrollElement) return;
+
+    const handleScroll = () => {
+      // Load more when user scrolls near the top (e.g., within 100px)
+      if (scrollElement.scrollTop < 100 && !isLoadingMore && hasMore) {
+        loadMoreMessages();
+      }
+    };
+
+    scrollElement.addEventListener('scroll', handleScroll);
+    return () => scrollElement.removeEventListener('scroll', handleScroll);
+  }, [isLoadingMore, hasMore]);
 
   const resetIsPlaying = () => {
     setMessages(prevMessages => 
@@ -504,89 +569,98 @@ export function Chat() {
     // setSendMessageTimeout(timeout);
   }, []);
 
-  const messageComponents = useMemo(() => (
-    Array.isArray(messages) && messages.map((message, index) => (
-      <div 
-        key={message.message_id} 
-        className="flex flex-col items-center justify-center h-full"
-        ref={index === messages.length - 1 && message.role === ASSISTANT ? lastBotMessageRef : null}
-      >
-        <div className={`max-w-[90%] ${message.role === USER ? 'self-end' : 'self-start'}`}>
-          <div
-            className={`rounded-3xl p-4 ${
-              message.role === USER
-                ? 'bg-primary text-white'
-                : 'bg-gray-50 text-gray-800'
-            } ${message.role === ASSISTANT && index < messages.length - 1 ? 'opacity-50' : ''} 
-            ${message.role === ASSISTANT && index === messages.length - 1 ? 'opacity-100' : ''}`}
+  const messageComponents = useMemo(() => {
+    return (
+      <>
+        {isLoadingMore && (
+          <div className="flex justify-center py-4">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+          </div>
+        )}
+        {Array.isArray(messages) && messages.map((message, index) => (
+          <div 
+            key={message.message_id} 
+            className="flex flex-col items-center justify-center h-full"
+            ref={index === messages.length - 1 && message.role === ASSISTANT ? lastBotMessageRef : null}
           >
-            {message.content === RETHINKING_MESSAGE && index === messages.length - 1 ? (
-              <div className="flex items-center justify-center bg-gray-50 rounded-lg px-32">
-              <motion.div
-                className="flex flex-col items-center gap-2"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.5 }}
+            <div className={`max-w-[90%] ${message.role === USER ? 'self-end' : 'self-start'}`}>
+              <div
+                className={`rounded-3xl p-4 ${
+                  message.role === USER
+                    ? 'bg-primary text-white'
+                    : 'bg-gray-50 text-gray-800'
+                } ${message.role === ASSISTANT && index < messages.length - 1 ? 'opacity-50' : ''} 
+                ${message.role === ASSISTANT && index === messages.length - 1 ? 'opacity-100' : ''}`}
               >
-                <motion.div
-                  className="text-lg font-medium text-gray-600"
-                  initial={{ scale: 1 }}
-                  animate={{ 
-                    opacity: [0.5, 1, 0.5]
-                  }}
-                  transition={{
-                    duration: 2,
-                    repeat: Infinity,
-                    ease: "easeInOut"
-                  }}
-                >
-                  Rethinking...
-                </motion.div>
-                
-                {/* Subtle Dots Animation */}
-                <div className="flex gap-1"> {/* Reduced gap */}
-                  {[0, 1, 2].map((i) => (
+                {message.content === RETHINKING_MESSAGE && index === messages.length - 1 ? (
+                  <div className="flex items-center justify-center bg-gray-50 rounded-lg px-32">
                     <motion.div
-                      key={i}
-                      className="w-2 h-2 bg-blue-500 rounded-full"
-                      initial={{ scale: 0.8, opacity: 0.5 }}
-                      animate={{ 
-                        scale: [0.8, 1.2, 0.8],
-                        opacity: [0.5, 1, 0.5]
-                      }}
-                      transition={{
-                        duration: 1,
-                        repeat: Infinity,
-                        delay: i * 0.2,
-                        ease: "easeInOut"
-                      }}
-                    />
-                  ))}
-                </div>
-              </motion.div>
-            </div>
-            ) : <MarkdownComponent content={message.content} /> }
-            
-            {message.role === ASSISTANT && (
-              <div className="mt-2 flex justify-end">
-                <Button 
-                  size="sm"
-                  variant="outline"
-                  className="rounded px-2 py-1"
-                  onClick={() => toggleAudio(message)}
-                >
-                  {message.isPlaying ? <Pause className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
-                </Button>
+                      className="flex flex-col items-center gap-2"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ duration: 0.5 }}
+                    >
+                      <motion.div
+                        className="text-lg font-medium text-gray-600"
+                        initial={{ scale: 1 }}
+                        animate={{ 
+                          opacity: [0.5, 1, 0.5]
+                        }}
+                        transition={{
+                          duration: 2,
+                          repeat: Infinity,
+                          ease: "easeInOut"
+                        }}
+                      >
+                        Rethinking...
+                      </motion.div>
+                      
+                      {/* Subtle Dots Animation */}
+                      <div className="flex gap-1"> {/* Reduced gap */}
+                        {[0, 1, 2].map((i) => (
+                          <motion.div
+                            key={i}
+                            className="w-2 h-2 bg-blue-500 rounded-full"
+                            initial={{ scale: 0.8, opacity: 0.5 }}
+                            animate={{ 
+                              scale: [0.8, 1.2, 0.8],
+                              opacity: [0.5, 1, 0.5]
+                            }}
+                            transition={{
+                              duration: 1,
+                              repeat: Infinity,
+                              delay: i * 0.2,
+                              ease: "easeInOut"
+                            }}
+                          />
+                        ))}
+                      </div>
+                    </motion.div>
+                  </div>
+                ) : <MarkdownComponent content={message.content} /> }
+                
+                {message.role === ASSISTANT && (
+                  <div className="mt-2 flex justify-end">
+                    <Button 
+                      size="sm"
+                      variant="outline"
+                      className="rounded px-2 py-1"
+                      onClick={() => toggleAudio(message)}
+                    >
+                      {message.isPlaying ? <Pause className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+                    </Button>
+                  </div>
+                )}
               </div>
-            )}
+              <div className="text-xs text-gray-500 mt-1">
+                {new Date(message.timestamp).toLocaleTimeString()}
+              </div>
+            </div>
           </div>
-          <div className="text-xs text-gray-500 mt-1">
-            {new Date(message.timestamp).toLocaleTimeString()}
-          </div>
-        </div>
-      </div>
-    ))
-  ), [messages, toggleAudio]);
+        ))}
+      </>
+    );
+  }, [messages, toggleAudio, isLoadingMore]);
 
   if (isLoading) {
     return <div className="flex items-center justify-center h-screen">
