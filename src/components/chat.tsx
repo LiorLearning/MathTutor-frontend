@@ -17,6 +17,7 @@ import {
 } from '@/components/utils/chat_utils';
 import UserVideo from '@/components/webrtc/user';
 import { UserArtifactComponent } from '@/components/artifact/user';
+import { MessageLoader } from '@/components/message-loader';
 
 const SPEAKOUT = true;
 const SPEED = 30;
@@ -643,6 +644,7 @@ export function Chat() {
               
               {isSendingMessage ? (
                 <div className="flex items-center justify-center h-12 w-full">
+                  {/* <MessageLoader /> */}
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
                 </div>
               ) : (

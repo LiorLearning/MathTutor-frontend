@@ -27,6 +27,10 @@ export function AdminPageComponent() {
                   <Users className="mr-2 h-4 w-4" />
                   Manage Prompts
                 </Button>
+                <Button className="bg-primary hover:bg-primary-600 text-white" onClick={() => window.location.assign('/admin/artifacts')}>
+                  <Users className="mr-2 h-4 w-4" />
+                  Manage Artifacts
+                </Button>
               </div>
             </CardContent>
           </Card>
