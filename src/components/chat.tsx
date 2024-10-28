@@ -602,8 +602,7 @@ export function Chat() {
                   message.role === USER
                     ? 'bg-primary text-white'
                     : 'bg-gray-50 text-gray-800'
-                } ${message.role === ASSISTANT && index < messages.length - 1 ? 'opacity-50' : ''} 
-                ${message.role === ASSISTANT && index === messages.length - 1 ? 'opacity-100' : ''}`}
+                } ${message.role === ASSISTANT && index === messages.length - 1 ? 'opacity-100' : ''}`}
               >
                 {message.content === RETHINKING_MESSAGE && index === messages.length - 1 ? (
                   <div className="flex items-center justify-center bg-gray-50 rounded-lg px-32">
