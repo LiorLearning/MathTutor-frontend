@@ -433,18 +433,6 @@ export function Chat() {
       initializeChat();
     }
 
-    const cleanup = async () => {
-      try {
-        await axios.post(`${API_BASE_URL}/end_chat?user_id=${username}`, {}, {
-          headers: {
-            'Content-Type': 'application/json',
-          }
-        });
-      } catch (error) {
-        console.error('Error ending chat:', error);
-      }
-    };
-
     const saveChat = async () => {
       try {
         await axios.post(`${API_BASE_URL}/save_chat?user_id=${username}`, {}, {
@@ -457,34 +445,57 @@ export function Chat() {
       }
     };
 
-    const handleUnload = () => {
-      cleanup();
-    };
-
-    const handleLoad = () => {
-      initChatWebSocket(username);
-    };
-
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'hidden') {
         saveChat();
       } else if (document.visibilityState === 'visible') {
+        console.log("Visibility changed to visible - Reinitializing WebSocket");
         initChatWebSocket(username);
       }
     };
 
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    }
+
+  }, [username, chatId, initChatWebSocket]);
+
+  useEffect(() => {
+    const cleanup = async () => {
+      try {
+        await axios.post(`${API_BASE_URL}/end_chat?user_id=${username}`, {}, {
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        });
+      } catch (error) {
+        console.error('Error ending chat:', error);
+      }
+    };
+
+    const handleUnload = () => {
+      cleanup();
+    };
+
+    const handleLoad = async () => {
+      console.log("Handle load - WebSocket initialization");
+      await initChatWebSocket(username);
+    };
+
     window.addEventListener('beforeunload', handleUnload);
     window.addEventListener('load', handleLoad);
-    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    // Call handleLoad only when the component mounts
+    handleLoad();
 
     return () => {
       cleanup();
       window.removeEventListener('beforeunload', handleUnload);
       window.removeEventListener('load', handleLoad);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);      
     }
-
-  }, [username, chatId, initChatWebSocket]);
+  }, [username, initChatWebSocket])
 
   useEffect(() => {
     if (chatWebsocketRef.current === null) {
