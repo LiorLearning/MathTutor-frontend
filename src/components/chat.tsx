@@ -845,7 +845,7 @@ export function Chat() {
             toggleRightColumn={toggleRightColumn} />
           </motion.div>
 
-          <div className="fixed right-4 top-4 lg:w-64 lg:h-48 w-32 h-24">
+          <div className="fixed right-4 top-4 w-[15vw] h-[12vh] max-w-[256px] max-h-[192px]">
             <UserVideo 
               username={username} 
               style={{ 
