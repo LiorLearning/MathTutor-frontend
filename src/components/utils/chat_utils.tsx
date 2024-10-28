@@ -11,7 +11,7 @@ declare global {
 }
 
 export interface Message {
-    role: 'user' | 'assistant';
+    role: 'user' | 'assistant' | 'correction' | 'admin';
     content: string;
     audioUrl: string;
     timestamp: string;

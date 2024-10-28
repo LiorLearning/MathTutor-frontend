@@ -17,7 +17,7 @@ import {
 } from '@/components/utils/chat_utils';
 import UserVideo from '@/components/webrtc/user';
 import { UserArtifactComponent } from '@/components/artifact/user';
-import { MessageLoader } from '@/components/message-loader';
+// import { MessageLoader } from '@/components/message-loader';
 
 const SPEAKOUT = true;
 const SPEED = 30;
@@ -28,12 +28,13 @@ const CORRECTION = 'correction';
 const INTERRUPT = 'interrupt';
 const ASSISTANT = 'assistant';
 const USER = 'user';
+// const ADMIN = 'admin';
 const PAUSE = 'pause';
 const NOTEXT = 'notext';
 
 const RETHINKING_MESSAGE = "Rethinking..."
 
-const ERROR_TIMEOUT = 60000;
+// const ERROR_TIMEOUT = 60000;
 
 export function Chat() {
   const searchParams = useSearchParams();
@@ -87,7 +88,7 @@ export function Chat() {
       const nextPage = currentPage + 1;
       
       const historyResponse = await axios.get<GetChatHistoryResponse>(
-        `${API_BASE_URL}/chat_history?user_id=${username}&page=${nextPage}&page_size=${PAGE_SIZE}`,
+        `${API_BASE_URL}/chat_history?user_id=${username}`,
         { headers: { 'Content-Type': 'application/json' } }
       );
 
@@ -578,6 +579,7 @@ export function Chat() {
           </div>
         )}
         {Array.isArray(messages) && messages.map((message, index) => (
+          (message.role == USER || message.role == ASSISTANT) && (
           <div 
             key={message.message_id} 
             className="flex flex-col items-center justify-center h-full"
@@ -657,6 +659,7 @@ export function Chat() {
               </div>
             </div>
           </div>
+          )
         ))}
       </>
     );

@@ -20,6 +20,8 @@ import { AdminArtifactComponent } from '@/components/artifact/admin';
 
 const USER = 'user';
 const ASSISTANT = 'assistant';
+const CORRECTION = 'correction';
+const ADMIN = 'admin';
 
 function UserSidebar({ username }: { username: string }) {
   const [studentDetails, setStudentDetails] = useState<Student | null>(null);
@@ -77,6 +79,9 @@ export function InterceptorChat() {
   const chatWebsocketRef = useRef<WebSocket | null>(null);
   const [pausedMessage, setPausedMessage] = useState(false);
   
+  
+
+
 
   const [isVideoVisible, setIsVideoVisible] = useState(true); // State to manage visibility
   const toggleVideoFeed = () => {
@@ -97,7 +102,7 @@ export function InterceptorChat() {
         const data = JSON.parse(event.data);
         const message = data.content;
         if (data.role === 'correction') {
-          setMessages(prevMessages => prevMessages.slice(0, -2));
+          // setMessages(prevMessages => prevMessages.slice(0, -2));
         } else if (data.role !== USER && data.role !== ASSISTANT) {
           console.error("Error: Unrecognized role received in WebSocket message:", data.role);
         }
@@ -184,7 +189,7 @@ export function InterceptorChat() {
     if (inputText.trim() === "") return;
 
     const userMessage: Message = {
-      role: USER,
+      role: ADMIN,
       content: inputText,
       audioUrl: '',
       message_id: `temp-${Date.now()}`,
@@ -206,18 +211,27 @@ export function InterceptorChat() {
   const handleCorrectionMessage = useCallback(async () => {
     if (correctionText.trim() === "") return;
 
-    setPausedMessage(false);
 
-    const userMessage: Message = {
-      role: USER,
-      content: correctionText,
-      audioUrl: '',
-      message_id: `temp-${Date.now()}`,
-      timestamp: new Date().toISOString()
-    };
+    setMessages(prevMessages => {
+      let updatedMessages = prevMessages.slice(0, -1);
+      const lastMessage = updatedMessages[updatedMessages.length - 1];
 
-    setMessages(prevMessages => [...prevMessages, userMessage]);
-    setCorrectionText("");
+      setPausedMessage(false);
+
+      const userMessage: Message = {
+        role: CORRECTION,
+        content: lastMessage.content + " (" + correctionText + ")",
+        audioUrl: '',
+        message_id: `temp-${Date.now()}`,
+        timestamp: new Date().toISOString()
+      };
+
+      updatedMessages = [...updatedMessages, userMessage];
+
+      setCorrectionText("");
+
+      return updatedMessages;
+    });
 
     if (chatWebsocketRef.current) {
       chatWebsocketRef.current.send(JSON.stringify({
@@ -225,7 +239,7 @@ export function InterceptorChat() {
         'content': correctionText,
       }));
     }
-  }, [correctionText]);
+  }, [correctionText, messages]);
 
   // Pause message
   const handlePauseMessage = useCallback(async () => {
@@ -239,20 +253,24 @@ export function InterceptorChat() {
   }, [])
 
   const messageComponents = useMemo(() => (
-    Array.isArray(messages) && messages.map((message, index) => (
+    Array.isArray(messages) ? messages.map((message, index) => (
       <div 
         key={message.message_id} 
         className="flex flex-col items-center justify-center h-full"
         ref={index === messages.length - 1 && message.role === ASSISTANT ? lastBotMessageRef : null}
       >
-        <div className={`max-w-[90%] ${message.role === USER ? 'self-end' : 'self-start'}`}>
+        <div className={`max-w-[90%] ${message.role === ASSISTANT ? 'self-start' : 'self-end'}`}>
           <div
             className={`rounded-3xl p-4 ${
               message.role === USER
                 ? 'bg-primary text-white'
+                : message.role === CORRECTION
+                ? 'bg-yellow-200 text-gray-800'
+                : message.role === ADMIN
+                ? 'bg-green-200 text-gray-800'
                 : 'bg-gray-200 text-gray-800'
-            } ${message.role === ASSISTANT && index < messages.length - 1 ? 'opacity-50' : ''} 
-            ${message.role === ASSISTANT && index === messages.length - 1 ? 'opacity-100' : ''}`}
+            } ${(message.role === ADMIN || message.role == CORRECTION) && index < messages.length - 1 ? 'opacity-50' : ''} 
+            ${message.role !== USER && index === messages.length - 1 ? 'opacity-100' : ''}`}
           >
             <MarkdownComponent content={message.content} />
           </div>
@@ -261,7 +279,7 @@ export function InterceptorChat() {
           </div>
         </div>
       </div>
-    ))
+    )) : null
   ), [messages]);
 
   if (isLoading) {
@@ -313,7 +331,9 @@ export function InterceptorChat() {
           ) : (
             <Button 
               className="flex-grow h-12 bg-gray-500" 
-              onClick={handlePauseMessage}
+              onClick={() => {
+                handlePauseMessage();
+              }}
               disabled={messages.length > 0 && messages[messages.length - 1].role === USER}
             >
               Update last assistant message...
