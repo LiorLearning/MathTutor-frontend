@@ -132,7 +132,7 @@ export function Chat() {
   const getTTS = useCallback(async (message: string): Promise<string> => {
     let audioUrl = '';
     try {
-      const response = await axios.post(`${SPEECH_API_BASE_URL}/openai-tts-proxy`, { text: message }, {
+      const response = await axios.post(`${SPEECH_API_BASE_URL}/deepgram-tts-proxy`, { text: message }, {
         headers: { 'Content-Type': 'application/json' },
         responseType: 'blob',
       });
