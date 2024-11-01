@@ -433,22 +433,8 @@ export function Chat() {
       initializeChat();
     }
 
-    const saveChat = async () => {
-      try {
-        await axios.post(`${API_BASE_URL}/save_chat?user_id=${username}`, {}, {
-          headers: {
-            'Content-Type': 'application/json',
-          }
-        });
-      } catch (error) {
-        console.error('Error saving chat:', error);
-      }
-    };
-
     const handleVisibilityChange = () => {
-      if (document.visibilityState === 'hidden') {
-        saveChat();
-      } else if (document.visibilityState === 'visible') {
+      if (document.visibilityState === 'visible') {
         console.log("Visibility changed to visible - Reinitializing WebSocket");
         initChatWebSocket(username);
       }
