@@ -1,8 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef, createContext, useContext, ReactNode } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { AlertCircle, Loader2, MicIcon, StopCircle, PlayIcon, WifiIcon, WifiOffIcon } from 'lucide-react';
-
+import React, { useState, useEffect, useCallback, useRef, createContext, ReactNode } from 'react';
 
 interface AudioContextProps {
   isConnected: boolean;
@@ -28,57 +24,72 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children, clientId
   const scheduledAudioRef = useRef<Record<string, { source: AudioBufferSourceNode; gain: GainNode; startTime: number; }[]>>({});
   const nextStartTimeRef = useRef<Record<string, number>>({});
   const isFirstChunkRef = useRef<Record<string, boolean>>({});
+  const messageIdRef = useRef<string | null>(null);
   
   const bufferAheadTime = 0.2;
   const scheduleInterval = 50;
   const fadeInDuration = 0.015;
 
   const connectWebSocket = useCallback(() => {
-    const ws = new WebSocket(`${process.env.NEXT_PUBLIC_WS_BASE_URL}/cartesia/${clientId}/ws`);
+    if (wsRef.current) {
+      wsRef.current.close();
+    }
+
+    wsRef.current = new WebSocket(`${process.env.NEXT_PUBLIC_WS_BASE_URL}/cartesia/${clientId}/ws`);
     
-    ws.onopen = () => {
+    wsRef.current.onopen = () => {
+      console.log('WebSocket connection opened');
       setIsConnected(true);
       audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
     };
     
-    ws.onclose = () => {
+    wsRef.current.onclose = () => {
+      console.log('WebSocket connection closed');
       setIsConnected(false);
     };
     
-    ws.onerror = () => {
+    wsRef.current.onerror = (error) => {
+      console.error('WebSocket error:', error);
       setIsConnected(false);
     };
     
-    ws.onmessage = async (event) => {
+    wsRef.current.onmessage = async (event) => {
+      console.log('WebSocket message received:', event);
       if (event.data instanceof Blob) {
         const arrayBuffer = await event.data.arrayBuffer();
         const audioData = new Float32Array(arrayBuffer);
-        const metadata = ws.url.split('/').pop(); // Extract messageId from URL
-        if (metadata) {
-          scheduleAudioData(audioData, metadata);
-        }
+        console.log('Received audio data:', audioData);
+        scheduleAudioData(audioData);
       } else {
+        console.log('Received text data:', event.data);
         try {
-          const message = JSON.parse(event.data);
-          const messageId = message.messageId;
+          const data = JSON.parse(event.data);
+          console.log('Parsed JSON data:', data);
+          const type = data.type;
           
-          if (message.type === 'error') {
-            console.error(`Error for messageId ${messageId}: ${message.message}`);
-          } else if (message.type === 'stream_end') {
-            isFirstChunkRef.current[messageId] = true;
+          if (type === 'stream_start') {
+            console.log("type: ", type);
+            const messageId = data.messageId;
+            console.log('Stream start for messageId:', messageId);
+            messageIdRef.current = messageId;
+          } else if (type === 'stream_end') {
+            console.log("type: ", type);
+            if (messageIdRef.current) {
+              console.log('Stream end for messageId:', messageIdRef.current);
+              isFirstChunkRef.current[messageIdRef.current] = true;
+              messageIdRef.current = null;
+            }
           }
         } catch (e) {
           console.error('Error parsing message:', e);
         }
       }
     };
-    
-    wsRef.current = ws;
-    return ws;
   }, [clientId]);
   
-  const scheduleAudioData = useCallback((audioData: Float32Array, messageId: string) => {
+  const scheduleAudioData = useCallback((audioData: Float32Array) => {
     if (!audioContextRef.current) return;
+    if (!messageIdRef.current) return;
 
     const source = audioContextRef.current.createBufferSource();
     const gainNode = audioContextRef.current.createGain();
@@ -91,37 +102,39 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children, clientId
     gainNode.connect(audioContextRef.current.destination);
     
     let startTime: number;
-    if (isFirstChunkRef.current[messageId]) {
+    if (isFirstChunkRef.current[messageIdRef.current]) {
       startTime = audioContextRef.current.currentTime + 0.1;
       gainNode.gain.setValueAtTime(0, startTime);
       gainNode.gain.linearRampToValueAtTime(1, startTime + fadeInDuration);
-      isFirstChunkRef.current[messageId] = false;
+      isFirstChunkRef.current[messageIdRef.current] = false;
       // updateMessageState(messageId, { isPlaying: true });
     } else {
       startTime = Math.max(
-        nextStartTimeRef.current[messageId] || 0,
+        nextStartTimeRef.current[messageIdRef.current] || 0,
         audioContextRef.current.currentTime + bufferAheadTime
       );
     }
     
     source.start(startTime);
     // updateMessageState(messageId, { isPlaying: true });
-    console.log(`Audio playback started for messageId: ${messageId}`);
+    console.log(`Audio playback started for messageId: ${messageIdRef.current}`);
     
-    if (!scheduledAudioRef.current[messageId]) {
-      scheduledAudioRef.current[messageId] = [];
+    if (!scheduledAudioRef.current[messageIdRef.current]) {
+      scheduledAudioRef.current[messageIdRef.current] = [];
     }
-    scheduledAudioRef.current[messageId].push({ source, gain: gainNode, startTime });
+    scheduledAudioRef.current[messageIdRef.current].push({ source, gain: gainNode, startTime });
     
-    nextStartTimeRef.current[messageId] = startTime + audioBuffer.duration;
+    nextStartTimeRef.current[messageIdRef.current] = startTime + audioBuffer.duration;
 
     source.onended = () => {
-      const audioChunks = scheduledAudioRef.current[messageId];
-      const isLastChunk = audioChunks[audioChunks.length - 1].source === source;
-      
-      if (isLastChunk) {
-        // updateMessageState(messageId, { isPlaying: false });
-        console.log(`Audio playback ended for messageId: ${messageId}`);
+      if (messageIdRef.current) {
+        const audioChunks = scheduledAudioRef.current[messageIdRef.current];
+        const isLastChunk = audioChunks[audioChunks.length - 1].source === source;
+        
+        if (isLastChunk) {
+          // updateMessageState(messageId, { isPlaying: false });
+          console.log(`Audio playback ended for messageId: ${messageIdRef.current}`);
+        }
       }
     };
   }, []);
@@ -146,11 +159,13 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children, clientId
     const interval = setInterval(cleanupFinishedAudio, scheduleInterval);
     return () => clearInterval(interval);
   }, [cleanupFinishedAudio]);
-  
+
   useEffect(() => {
-    const ws = connectWebSocket();
+    connectWebSocket();
     return () => {
-      ws.close();
+      if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+        wsRef.current.close();
+      }
     };
   }, [connectWebSocket]);
   

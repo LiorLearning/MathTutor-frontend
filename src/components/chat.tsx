@@ -4,7 +4,6 @@ import React, { useState, useRef, useEffect, useCallback, useMemo, useContext } 
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Button } from "@/components/ui/button"
 import { Pause, Volume2, Square, Mic, PanelRightCloseIcon, PanelLeftCloseIcon, ChevronLeft, ChevronRight, Send } from "lucide-react"
-import { useSearchParams } from 'next/navigation'
 import axios from 'axios'
 import { motion, AnimatePresence } from 'framer-motion'
 import { 
@@ -17,7 +16,7 @@ import {
 } from '@/components/utils/chat_utils';
 import UserVideo from '@/components/webrtc/user';
 import { UserArtifactComponent } from '@/components/artifact/user';
-import { AudioProvider, AudioContext } from '@/components/utils/audio_stream';
+import { AudioContext } from '@/components/utils/audio_stream';
 
 const SPEAKOUT = true;
 const SPEED = 30;
@@ -171,6 +170,7 @@ export function Chat({ username }: { username: string }) {
     wsRef.current.send(JSON.stringify({
       type: 'tts_request',
       text: messageText.trim(),
+      id: messageId,
     }));
   }
 
@@ -666,208 +666,206 @@ export function Chat({ username }: { username: string }) {
     </div>;
   }
   return (
-    <AudioProvider clientId={username}>
-      <div className="flex h-screen overflow-hidden bg-background">
-        <AnimatePresence>
-          {showPopup && (
+    <div className="flex h-screen overflow-hidden bg-background">
+      <AnimatePresence>
+        {showPopup && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            className="absolute inset-0 flex items-center justify-center bg-black/50 z-50"
+          >
             <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              className="absolute inset-0 flex items-center justify-center bg-black/50 z-50"
+              className="bg-card p-8 rounded-lg shadow-lg w-full max-w-md"
+              initial={{ y: -50 }}
+              animate={{ y: 0 }}
             >
-              <motion.div
-                className="bg-card p-8 rounded-lg shadow-lg w-full max-w-md"
-                initial={{ y: -50 }}
-                animate={{ y: 0 }}
-              >
-                <h2 className="text-2xl font-bold mb-4">Welcome to MathTutor</h2>
-                <Button onClick={handleEnterClass} className="w-full">
-                  Enter Class
-                </Button>
-              </motion.div>
+              <h2 className="text-2xl font-bold mb-4">Welcome to MathTutor</h2>
+              <Button onClick={handleEnterClass} className="w-full">
+                Enter Class
+              </Button>
             </motion.div>
-          )}
-        </AnimatePresence>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-        {!showPopup && (
-          <React.Fragment>
-            <motion.div
-              className="flex-1 p-6 transition-all duration-200 ease-in-out"
-              animate={{
-                marginRight: isRightColumnCollapsed ? "15%" : "50%",
-                marginLeft: isRightColumnCollapsed ? "15%": "0%",
-              }}
-            >
-              <div className="h-full flex flex-col p-4 border-r border-border">
-                <header className="p-4 border-b border-border">
-                  <div className="flex justify-between items-center">
-                    <h1 className="text-xl font-bold">MathTutor</h1>
-                    <div className="flex items-center gap-2">
-                      <h3 className="text-lg text-muted-foreground">{username}</h3>
-                    </div>
+      {!showPopup && (
+        <React.Fragment>
+          <motion.div
+            className="flex-1 p-6 transition-all duration-200 ease-in-out"
+            animate={{
+              marginRight: isRightColumnCollapsed ? "15%" : "50%",
+              marginLeft: isRightColumnCollapsed ? "15%": "0%",
+            }}
+          >
+            <div className="h-full flex flex-col p-4 border-r border-border">
+              <header className="p-4 border-b border-border">
+                <div className="flex justify-between items-center">
+                  <h1 className="text-xl font-bold">MathTutor</h1>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-lg text-muted-foreground">{username}</h3>
                   </div>
-                </header>
+                </div>
+              </header>
 
-                <ScrollArea ref={scrollAreaRef} className="flex-grow p-4">
-                  <div className="space-y-6">
-                    {messageComponents}
-                  </div>
-                </ScrollArea>
-                
-                {isSendingMessage ? (
-                  <div className="flex items-center justify-center h-12 w-full">
-                    {/* <MessageLoader /> */}
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                  </div>
-                ) : (
-                  <div className="p-4 border-t border-border flex items-center justify-center">
-                    <div className="relative flex flex-col items-center">
-                      <AnimatePresence>
-                        {isRecording ? (
-                          <motion.div
-                            key="recording"
-                            className="absolute -top-16"
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: 10 }}
-                          >
-                            <div className="flex space-x-1">
-                              {[...Array(5)].map((_, i) => (
-                                <motion.div
-                                  key={i}
-                                  className="w-1 bg-primary rounded-full"
-                                  animate={{
-                                    height: [8, 32, 16, 24, 8],
-                                  }}
-                                  transition={{
-                                    duration: 1.5,
-                                    repeat: Infinity,
-                                    repeatType: "reverse",
-                                    ease: "easeInOut",
-                                    delay: i * 0.2,
-                                  }}
-                                />
-                              ))}
-                            </div>
-                          </motion.div>
-                        ) : (
-                          <motion.div
-                            key="not-recording"
-                            className="absolute -top-12"
-                            initial={{ opacity: 0, scale: 0.8 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.8 }}
-                          >
-                            <motion.div
-                              className="w-4 h-4 bg-muted-foreground rounded-full"
-                              animate={{
-                                scale: [1, 1.2, 1],
-                              }}
-                              transition={{
-                                duration: 2,
-                                repeat: Infinity,
-                                ease: "easeInOut",
-                              }}
-                            />
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                      
-                      <div className="flex flex-col items-center gap-4 max-w-xs mx-auto">
-                        <div className="flex justify-center w-1/2">
-                          <Button
-                            onClick={isRecording ? stopRecording : startRecording}
-                            className={`w-full h-12 rounded-full flex items-center justify-center transition-colors ${
-                              isRecording ? "bg-destructive hover:bg-destructive/90" : "bg-primary hover:bg-primary/90"
-                            }`}
-                            aria-label={isRecording ? "Stop recording" : "Start recording"}
-                          >
-                            <AnimatePresence mode="wait">
+              <ScrollArea ref={scrollAreaRef} className="flex-grow p-4">
+                <div className="space-y-6">
+                  {messageComponents}
+                </div>
+              </ScrollArea>
+              
+              {isSendingMessage ? (
+                <div className="flex items-center justify-center h-12 w-full">
+                  {/* <MessageLoader /> */}
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                </div>
+              ) : (
+                <div className="p-4 border-t border-border flex items-center justify-center">
+                  <div className="relative flex flex-col items-center">
+                    <AnimatePresence>
+                      {isRecording ? (
+                        <motion.div
+                          key="recording"
+                          className="absolute -top-16"
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: 10 }}
+                        >
+                          <div className="flex space-x-1">
+                            {[...Array(5)].map((_, i) => (
                               <motion.div
-                                key={isRecording ? "stop" : "start"}
-                                initial={{ opacity: 0, scale: 0.5 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                exit={{ opacity: 0, scale: 0.5 }}
-                                transition={{ duration: 0.2 }}
-                              >
-                                {isRecording ? (
-                                  <Square className="w-8 h-8 text-destructive-foreground" />
-                                ) : (
-                                  <Mic className="w-8 h-8 text-primary-foreground" />
-                                )}
-                              </motion.div>
-                            </AnimatePresence>
-                          </Button>
-                        </div>
-                        
-                        <div className="relative w-1/2">
-                          <input
-                            type="text"
-                            value={textInput}
-                            onChange={(e) => setTextInput(e.target.value)}
-                            placeholder="Type"
-                            className="w-full text-black placeholder-gray-400 rounded-2xl px-4 py-3 pr-12 text-xs focus:outline-none focus:ring-2 focus:ring-gray-600 border border-gray-600"
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter') {
-                                handleTextSend();
-                              }
+                                key={i}
+                                className="w-1 bg-primary rounded-full"
+                                animate={{
+                                  height: [8, 32, 16, 24, 8],
+                                }}
+                                transition={{
+                                  duration: 1.5,
+                                  repeat: Infinity,
+                                  repeatType: "reverse",
+                                  ease: "easeInOut",
+                                  delay: i * 0.2,
+                                }}
+                              />
+                            ))}
+                          </div>
+                        </motion.div>
+                      ) : (
+                        <motion.div
+                          key="not-recording"
+                          className="absolute -top-12"
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.8 }}
+                        >
+                          <motion.div
+                            className="w-4 h-4 bg-muted-foreground rounded-full"
+                            animate={{
+                              scale: [1, 1.2, 1],
+                            }}
+                            transition={{
+                              duration: 2,
+                              repeat: Infinity,
+                              ease: "easeInOut",
                             }}
                           />
-                          <button
-                            onClick={handleTextSend}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-black transition-colors"
-                            aria-label="Send message"
-                          >
-                            <Send size={20} />
-                          </button>
-                        </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                    
+                    <div className="flex flex-col items-center gap-4 max-w-xs mx-auto">
+                      <div className="flex justify-center w-1/2">
+                        <Button
+                          onClick={isRecording ? stopRecording : startRecording}
+                          className={`w-full h-12 rounded-full flex items-center justify-center transition-colors ${
+                            isRecording ? "bg-destructive hover:bg-destructive/90" : "bg-primary hover:bg-primary/90"
+                          }`}
+                          aria-label={isRecording ? "Stop recording" : "Start recording"}
+                        >
+                          <AnimatePresence mode="wait">
+                            <motion.div
+                              key={isRecording ? "stop" : "start"}
+                              initial={{ opacity: 0, scale: 0.5 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              exit={{ opacity: 0, scale: 0.5 }}
+                              transition={{ duration: 0.2 }}
+                            >
+                              {isRecording ? (
+                                <Square className="w-8 h-8 text-destructive-foreground" />
+                              ) : (
+                                <Mic className="w-8 h-8 text-primary-foreground" />
+                              )}
+                            </motion.div>
+                          </AnimatePresence>
+                        </Button>
                       </div>
-                      {/* <AudioStreamer /> */}
+                      
+                      <div className="relative w-1/2">
+                        <input
+                          type="text"
+                          value={textInput}
+                          onChange={(e) => setTextInput(e.target.value)}
+                          placeholder="Type"
+                          className="w-full text-black placeholder-gray-400 rounded-2xl px-4 py-3 pr-12 text-xs focus:outline-none focus:ring-2 focus:ring-gray-600 border border-gray-600"
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              handleTextSend();
+                            }
+                          }}
+                        />
+                        <button
+                          onClick={handleTextSend}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-black transition-colors"
+                          aria-label="Send message"
+                        >
+                          <Send size={20} />
+                        </button>
+                      </div>
                     </div>
+                    {/* <AudioStreamer /> */}
                   </div>
-                )}
-              </div>
-            </motion.div>
-
-            <motion.div
-              className="fixed right-0 top-0 h-full w-[50%] bg-secondary p-6 shadow-lg transition-all duration-200 ease-in-out"
-              animate={{
-                x: isRightColumnCollapsed ? "100%" : "0%",
-              }}
-            >
-              <UserArtifactComponent 
-              username={username} 
-              isRightColumnCollapsed={isRightColumnCollapsedRef}
-              toggleRightColumn={toggleRightColumn} />
-            </motion.div>
-
-            <div className="fixed right-4 top-4 w-[15vw] h-[12vh] max-w-[256px] max-h-[192px]">
-              <UserVideo 
-                username={username} 
-                style={{ 
-                  visibility: isVideoVisible ? 'visible' : 'hidden', // Hide the video feed
-                  position: isVideoVisible ? 'static' : 'absolute', // Keep it in the flow or move it off-screen
-                }}
-              />
-              <button 
-                onClick={toggleVideoFeed} 
-                className="absolute top-0 right-0 bg-gray-800 text-white p-2 rounded"
-              >
-                {isVideoVisible ? <PanelRightCloseIcon className="h-4 w-4" /> : <PanelLeftCloseIcon className="h-4 w-4" />}
-              </button>
+                </div>
+              )}
             </div>
+          </motion.div>
 
-            <Button
-              className="fixed bottom-4 right-4 z-10"
-              onClick={toggleRightColumn}
-              aria-label={isRightColumnCollapsed ? "Expand right column" : "Collapse right column"}
+          <motion.div
+            className="fixed right-0 top-0 h-full w-[50%] bg-secondary p-6 shadow-lg transition-all duration-200 ease-in-out"
+            animate={{
+              x: isRightColumnCollapsed ? "100%" : "0%",
+            }}
+          >
+            <UserArtifactComponent 
+            username={username} 
+            isRightColumnCollapsed={isRightColumnCollapsedRef}
+            toggleRightColumn={toggleRightColumn} />
+          </motion.div>
+
+          <div className="fixed right-4 top-4 w-[15vw] h-[12vh] max-w-[256px] max-h-[192px]">
+            <UserVideo 
+              username={username} 
+              style={{ 
+                visibility: isVideoVisible ? 'visible' : 'hidden', // Hide the video feed
+                position: isVideoVisible ? 'static' : 'absolute', // Keep it in the flow or move it off-screen
+              }}
+            />
+            <button 
+              onClick={toggleVideoFeed} 
+              className="absolute top-0 right-0 bg-gray-800 text-white p-2 rounded"
             >
-              {isRightColumnCollapsed ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-            </Button>
-          </React.Fragment>
-        )}
-      </div>
-    </AudioProvider>
+              {isVideoVisible ? <PanelRightCloseIcon className="h-4 w-4" /> : <PanelLeftCloseIcon className="h-4 w-4" />}
+            </button>
+          </div>
+
+          <Button
+            className="fixed bottom-4 right-4 z-10"
+            onClick={toggleRightColumn}
+            aria-label={isRightColumnCollapsed ? "Expand right column" : "Collapse right column"}
+          >
+            {isRightColumnCollapsed ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+          </Button>
+        </React.Fragment>
+      )}
+    </div>
   );
 }
