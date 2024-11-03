@@ -1,11 +1,31 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, createContext, useContext, ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AlertCircle, Loader2, MicIcon, StopCircle } from 'lucide-react';
 
-export const AudioStreamer = () => {
-  const [text, setText] = useState('');
+interface AudioContextProps {
+  isConnected: boolean;
+  isPlaying: boolean;
+  error: string;
+  isLoading: boolean;
+  wsRef: React.MutableRefObject<WebSocket | null>;
+  audioContextRef: React.MutableRefObject<AudioContext | null>;
+  scheduledAudioRef: React.MutableRefObject<{ source: AudioBufferSourceNode; gain: GainNode; startTime: number; }[]>;
+  nextStartTimeRef: React.MutableRefObject<number>;
+  isFirstChunkRef: React.MutableRefObject<boolean>;
+  setIsPlaying: React.Dispatch<React.SetStateAction<boolean>>;
+  setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
+  setError: React.Dispatch<React.SetStateAction<string>>;
+}
+
+const AudioContext = createContext<AudioContextProps | null>(null);
+
+interface AudioProviderProps {
+  children: ReactNode;
+}
+
+export const AudioProvider: React.FC<AudioProviderProps> = ({ children }) => {
   const [isConnected, setIsConnected] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [error, setError] = useState('');
@@ -38,13 +58,11 @@ export const AudioStreamer = () => {
     
     ws.onclose = () => {
       setIsConnected(false);
-      setIsPlaying(false);
     };
     
     ws.onerror = (event) => {
       setError('WebSocket connection error');
       setIsConnected(false);
-      setIsPlaying(false);
     };
     
     ws.onmessage = async (event) => {
@@ -57,9 +75,7 @@ export const AudioStreamer = () => {
           const message = JSON.parse(event.data);
           if (message.type === 'error') {
             setError(message.message);
-            setIsPlaying(false);
           } else if (message.type === 'stream_end') {
-            setIsPlaying(false);
             setIsLoading(false);
             isFirstChunkRef.current = true;
           }
@@ -107,10 +123,18 @@ export const AudioStreamer = () => {
     
     // Start the source
     source.start(startTime);
+    setIsPlaying(true);
     scheduledAudioRef.current.push({ source, gain: gainNode, startTime });
     
     // Update next start time based on buffer duration
     nextStartTimeRef.current = startTime + audioBuffer.duration;
+
+    // Stop the audio player a few ms after the audio has finished
+    source.onended = () => {
+      setTimeout(() => {
+        setIsPlaying(false);
+      }, 100); // 100ms after the audio has finished
+    };
   }, []);
   
   // Clean up finished audio nodes
@@ -142,6 +166,27 @@ export const AudioStreamer = () => {
     };
   }, [connectWebSocket]);
   
+  return (
+    <AudioContext.Provider value={{ isConnected, isPlaying, error, isLoading, wsRef, audioContextRef, scheduledAudioRef, nextStartTimeRef, isFirstChunkRef, setIsPlaying, setIsLoading, setError }}>
+      {children}
+    </AudioContext.Provider>
+  );
+};
+
+interface AudioStreamProps {
+  text: string;
+  setText: React.Dispatch<React.SetStateAction<string>>;
+}
+
+export const AudioStream: React.FC<AudioStreamProps> = ({ text, setText }) => {
+  const context = useContext(AudioContext);
+
+  if (!context) {
+    throw new Error('AudioStream must be used within an AudioProvider');
+  }
+
+  const { isConnected, isPlaying, error, isLoading, wsRef, audioContextRef, scheduledAudioRef, nextStartTimeRef, isFirstChunkRef, setIsPlaying, setIsLoading, setError } = context;
+
   // Handle TTS request
   const handleTTSRequest = useCallback(() => {
     if (!text.trim()) {
@@ -156,7 +201,6 @@ export const AudioStreamer = () => {
     
     setError('');
     setIsLoading(true);
-    setIsPlaying(true);
     isFirstChunkRef.current = true;
     
     // Reset audio scheduling state
@@ -168,7 +212,7 @@ export const AudioStreamer = () => {
       type: 'tts_request',
       text: text.trim()
     }));
-  }, [text]);
+  }, [text, wsRef, audioContextRef, nextStartTimeRef, isFirstChunkRef, setError, setIsLoading]);
   
   // Handle stop
   const handleStop = useCallback(() => {
@@ -194,7 +238,7 @@ export const AudioStreamer = () => {
     }
     setIsPlaying(false);
     setIsLoading(false);
-  }, []);
+  }, [audioContextRef, scheduledAudioRef, nextStartTimeRef, isFirstChunkRef, setIsPlaying, setIsLoading]);
   
   return (
     <Card className="w-full max-w-md mx-auto">
@@ -249,4 +293,4 @@ export const AudioStreamer = () => {
   );
 };
 
-export default AudioStreamer;
+export default AudioStream;

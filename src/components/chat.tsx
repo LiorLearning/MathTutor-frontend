@@ -17,9 +17,7 @@ import {
 } from '@/components/utils/chat_utils';
 import UserVideo from '@/components/webrtc/user';
 import { UserArtifactComponent } from '@/components/artifact/user';
-// import { TextToSpeech } from './utils/stream';
-import { AudioStreamer } from './utils/audio_stream';
-// import { MessageLoader } from '@/components/message-loader';
+// import { AudioStreamer } from '@/components/utils/audio_stream';
 
 const SPEAKOUT = true;
 const SPEED = 30;
@@ -30,13 +28,10 @@ const CORRECTION = 'correction';
 const INTERRUPT = 'interrupt';
 const ASSISTANT = 'assistant';
 const USER = 'user';
-// const ADMIN = 'admin';
 const PAUSE = 'pause';
 const NOTEXT = 'notext';
 
 const RETHINKING_MESSAGE = "Rethinking..."
-
-// const ERROR_TIMEOUT = 60000;
 
 export function Chat() {
   const searchParams = useSearchParams();
@@ -47,7 +42,6 @@ export function Chat() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [chatId, setChatId] = useState("");
   const [isLoading, setIsLoading] = useState(true);
-  // const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSendingMessage, setIsSendingMessage] = useState(false);
   const [sendMessageTimeout, setSendMessageTimeout] = useState<NodeJS.Timeout | null>(null);
   const [textInput, setTextInput] = useState("");
@@ -60,7 +54,6 @@ export function Chat() {
 
   const isLastMessagePauseRef = useRef<boolean>(false);
 
-  
   // Text to Speech
   const ttsAudioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -73,7 +66,6 @@ export function Chat() {
 
   const [isRightColumnCollapsed, setIsRightColumnCollapsed] = React.useState(true);
   const isRightColumnCollapsedRef = useRef<boolean>(isRightColumnCollapsed);
-
 
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -113,7 +105,6 @@ export function Chat() {
       setIsLoadingMore(false);
     }
   };
-
 
   const toggleRightColumn = () => {
     setIsRightColumnCollapsed(prev => {
@@ -209,7 +200,6 @@ export function Chat() {
 
       chatWebsocketRef.current.onmessage = async (event) => {
         console.log("WebSocket message received:", event.data); // Log the received event data
-        // setErrorMessage(null);
 
         const data = JSON.parse(event.data);
         const message = data.content;
@@ -334,7 +324,6 @@ export function Chat() {
       }
     }
   }, [getTTS, setMessageAudioAndPlay]);
-
 
   const startRecording = async () => {
     try {
@@ -562,11 +551,6 @@ export function Chat() {
     resetIsPlaying();
 
     setIsSendingMessage(true);
-    // setErrorMessage(null);
-    // const timeout = setTimeout(() => {
-    //   setErrorMessage("Try reloading the page...");
-    // }, ERROR_TIMEOUT);
-    // setSendMessageTimeout(timeout);
   }, []);
 
   const messageComponents = useMemo(() => {
@@ -637,7 +621,11 @@ export function Chat() {
                       </div>
                     </motion.div>
                   </div>
-                ) : <MarkdownComponent content={message.content} /> }
+                ) : (
+                  <>
+                    <MarkdownComponent content={message.content} />
+                  </>
+                ) }
                 
                 {message.role === ASSISTANT && (
                   <div className="mt-2 flex justify-end">
@@ -825,8 +813,7 @@ export function Chat() {
                         </button>
                       </div>
                     </div>
-                    <AudioStreamer />
-                    {/* <TextToSpeech /> */}
+                    {/* <AudioStreamer /> */}
                   </div>
                 </div>
               )}
