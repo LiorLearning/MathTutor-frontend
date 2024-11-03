@@ -512,12 +512,6 @@ export function UserChat({ messages, setMessages, username }: UserChatProps) {
     return () => scrollElement.removeEventListener('scroll', handleScroll);
   }, [isLoadingMore, hasMore]);
 
-  const resetIsPlaying = () => {
-    setMessages(prevMessages => 
-      prevMessages.map(msg => ({ ...msg, isPlaying: false }))
-    );
-  };
-
   const handleSendMessage = useCallback(async (message: Blob | string) => {
     if (chatWebsocketRef.current?.readyState == WebSocket.OPEN) {
       chatWebsocketRef.current.send(message);
