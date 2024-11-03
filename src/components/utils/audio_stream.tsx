@@ -7,6 +7,7 @@ interface AudioContextProps {
   scheduledAudioRef: React.MutableRefObject<Record<string, { source: AudioBufferSourceNode; gain: GainNode; startTime: number; }[]>>;
   nextStartTimeRef: React.MutableRefObject<Record<string, number>>;
   isFirstChunkRef: React.MutableRefObject<Record<string, boolean>>;
+  stopAudio: (messageId?: string) => void;  // Add this line
 }
 
 export const AudioContext = createContext<AudioContextProps | null>(null);
@@ -14,9 +15,10 @@ export const AudioContext = createContext<AudioContextProps | null>(null);
 interface AudioProviderProps {
   children: ReactNode;
   clientId: string;
+  onPlaybackEnd?: (messageId: string) => void;
 }
 
-export const AudioProvider: React.FC<AudioProviderProps> = ({ children, clientId }) => {
+export const AudioProvider: React.FC<AudioProviderProps> = ({ children, clientId, onPlaybackEnd }) => {
   const [isConnected, setIsConnected] = useState(false);
   
   const wsRef = useRef<WebSocket | null>(null);
@@ -28,13 +30,64 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children, clientId
   const audioBufferQueueRef = useRef<Record<string, Float32Array[]>>({});
   
   // Configuration constants
-  const BUFFER_SIZE_THRESHOLD = 3; // Number of chunks to buffer before starting playback
-  const BUFFER_AHEAD_TIME = 0.3; // Time to buffer ahead in seconds
-  const SCHEDULE_INTERVAL = 50; // Milliseconds between cleanup checks
-  const FADE_IN_DURATION = 0.05; // Duration of fade-in effect
-  const FADE_OUT_DURATION = -0.1; // Duration of fade-out effect
-  const MIN_BUFFER_DURATION = 0.5; // Minimum buffer duration in seconds
-  
+  const BUFFER_SIZE_THRESHOLD = 3;
+  const BUFFER_AHEAD_TIME = 0.3;
+  const SCHEDULE_INTERVAL = 50;
+  const FADE_IN_DURATION = 0.05;
+  const FADE_OUT_DURATION = -0.1;
+  const MIN_BUFFER_DURATION = 0.5;
+
+  // Add stopAudio function
+  const stopAudio = useCallback((messageId?: string) => {
+    if (!audioContextRef.current) return;
+
+    const currentTime = audioContextRef.current.currentTime;
+    const messageIds = messageId ? [messageId] : Object.keys(scheduledAudioRef.current);
+
+    messageIds.forEach(id => {
+      // Stop all scheduled audio sources
+      if (scheduledAudioRef.current[id]) {
+        scheduledAudioRef.current[id].forEach(({ source, gain }) => {
+          try {
+            // Apply quick fade out to avoid clicks
+            gain.gain.cancelScheduledValues(currentTime);
+            gain.gain.setValueAtTime(gain.gain.value, currentTime);
+            gain.gain.linearRampToValueAtTime(0, currentTime + 0.05);
+
+            // Schedule the source to stop shortly after the fade
+            setTimeout(() => {
+              try {
+                source.stop();
+                source.disconnect();
+                gain.disconnect();
+              } catch (e) {
+                // Ignore errors if already stopped/disconnected
+              }
+            }, 60);
+          } catch (e) {
+            // Ignore errors if already stopped
+          }
+        });
+
+        // Clear all references
+        delete scheduledAudioRef.current[id];
+        delete nextStartTimeRef.current[id];
+        delete isFirstChunkRef.current[id];
+        delete audioBufferQueueRef.current[id];
+
+        // Call onPlaybackEnd if provided
+        if (onPlaybackEnd) {
+          onPlaybackEnd(id);
+        }
+      }
+    });
+
+    // If no specific messageId was provided, reset the current message
+    if (!messageId) {
+      messageIdRef.current = null;
+    }
+  }, []);
+
   const processAudioQueue = useCallback((messageId: string, is_end: boolean = false) => {
     if (!audioContextRef.current || !audioBufferQueueRef.current[messageId]) return;
     
@@ -86,15 +139,13 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children, clientId
         
         nextStartTimeRef.current[messageId] = startTime + audioBuffer.duration;
 
-        // Handle the last chunk of audio
-        source.onended = () => {
-          const audioChunks = scheduledAudioRef.current[messageId];
-          if (audioChunks && audioChunks[audioChunks.length - 1].source === source) {
-            console.log(`Audio chunk ended for messageId: ${messageId}`);
-          }
-        };
+        if (is_end && onPlaybackEnd) {
+          console.log("Setting up is Playing to false")
+          onPlaybackEnd(messageId);
+        }
       }
     }
+
   }, []);
 
   const connectWebSocket = useCallback(() => {
@@ -210,11 +261,13 @@ const cleanupFinishedAudio = useCallback(() => {
   useEffect(() => {
     connectWebSocket();
     return () => {
+      // Stop all audio when component unmounts
+      stopAudio();
       if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
         wsRef.current.close();
       }
     };
-  }, [connectWebSocket]);
+  }, [connectWebSocket, stopAudio]);
   
   return (
     <AudioContext.Provider value={{
@@ -223,7 +276,8 @@ const cleanupFinishedAudio = useCallback(() => {
       audioContextRef,
       scheduledAudioRef,
       nextStartTimeRef,
-      isFirstChunkRef
+      isFirstChunkRef,
+      stopAudio  // Add this line
     }}>
       {children}
     </AudioContext.Provider>

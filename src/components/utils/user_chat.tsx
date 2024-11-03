@@ -30,24 +30,21 @@ const NOTEXT = 'notext';
 
 const RETHINKING_MESSAGE = "Rethinking..."
 
-export function UserChat({ username }: { username: string }) {
+interface UserChatProps {
+  messages: Message[];
+  setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
+  username: string;
+}
+
+export function UserChat({ messages, setMessages, username }: UserChatProps) {
   const audioContext = useContext(AudioContext);
   if (!audioContext) {
     throw new Error('MessageCard must be used within an AudioProvider');
   }
 
-  const { 
-    isConnected,
-    wsRef,
-    audioContextRef,
-    scheduledAudioRef,
-    nextStartTimeRef,
-    isFirstChunkRef,
-  } = audioContext;
-
   const [showPopup, setShowPopup] = useState(false);
   
-  const [messages, setMessages] = useState<Message[]>([]);
+  
   const [chatId, setChatId] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isSendingMessage, setIsSendingMessage] = useState(false);
@@ -61,9 +58,6 @@ export function UserChat({ username }: { username: string }) {
   const messageStreamIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const isLastMessagePauseRef = useRef<boolean>(false);
-
-  // Text to Speech
-  const ttsAudioRef = useRef<HTMLAudioElement | null>(null);
 
   // Speech to Text
   const [isRecording, setIsRecording] = useState(false);
@@ -129,24 +123,10 @@ export function UserChat({ username }: { username: string }) {
   const handleEnterClass = () => {
     setShowPopup(false)
   }
-
+  
   const handleStopAudio = (message: Message) => {
-    const messageId = message.message_id
-    if (audioContextRef.current && scheduledAudioRef.current[messageId]) {
-      scheduledAudioRef.current[messageId].forEach(({ source, gain }) => {
-        try {
-          source.stop();
-          source.disconnect();
-          gain.disconnect();
-        } catch (e) {
-          // Ignore errors from already stopped sources
-        }
-      });
-      scheduledAudioRef.current[messageId] = [];
-      
-      isFirstChunkRef.current[messageId] = true;
-      nextStartTimeRef.current[messageId] = audioContextRef.current.currentTime;
-    }
+    const messageId = message.message_id;
+    audioContext.stopAudio(messageId);
   };
 
   const handlePlayAudio = (message: Message) => {
@@ -157,15 +137,15 @@ export function UserChat({ username }: { username: string }) {
       return;
     }
     
-    if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
+    if (!audioContext.wsRef.current || audioContext.wsRef.current.readyState !== WebSocket.OPEN) {
       return;
     }
 
-    if (audioContextRef.current) {
-      nextStartTimeRef.current[messageId] = audioContextRef.current.currentTime;
+    if (audioContext.audioContextRef.current) {
+      audioContext.nextStartTimeRef.current[messageId] = audioContext.audioContextRef.current.currentTime;
     }
 
-    wsRef.current.send(JSON.stringify({
+    audioContext.wsRef.current.send(JSON.stringify({
       type: 'tts_request',
       text: messageText.trim(),
       id: messageId,
@@ -176,6 +156,14 @@ export function UserChat({ username }: { username: string }) {
     if (message.isImage) {
       return
     }
+
+    const playingMessageIds = Object.keys(audioContext.scheduledAudioRef.current);
+
+    playingMessageIds.forEach(id => {
+      if (id !== message.message_id) {
+        audioContext.stopAudio(id);
+      }
+    });
 
     if (message.audioUrl) {
       console.log("Not implemented error")
@@ -255,7 +243,7 @@ export function UserChat({ username }: { username: string }) {
 
           case INTERRUPT:
             console.log("Received INTERRUPT signal, pausing audio.");
-            ttsAudioRef.current?.pause();
+            audioContext.stopAudio()
             return;
 
           case CORRECTION:
@@ -338,9 +326,7 @@ export function UserChat({ username }: { username: string }) {
 
   const startRecording = async () => {
     try {
-      if (ttsAudioRef.current && !ttsAudioRef.current.paused) {
-        ttsAudioRef.current.pause();
-      }
+      audioContext.stopAudio();
 
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       mediaRecorderRef.current = new MediaRecorder(stream);
@@ -492,27 +478,6 @@ export function UserChat({ username }: { username: string }) {
   }, [chatWebsocketRef, stopRecording]);
 
   useEffect(() => {
-    const audio = new Audio();
-    ttsAudioRef.current = audio;
-    audio.addEventListener('ended', () => {
-      setMessages(prevMessages => 
-        prevMessages.map(msg => 
-          msg.isPlaying ? { ...msg, isPlaying: false } : msg
-        )
-      );
-    });
-    return () => {
-      audio.removeEventListener('ended', () => {
-        setMessages(prevMessages => 
-          prevMessages.map(msg => 
-            msg.isPlaying ? { ...msg, isPlaying: false } : msg
-          )
-        );
-      });
-    };
-  }, []);
-
-  useEffect(() => {
     const scrollElement = scrollAreaRef.current?.querySelector('[data-radix-scroll-area-viewport]');
     if (!scrollElement) return;
 
@@ -558,8 +523,7 @@ export function UserChat({ username }: { username: string }) {
       chatWebsocketRef.current.send(message);
     }
 
-    ttsAudioRef.current?.pause();
-    resetIsPlaying();
+    audioContext.stopAudio();
 
     setIsSendingMessage(true);
   }, []);
@@ -706,7 +670,7 @@ export function UserChat({ username }: { username: string }) {
                   <h1 className="text-xl font-bold">MathTutor</h1>
                   <div className="flex items-center gap-2">
                     <h3 className="text-lg text-muted-foreground">{username}</h3>
-                    {isConnected && (
+                    {audioContext.isConnected && (
                       <div className="w-3 h-3 bg-green-500 rounded-full"></div>
                     )}
                   </div>
