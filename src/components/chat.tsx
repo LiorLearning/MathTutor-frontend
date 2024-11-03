@@ -17,6 +17,8 @@ import {
 } from '@/components/utils/chat_utils';
 import UserVideo from '@/components/webrtc/user';
 import { UserArtifactComponent } from '@/components/artifact/user';
+// import { TextToSpeech } from './utils/stream';
+import { AudioStreamer } from './utils/audio_stream';
 // import { MessageLoader } from '@/components/message-loader';
 
 const SPEAKOUT = true;
@@ -823,6 +825,8 @@ export function Chat() {
                         </button>
                       </div>
                     </div>
+                    <AudioStreamer />
+                    {/* <TextToSpeech /> */}
                   </div>
                 </div>
               )}
