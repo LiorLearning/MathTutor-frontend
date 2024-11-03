@@ -32,22 +32,24 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children, clientId
   const BUFFER_AHEAD_TIME = 0.3; // Time to buffer ahead in seconds
   const SCHEDULE_INTERVAL = 50; // Milliseconds between cleanup checks
   const FADE_IN_DURATION = 0.05; // Duration of fade-in effect
-  const FADE_OUT_DURATION = -0.05; // Duration of fade-out effect
+  const FADE_OUT_DURATION = -0.1; // Duration of fade-out effect
   const MIN_BUFFER_DURATION = 0.5; // Minimum buffer duration in seconds
   
-  const processAudioQueue = useCallback((messageId: string) => {
+  const processAudioQueue = useCallback((messageId: string, is_end: boolean = false) => {
     if (!audioContextRef.current || !audioBufferQueueRef.current[messageId]) return;
     
     const queue = audioBufferQueueRef.current[messageId];
     if (!queue.length) return;
 
-    // Calculate total buffered duration
-    const totalBufferedDuration = queue.reduce((acc, chunk) => 
-      acc + (chunk.length / 24000), 0);
+    // Calculate total buffered duration, including currently playing audio
+    const scheduledDuration = (scheduledAudioRef.current[messageId] || [])
+      .reduce((acc, { source }) => acc + (source.buffer?.duration || 0), 0);
+    const queuedDuration = queue.reduce((acc, chunk) => acc + (chunk.length / 24000), 0);
+    const totalBufferedDuration = scheduledDuration + queuedDuration;
 
     // Start processing if we have enough buffer or it's the end of the stream
-    const shouldStartProcessing = totalBufferedDuration >= MIN_BUFFER_DURATION || 
-      (isFirstChunkRef.current[messageId] === false && queue.length >= BUFFER_SIZE_THRESHOLD);
+    const shouldStartProcessing = is_end || totalBufferedDuration >= MIN_BUFFER_DURATION || 
+      (isFirstChunkRef.current[messageId] === false && (queue.length >= BUFFER_SIZE_THRESHOLD));
 
     if (shouldStartProcessing) {
       while (queue.length > 0) {
@@ -146,7 +148,10 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children, clientId
           } else if (data.type === 'stream_end') {
             if (messageIdRef.current) {
               // Process any remaining audio in the queue
-              processAudioQueue(messageIdRef.current);
+              processAudioQueue(messageIdRef.current, true);
+              
+              // Wait for a short time to ensure all chunks are processed
+              await new Promise(resolve => setTimeout(resolve, 100));
               
               // Apply fade out to the last scheduled audio chunk
               const audioChunks = scheduledAudioRef.current[messageIdRef.current];
@@ -167,28 +172,35 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children, clientId
     };
   }, [clientId, processAudioQueue]);
   
-  const cleanupFinishedAudio = useCallback(() => {
-    if (!audioContextRef.current) return;
-    
-    const currentTime = audioContextRef.current.currentTime;
-    Object.keys(scheduledAudioRef.current).forEach(messageId => {
-      scheduledAudioRef.current[messageId] = scheduledAudioRef.current[messageId].filter(({ source, gain, startTime }) => {
-        if (startTime + (source.buffer?.duration || 0) < currentTime) {
-          source.disconnect();
-          gain.disconnect();
-          return false;
+const cleanupFinishedAudio = useCallback(() => {
+  if (!audioContextRef.current) return;
+  
+  const currentTime = audioContextRef.current.currentTime;
+  Object.keys(scheduledAudioRef.current).forEach(messageId => {
+    scheduledAudioRef.current[messageId] = scheduledAudioRef.current[messageId].filter(({ source, gain, startTime }) => {
+      if (startTime + (source.buffer?.duration || 0) < currentTime) {
+        // Add a small buffer time to ensure the audio has actually finished
+        if (currentTime > startTime + (source.buffer?.duration || 0) + 0.1) {
+          try {
+            gain.disconnect();
+            source.disconnect();
+          } catch (e) {
+            // Ignore errors if nodes are already disconnected
+          }
         }
-        return true;
-      });
-      
-      // Clean up empty message arrays
-      if (scheduledAudioRef.current[messageId].length === 0) {
-        delete scheduledAudioRef.current[messageId];
-        delete nextStartTimeRef.current[messageId];
-        delete audioBufferQueueRef.current[messageId];
+        return false;
       }
+      return true;
     });
-  }, []);
+    
+    // Clean up empty message arrays
+    if (scheduledAudioRef.current[messageId].length === 0) {
+      delete scheduledAudioRef.current[messageId];
+      delete nextStartTimeRef.current[messageId];
+      delete audioBufferQueueRef.current[messageId];
+    }
+  });
+}, []);
   
   useEffect(() => {
     const interval = setInterval(cleanupFinishedAudio, SCHEDULE_INTERVAL);
