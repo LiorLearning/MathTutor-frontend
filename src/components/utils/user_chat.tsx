@@ -17,7 +17,7 @@ import UserVideo from '@/components/webrtc/user';
 import { UserArtifactComponent } from '@/components/artifact/user';
 import { AudioContext } from '@/components/utils/audio_stream';
 
-const SPEAKOUT = true;
+const SPEAKOUT = false;
 const SPEED = 30;
 const PAGE_SIZE = 10;
 
@@ -273,11 +273,12 @@ export function UserChat({ messages, setMessages, username }: UserChatProps) {
           isPlaying: false,
           isImage: isImage
         };
-
         const finalMessage = JSON.parse(JSON.stringify(tempMessage));
 
-        tempMessage.content = message;
-        handlePlayAudio(tempMessage);
+        if (SPEAKOUT) {
+          tempMessage.content = message;
+          handlePlayAudio(tempMessage);
+        }
 
         if (isImage) {
           finalMessage.content = message; 
@@ -312,9 +313,6 @@ export function UserChat({ messages, setMessages, username }: UserChatProps) {
               } else {
                 clearInterval(messageStreamIntervalRef.current!);
                 messageStreamIntervalRef.current = null; 
-                if (SPEAKOUT) {
-                  console.log("Speaking out the message...", finalMessage);
-                }
               }
             }, SPEED);
           };
