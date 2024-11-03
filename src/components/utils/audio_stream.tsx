@@ -191,11 +191,10 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children }) => {
 
 interface MessageCardProps {
   message: string;
-  index: number;
 }
 
-const MessageCard: React.FC<MessageCardProps> = ({ message, index }) => {
-  const messageId = `message-${index}`;
+const MessageCard: React.FC<MessageCardProps> = ({ message }) => {
+  const messageId = `message-${Date.now()}`;
   const context = useContext(AudioContext);
 
   if (!context) {
@@ -264,39 +263,14 @@ const MessageCard: React.FC<MessageCardProps> = ({ message, index }) => {
   };
 
   return (
-    <Card className="w-full max-w-md mx-auto">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle>Message {index + 1}</CardTitle>
-        <div className="flex space-x-2">
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={handleTTSRequest}
-            disabled={!message || messageState.isPlaying || !isConnected}
-          >
-            <PlayIcon className="h-4 w-4" />
-          </Button>
-          
-          {messageState.isPlaying && (
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={handleStop}
-              disabled={!messageState.isPlaying}
-            >
-              <StopCircle className="h-4 w-4" />
-            </Button>
-          )}
-        </div>
-      </CardHeader>
-      <CardContent>
-        <p>{message}</p>
-        <p>isPlaying: {messageState.isPlaying}</p>
-        {messageState.error && (
-          <p className="text-sm text-red-500 mt-2">{messageState.error}</p>
-        )}
-      </CardContent>
-    </Card>
+    <Button
+      size="sm"
+      variant="ghost"
+      onClick={handleTTSRequest}
+      disabled={!message || messageState.isPlaying || !isConnected}
+    >
+      <PlayIcon className="h-4 w-4" />
+    </Button>
   );
 };
 

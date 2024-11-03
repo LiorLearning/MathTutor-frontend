@@ -59,7 +59,6 @@ const TestPage: React.FC = () => {
             <MessageCard 
               key={index}
               message={message}
-              index={index}
             />
           ))}
         </div>
