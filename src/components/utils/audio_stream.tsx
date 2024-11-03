@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef, createContext, useContext, ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { AlertCircle, Loader2, MicIcon, StopCircle } from 'lucide-react';
+import { AlertCircle, Loader2, MicIcon, StopCircle, PlayIcon } from 'lucide-react';
 
 interface AudioContextProps {
   isConnected: boolean;
@@ -173,24 +172,36 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children }) => {
   );
 };
 
-interface AudioStreamProps {
-  text: string;
-  setText: React.Dispatch<React.SetStateAction<string>>;
+interface MessageCardProps {
+  message: string;
+  index: number;
 }
 
-export const AudioStream: React.FC<AudioStreamProps> = ({ text, setText }) => {
+const MessageCard: React.FC<MessageCardProps> = ({ message, index }) => {
   const context = useContext(AudioContext);
 
   if (!context) {
-    throw new Error('AudioStream must be used within an AudioProvider');
+    throw new Error('MessageCard must be used within an AudioProvider');
   }
 
-  const { isConnected, isPlaying, error, isLoading, wsRef, audioContextRef, scheduledAudioRef, nextStartTimeRef, isFirstChunkRef, setIsPlaying, setIsLoading, setError } = context;
+  const { 
+    isConnected, 
+    isPlaying, 
+    error, 
+    isLoading, 
+    wsRef, 
+    audioContextRef, 
+    scheduledAudioRef, 
+    nextStartTimeRef, 
+    isFirstChunkRef, 
+    setIsPlaying, 
+    setIsLoading, 
+    setError 
+  } = context;
 
-  // Handle TTS request
-  const handleTTSRequest = useCallback(() => {
-    if (!text.trim()) {
-      setError('Please enter some text');
+  const handleTTSRequest = () => {
+    if (!message.trim()) {
+      setError('Empty message');
       return;
     }
     
@@ -203,21 +214,18 @@ export const AudioStream: React.FC<AudioStreamProps> = ({ text, setText }) => {
     setIsLoading(true);
     isFirstChunkRef.current = true;
     
-    // Reset audio scheduling state
     if (audioContextRef.current) {
       nextStartTimeRef.current = audioContextRef.current.currentTime;
     }
     
     wsRef.current.send(JSON.stringify({
       type: 'tts_request',
-      text: text.trim()
+      text: message.trim()
     }));
-  }, [text, wsRef, audioContextRef, nextStartTimeRef, isFirstChunkRef, setError, setIsLoading]);
-  
-  // Handle stop
-  const handleStop = useCallback(() => {
+  };
+
+  const handleStop = () => {
     if (audioContextRef.current) {
-      // Stop all scheduled audio
       scheduledAudioRef.current.forEach(({ source, gain }) => {
         try {
           source.stop();
@@ -229,7 +237,6 @@ export const AudioStream: React.FC<AudioStreamProps> = ({ text, setText }) => {
       });
       scheduledAudioRef.current = [];
       
-      // Reset audio context
       audioContextRef.current.close().then(() => {
         audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
         nextStartTimeRef.current = audioContextRef.current.currentTime;
@@ -238,59 +245,46 @@ export const AudioStream: React.FC<AudioStreamProps> = ({ text, setText }) => {
     }
     setIsPlaying(false);
     setIsLoading(false);
-  }, [audioContextRef, scheduledAudioRef, nextStartTimeRef, isFirstChunkRef, setIsPlaying, setIsLoading]);
-  
+  };
+
   return (
     <Card className="w-full max-w-md mx-auto">
-      <CardHeader>
-        <CardTitle className="flex items-center justify-between">
-          <span>Text to Speech</span>
-          <div className={`w-3 h-3 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`} />
-        </CardTitle>
-      </CardHeader>
-      
-      <CardContent className="space-y-4">
-        {error && (
-          <div className="text-red-500">{error}</div>
-        )}
-        
-        <div className="space-y-2">
-          <Input
-            placeholder="Enter text to convert to speech..."
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            disabled={isPlaying || !isConnected}
-          />
-          
-          <div className="flex space-x-2">
-            <Button
-              className="flex-1"
-              onClick={handleTTSRequest}
-              disabled={!text || isPlaying || !isConnected}
-            >
-              {isLoading ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <MicIcon className="mr-2 h-4 w-4" />
-              )}
-              {isLoading ? 'Converting...' : 'Speak'}
-            </Button>
-            
-            {isPlaying && (
-              <Button
-                variant="destructive"
-                onClick={handleStop}
-                disabled={!isPlaying}
-              >
-                <StopCircle className="mr-2 h-4 w-4" />
-                Stop
-              </Button>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle>Message {index + 1}</CardTitle>
+        <div className="flex space-x-2">
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={handleTTSRequest}
+            disabled={!message || isPlaying || !isConnected}
+          >
+            {isLoading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <PlayIcon className="h-4 w-4" />
             )}
-          </div>
+          </Button>
+          
+          {isPlaying && (
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={handleStop}
+              disabled={!isPlaying}
+            >
+              <StopCircle className="h-4 w-4" />
+            </Button>
+          )}
         </div>
+      </CardHeader>
+      <CardContent>
+        <p>{message}</p>
+        {error && (
+          <p className="text-sm text-red-500 mt-2">{error}</p>
+        )}
       </CardContent>
     </Card>
   );
 };
 
-export default AudioStream;
+export default MessageCard;
