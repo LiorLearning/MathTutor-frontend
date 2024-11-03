@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useMemo, useContext } from 'react';
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Button } from "@/components/ui/button"
 import { Pause, Volume2, Square, Mic, PanelRightCloseIcon, PanelLeftCloseIcon, ChevronLeft, ChevronRight, Send } from "lucide-react"
@@ -17,7 +17,7 @@ import {
 } from '@/components/utils/chat_utils';
 import UserVideo from '@/components/webrtc/user';
 import { UserArtifactComponent } from '@/components/artifact/user';
-import MessageCard, { AudioProvider } from '@/components/utils/audio_stream';
+import { AudioProvider, AudioContext } from '@/components/utils/audio_stream';
 
 const SPEAKOUT = true;
 const SPEED = 30;
@@ -33,9 +33,20 @@ const NOTEXT = 'notext';
 
 const RETHINKING_MESSAGE = "Rethinking..."
 
-export function Chat() {
-  const searchParams = useSearchParams();
-  const username = searchParams.get('username') || 'testuser';
+export function Chat({ username }: { username: string }) {
+  const audioContext = useContext(AudioContext);
+  if (!audioContext) {
+    throw new Error('MessageCard must be used within an AudioProvider');
+  }
+
+  const { 
+    isConnected,
+    wsRef,
+    audioContextRef,
+    scheduledAudioRef,
+    nextStartTimeRef,
+    isFirstChunkRef,
+  } = audioContext;
 
   const [showPopup, setShowPopup] = useState(false);
   
@@ -122,72 +133,71 @@ export function Chat() {
     setShowPopup(false)
   }
 
-  const getTTS = useCallback(async (message: string): Promise<string> => {
-    let audioUrl = '';
-    try {
-      const response = await axios.post(`${SPEECH_API_BASE_URL}/cartesia-tts-proxy`, { text: message }, {
-        headers: { 'Content-Type': 'application/json' },
-        responseType: 'blob',
+  const handleStopAudio = (message: Message) => {
+    const messageId = message.message_id
+    if (audioContextRef.current && scheduledAudioRef.current[messageId]) {
+      scheduledAudioRef.current[messageId].forEach(({ source, gain }) => {
+        try {
+          source.stop();
+          source.disconnect();
+          gain.disconnect();
+        } catch (e) {
+          // Ignore errors from already stopped sources
+        }
       });
-      const audioBlob = new Blob([response.data as ArrayBuffer], { type: 'audio/mpeg' });
-      audioUrl = URL.createObjectURL(audioBlob);
-      console.log('Audio blob generated:', audioUrl);
-    } catch (error) {
-      console.error('Error generating text-to-speech:', error);
+      scheduledAudioRef.current[messageId] = [];
+      
+      isFirstChunkRef.current[messageId] = true;
+      nextStartTimeRef.current[messageId] = audioContextRef.current.currentTime;
     }
-    return audioUrl;
-  }, []);
+  };
 
-  const setMessageAudioAndPlay = useCallback(async (message: Message, audioUrl: string) => {
-    if (message.isImage) return;
+  const handlePlayAudio = (message: Message) => {
+    const messageId = message.message_id
+    const messageText = message.content
 
-    try {
-      setMessages(prevMessages => [
-        ...prevMessages.slice(0, -1),
-        { ...message, audioUrl },
-      ]);
-
-      if (ttsAudioRef.current) {
-        ttsAudioRef.current.src = audioUrl;
-        ttsAudioRef.current.playbackRate = PLAYBACK_RATE;
-        await ttsAudioRef.current.play();
-        setMessages(prevMessages => 
-          prevMessages.map(msg => 
-            msg.message_id === message.message_id ? { ...msg, isPlaying: true } : msg
-          )
-        );
-      }
-    } catch (error) {
-      console.error('Playback failed:', error);
+    if (!messageText.trim()) {
+      return;
     }
-  }, []);
+    
+    if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
+      return;
+    }
+
+    if (audioContextRef.current) {
+      nextStartTimeRef.current[messageId] = audioContextRef.current.currentTime;
+    }
+
+    wsRef.current.send(JSON.stringify({
+      type: 'tts_request',
+      text: messageText.trim(),
+    }));
+  }
 
   const toggleAudio = useCallback(async (message: Message) => {
-    if (!message.audioUrl && !message.isImage) {
-      const audioUrl = await getTTS(message.content);
-      setMessageAudioAndPlay(message, audioUrl);
+    if (message.isImage) {
+      return
+    }
+
+    if (message.audioUrl) {
+      console.log("Not implemented error")
     } else {
       const isPlaying = message.isPlaying;
       console.log(`${isPlaying ? 'Pausing' : 'Playing'} audio for message ID:`, message.message_id);
-      
+
       if (isPlaying) {
-        ttsAudioRef.current?.pause();
+        handleStopAudio(message);
       } else {
-        if (message.audioUrl) {
-          await setMessageAudioAndPlay(message, message.audioUrl);
-        } else {
-          const audioUrl = await getTTS(message.content);
-          await setMessageAudioAndPlay(message, audioUrl);
-        }
+        handlePlayAudio(message);
       }
-      
+
       setMessages(prevMessages => 
         prevMessages.map(msg => 
           msg.message_id === message.message_id ? { ...msg, isPlaying: !isPlaying } : msg
         )
       );
     }
-  }, [setMessageAudioAndPlay, getTTS]);
+  }, []);
 
   const initChatWebSocket = useCallback(async (username: string) => {
     if (!chatWebsocketRef.current) {
@@ -261,7 +271,6 @@ export function Chat() {
         }
 
         const isImage = message.startsWith("![Generated");
-        const audioUrl = isImage ? '' : (SPEAKOUT ? await getTTS(message) : '');
 
         setIsSendingMessage(false);
         if (sendMessageTimeout) {
@@ -314,7 +323,7 @@ export function Chat() {
                 messageStreamIntervalRef.current = null; 
                 if (SPEAKOUT) {
                   console.log("Speaking out the message...", finalMessage);
-                  setMessageAudioAndPlay(finalMessage, audioUrl);
+                  handlePlayAudio(finalMessage);
                 }
               }
             }, SPEED);
@@ -323,7 +332,7 @@ export function Chat() {
         }
       }
     }
-  }, [getTTS, setMessageAudioAndPlay]);
+  }, []);
 
   const startRecording = async () => {
     try {
@@ -623,10 +632,6 @@ export function Chat() {
                   </div>
                 ) : (
                   <>
-                    <MessageCard 
-                      key={message.message_id}
-                      message={message.content}
-                    />
                     <MarkdownComponent content={message.content} />
                   </>
                 ) }
@@ -661,7 +666,7 @@ export function Chat() {
     </div>;
   }
   return (
-    <AudioProvider>
+    <AudioProvider clientId={username}>
       <div className="flex h-screen overflow-hidden bg-background">
         <AnimatePresence>
           {showPopup && (
