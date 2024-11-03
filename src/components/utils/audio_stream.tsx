@@ -1,24 +1,26 @@
 import React, { useState, useEffect, useCallback, useRef, createContext, useContext, ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { AlertCircle, Loader2, MicIcon, StopCircle, PlayIcon } from 'lucide-react';
+import { AlertCircle, Loader2, MicIcon, StopCircle, PlayIcon, WifiIcon, WifiOffIcon } from 'lucide-react';
+
+interface MessageState {
+  id: string;
+  isPlaying: boolean;
+  error: string;
+}
 
 interface AudioContextProps {
   isConnected: boolean;
-  isPlaying: boolean;
-  error: string;
-  isLoading: boolean;
+  messageStates: Record<string, MessageState>;
   wsRef: React.MutableRefObject<WebSocket | null>;
   audioContextRef: React.MutableRefObject<AudioContext | null>;
-  scheduledAudioRef: React.MutableRefObject<{ source: AudioBufferSourceNode; gain: GainNode; startTime: number; }[]>;
-  nextStartTimeRef: React.MutableRefObject<number>;
-  isFirstChunkRef: React.MutableRefObject<boolean>;
-  setIsPlaying: React.Dispatch<React.SetStateAction<boolean>>;
-  setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
-  setError: React.Dispatch<React.SetStateAction<string>>;
+  scheduledAudioRef: React.MutableRefObject<Record<string, { source: AudioBufferSourceNode; gain: GainNode; startTime: number; }[]>>;
+  nextStartTimeRef: React.MutableRefObject<Record<string, number>>;
+  isFirstChunkRef: React.MutableRefObject<Record<string, boolean>>;
+  updateMessageState: (messageId: string, updates: Partial<MessageState>) => void;
 }
 
-const AudioContext = createContext<AudioContextProps | null>(null);
+export const AudioContext = createContext<AudioContextProps | null>(null);
 
 interface AudioProviderProps {
   children: ReactNode;
@@ -26,41 +28,42 @@ interface AudioProviderProps {
 
 export const AudioProvider: React.FC<AudioProviderProps> = ({ children }) => {
   const [isConnected, setIsConnected] = useState(false);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [error, setError] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [messageStates, setMessageStates] = useState<Record<string, MessageState>>({});
   
   const wsRef = useRef<WebSocket | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
-  const scheduledAudioRef = useRef<{
-    source: AudioBufferSourceNode;
-    gain: GainNode;
-    startTime: number;
-  }[]>([]);
-  const nextStartTimeRef = useRef<number>(0);
-  const isFirstChunkRef = useRef<boolean>(true);
-  const bufferAheadTime = 0.2; // Schedule audio 200ms ahead
-  const scheduleInterval = 50; // Check scheduling every 50ms
-  const fadeInDuration = 0.015; // 15ms fade in
+  const scheduledAudioRef = useRef<Record<string, { source: AudioBufferSourceNode; gain: GainNode; startTime: number; }[]>>({});
+  const nextStartTimeRef = useRef<Record<string, number>>({});
+  const isFirstChunkRef = useRef<Record<string, boolean>>({});
   
-  // Initialize WebSocket connection
+  const bufferAheadTime = 0.2;
+  const scheduleInterval = 50;
+  const fadeInDuration = 0.015;
+  
+  const updateMessageState = useCallback((messageId: string, updates: Partial<MessageState>) => {
+    setMessageStates(prev => ({
+      ...prev,
+      [messageId]: {
+        ...prev[messageId],
+        ...updates
+      }
+    }));
+  }, []);
+
   const connectWebSocket = useCallback(() => {
     const clientId = Math.random().toString(36).substring(7);
     const ws = new WebSocket(`ws://localhost:8000/api/v1/cartesia/ws/${clientId}`);
     
     ws.onopen = () => {
       setIsConnected(true);
-      setError('');
       audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
-      nextStartTimeRef.current = audioContextRef.current.currentTime;
     };
     
     ws.onclose = () => {
       setIsConnected(false);
     };
     
-    ws.onerror = (event) => {
-      setError('WebSocket connection error');
+    ws.onerror = () => {
       setIsConnected(false);
     };
     
@@ -68,15 +71,19 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children }) => {
       if (event.data instanceof Blob) {
         const arrayBuffer = await event.data.arrayBuffer();
         const audioData = new Float32Array(arrayBuffer);
-        scheduleAudioData(audioData);
+        const metadata = ws.url.split('/').pop(); // Extract messageId from URL
+        if (metadata) {
+          scheduleAudioData(audioData, metadata);
+        }
       } else {
         try {
           const message = JSON.parse(event.data);
+          const messageId = message.messageId;
+          
           if (message.type === 'error') {
-            setError(message.message);
+            updateMessageState(messageId, { error: message.message });
           } else if (message.type === 'stream_end') {
-            setIsLoading(false);
-            isFirstChunkRef.current = true;
+            isFirstChunkRef.current[messageId] = true;
           }
         } catch (e) {
           console.error('Error parsing message:', e);
@@ -86,78 +93,79 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children }) => {
     
     wsRef.current = ws;
     return ws;
-  }, []);
+  }, [updateMessageState]);
   
-  // Schedule audio data for playback
-  const scheduleAudioData = useCallback((audioData: Float32Array) => {
+  const scheduleAudioData = useCallback((audioData: Float32Array, messageId: string) => {
     if (!audioContextRef.current) return;
 
-    // Create and configure audio nodes
     const source = audioContextRef.current.createBufferSource();
     const gainNode = audioContextRef.current.createGain();
     
-    // Create and fill the audio buffer
     const audioBuffer = audioContextRef.current.createBuffer(1, audioData.length, 24000);
     audioBuffer.getChannelData(0).set(audioData);
     source.buffer = audioBuffer;
 
-    // Connect nodes
     source.connect(gainNode);
     gainNode.connect(audioContextRef.current.destination);
     
-    // Calculate start time
     let startTime: number;
-    if (isFirstChunkRef.current) {
-      // For first chunk, start almost immediately with minimal delay
-      startTime = audioContextRef.current.currentTime + 0.5;
+    if (isFirstChunkRef.current[messageId]) {
+      startTime = audioContextRef.current.currentTime + 0.1; // Reduced from 0.5 for faster start
       gainNode.gain.setValueAtTime(0, startTime);
       gainNode.gain.linearRampToValueAtTime(1, startTime + fadeInDuration);
-      isFirstChunkRef.current = false;
+      isFirstChunkRef.current[messageId] = false;
+      updateMessageState(messageId, { isPlaying: true });
     } else {
       startTime = Math.max(
-        nextStartTimeRef.current,
+        nextStartTimeRef.current[messageId] || 0,
         audioContextRef.current.currentTime + bufferAheadTime
       );
     }
     
-    // Start the source
     source.start(startTime);
-    setIsPlaying(true);
-    scheduledAudioRef.current.push({ source, gain: gainNode, startTime });
+    updateMessageState(messageId, { isPlaying: true });
+    console.log(`Audio playback started for messageId: ${messageId}`);
     
-    // Update next start time based on buffer duration
-    nextStartTimeRef.current = startTime + audioBuffer.duration;
+    if (!scheduledAudioRef.current[messageId]) {
+      scheduledAudioRef.current[messageId] = [];
+    }
+    scheduledAudioRef.current[messageId].push({ source, gain: gainNode, startTime });
+    
+    nextStartTimeRef.current[messageId] = startTime + audioBuffer.duration;
 
-    // Stop the audio player a few ms after the audio has finished
+    // Check if this is the last scheduled audio chunk
     source.onended = () => {
-      setTimeout(() => {
-        setIsPlaying(false);
-      }, 100); // 100ms after the audio has finished
+      const audioChunks = scheduledAudioRef.current[messageId];
+      const isLastChunk = audioChunks[audioChunks.length - 1].source === source;
+      
+      if (isLastChunk) {
+        updateMessageState(messageId, { isPlaying: false });
+        console.log(`Audio playback ended for messageId: ${messageId}`);
+      }
     };
-  }, []);
+  }, [updateMessageState]);
   
-  // Clean up finished audio nodes
   const cleanupFinishedAudio = useCallback(() => {
     if (!audioContextRef.current) return;
     
     const currentTime = audioContextRef.current.currentTime;
-    scheduledAudioRef.current = scheduledAudioRef.current.filter(({ source, gain, startTime }) => {
-      if (startTime + (source.buffer?.duration || 0) < currentTime) {
-        source.disconnect();
-        gain.disconnect();
-        return false;
-      }
-      return true;
+    Object.keys(scheduledAudioRef.current).forEach(messageId => {
+      scheduledAudioRef.current[messageId] = scheduledAudioRef.current[messageId].filter(({ source, gain, startTime }) => {
+        if (startTime + (source.buffer?.duration || 0) < currentTime) {
+          source.disconnect();
+          gain.disconnect();
+          return false;
+        }
+        return true;
+      });
     });
   }, []);
   
-  // Set up scheduling interval
   useEffect(() => {
     const interval = setInterval(cleanupFinishedAudio, scheduleInterval);
     return () => clearInterval(interval);
   }, [cleanupFinishedAudio]);
   
-  // Connect WebSocket on component mount
   useEffect(() => {
     const ws = connectWebSocket();
     return () => {
@@ -166,7 +174,16 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children }) => {
   }, [connectWebSocket]);
   
   return (
-    <AudioContext.Provider value={{ isConnected, isPlaying, error, isLoading, wsRef, audioContextRef, scheduledAudioRef, nextStartTimeRef, isFirstChunkRef, setIsPlaying, setIsLoading, setError }}>
+    <AudioContext.Provider value={{
+      isConnected,
+      messageStates,
+      wsRef,
+      audioContextRef,
+      scheduledAudioRef,
+      nextStartTimeRef,
+      isFirstChunkRef,
+      updateMessageState
+    }}>
       {children}
     </AudioContext.Provider>
   );
@@ -178,6 +195,7 @@ interface MessageCardProps {
 }
 
 const MessageCard: React.FC<MessageCardProps> = ({ message, index }) => {
+  const messageId = `message-${index}`;
   const context = useContext(AudioContext);
 
   if (!context) {
@@ -185,48 +203,50 @@ const MessageCard: React.FC<MessageCardProps> = ({ message, index }) => {
   }
 
   const { 
-    isConnected, 
-    isPlaying, 
-    error, 
-    isLoading, 
-    wsRef, 
-    audioContextRef, 
-    scheduledAudioRef, 
-    nextStartTimeRef, 
-    isFirstChunkRef, 
-    setIsPlaying, 
-    setIsLoading, 
-    setError 
+    isConnected,
+    messageStates,
+    wsRef,
+    audioContextRef,
+    scheduledAudioRef,
+    nextStartTimeRef,
+    isFirstChunkRef,
+    updateMessageState
   } = context;
+
+  const messageState = messageStates[messageId] || {
+    id: messageId,
+    isPlaying: false,
+    error: ''
+  };
 
   const handleTTSRequest = () => {
     if (!message.trim()) {
-      setError('Empty message');
+      updateMessageState(messageId, { error: 'Empty message' });
       return;
     }
     
     if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
-      setError('WebSocket is not connected');
+      updateMessageState(messageId, { error: 'WebSocket is not connected' });
       return;
     }
     
-    setError('');
-    setIsLoading(true);
-    isFirstChunkRef.current = true;
+    updateMessageState(messageId, { error: '' });
+    isFirstChunkRef.current[messageId] = true;
     
     if (audioContextRef.current) {
-      nextStartTimeRef.current = audioContextRef.current.currentTime;
+      nextStartTimeRef.current[messageId] = audioContextRef.current.currentTime;
     }
     
     wsRef.current.send(JSON.stringify({
       type: 'tts_request',
-      text: message.trim()
+      text: message.trim(),
+      messageId
     }));
   };
 
   const handleStop = () => {
-    if (audioContextRef.current) {
-      scheduledAudioRef.current.forEach(({ source, gain }) => {
+    if (audioContextRef.current && scheduledAudioRef.current[messageId]) {
+      scheduledAudioRef.current[messageId].forEach(({ source, gain }) => {
         try {
           source.stop();
           source.disconnect();
@@ -235,16 +255,12 @@ const MessageCard: React.FC<MessageCardProps> = ({ message, index }) => {
           // Ignore errors from already stopped sources
         }
       });
-      scheduledAudioRef.current = [];
+      scheduledAudioRef.current[messageId] = [];
       
-      audioContextRef.current.close().then(() => {
-        audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
-        nextStartTimeRef.current = audioContextRef.current.currentTime;
-        isFirstChunkRef.current = true;
-      });
+      updateMessageState(messageId, { isPlaying: false });
+      isFirstChunkRef.current[messageId] = true;
+      nextStartTimeRef.current[messageId] = audioContextRef.current.currentTime;
     }
-    setIsPlaying(false);
-    setIsLoading(false);
   };
 
   return (
@@ -256,21 +272,17 @@ const MessageCard: React.FC<MessageCardProps> = ({ message, index }) => {
             size="sm"
             variant="ghost"
             onClick={handleTTSRequest}
-            disabled={!message || isPlaying || !isConnected}
+            disabled={!message || messageState.isPlaying || !isConnected}
           >
-            {isLoading ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <PlayIcon className="h-4 w-4" />
-            )}
+            <PlayIcon className="h-4 w-4" />
           </Button>
           
-          {isPlaying && (
+          {messageState.isPlaying && (
             <Button
               size="sm"
               variant="ghost"
               onClick={handleStop}
-              disabled={!isPlaying}
+              disabled={!messageState.isPlaying}
             >
               <StopCircle className="h-4 w-4" />
             </Button>
@@ -279,8 +291,9 @@ const MessageCard: React.FC<MessageCardProps> = ({ message, index }) => {
       </CardHeader>
       <CardContent>
         <p>{message}</p>
-        {error && (
-          <p className="text-sm text-red-500 mt-2">{error}</p>
+        <p>isPlaying: {messageState.isPlaying}</p>
+        {messageState.error && (
+          <p className="text-sm text-red-500 mt-2">{messageState.error}</p>
         )}
       </CardContent>
     </Card>
