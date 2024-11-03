@@ -58,24 +58,17 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children, clientId
       if (event.data instanceof Blob) {
         const arrayBuffer = await event.data.arrayBuffer();
         const audioData = new Float32Array(arrayBuffer);
-        console.log('Received audio data:', audioData);
         scheduleAudioData(audioData);
       } else {
-        console.log('Received text data:', event.data);
         try {
           const data = JSON.parse(event.data);
-          console.log('Parsed JSON data:', data);
           const type = data.type;
           
           if (type === 'stream_start') {
-            console.log("type: ", type);
             const messageId = data.messageId;
-            console.log('Stream start for messageId:', messageId);
             messageIdRef.current = messageId;
           } else if (type === 'stream_end') {
-            console.log("type: ", type);
             if (messageIdRef.current) {
-              console.log('Stream end for messageId:', messageIdRef.current);
               isFirstChunkRef.current[messageIdRef.current] = true;
               messageIdRef.current = null;
             }

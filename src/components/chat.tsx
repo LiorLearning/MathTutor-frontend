@@ -278,7 +278,7 @@ export function Chat({ username }: { username: string }) {
           setSendMessageTimeout(null);
         }
 
-        const finalMessage: Message = {
+        const tempMessage: Message = {
           role: ASSISTANT,
           content: '',
           audioUrl: '',
@@ -287,6 +287,11 @@ export function Chat({ username }: { username: string }) {
           isPlaying: false,
           isImage: isImage
         };
+
+        const finalMessage = JSON.parse(JSON.stringify(tempMessage));
+
+        tempMessage.content = message;
+        handlePlayAudio(tempMessage);
 
         if (isImage) {
           finalMessage.content = message; 
@@ -323,7 +328,6 @@ export function Chat({ username }: { username: string }) {
                 messageStreamIntervalRef.current = null; 
                 if (SPEAKOUT) {
                   console.log("Speaking out the message...", finalMessage);
-                  handlePlayAudio(finalMessage);
                 }
               }
             }, SPEED);
