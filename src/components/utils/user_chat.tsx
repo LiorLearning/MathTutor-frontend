@@ -17,7 +17,7 @@ import UserVideo from '@/components/webrtc/user';
 import { UserArtifactComponent } from '@/components/artifact/user';
 import { AudioContext } from '@/components/utils/audio_stream';
 
-const SPEAKOUT = false;
+const SPEAKOUT = true;
 const SPEED = 30;
 const PAGE_SIZE = 10;
 
@@ -275,7 +275,7 @@ export function UserChat({ messages, setMessages, username }: UserChatProps) {
         };
         const finalMessage = JSON.parse(JSON.stringify(tempMessage));
 
-        if (SPEAKOUT) {
+        if (!isImage && SPEAKOUT) {
           tempMessage.content = message;
           handlePlayAudio(tempMessage);
         }
@@ -594,7 +594,7 @@ export function UserChat({ messages, setMessages, username }: UserChatProps) {
                   </>
                 ) }
                 
-                {message.role === ASSISTANT && (
+                {(message.role === ASSISTANT && !message.isImage) && (
                   <div className="mt-2 flex justify-end">
                     <Button 
                       size="sm"
@@ -656,8 +656,8 @@ export function UserChat({ messages, setMessages, username }: UserChatProps) {
               marginLeft: isRightColumnCollapsed ? "15%": "0%",
             }}
           >
-            <div className="h-full flex flex-col p-4 border-r border-border">
-              <header className="p-4 border-b border-border">
+            <div className="h-full flex flex-col border-r border-border">
+              <header className="pb-4 px-4 border-b border-border">
                 <div className="flex justify-between items-center">
                   <h1 className="text-xl font-bold">MathTutor</h1>
                   <div className="flex items-center gap-2">
@@ -681,7 +681,7 @@ export function UserChat({ messages, setMessages, username }: UserChatProps) {
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
                 </div>
               ) : (
-                <div className="p-4 border-t border-border flex items-center justify-center">
+                <div className="pt-4 border-t border-border flex items-center justify-center">
                   <div className="relative flex flex-col items-center">
                     <AnimatePresence>
                       {isRecording ? (
@@ -783,7 +783,6 @@ export function UserChat({ messages, setMessages, username }: UserChatProps) {
                         </button>
                       </div>
                     </div>
-                    {/* <AudioStreamer /> */}
                   </div>
                 </div>
               )}
