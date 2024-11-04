@@ -133,6 +133,10 @@ export function UserChat({ messages, setMessages, username }: UserChatProps) {
     const messageId = message.message_id
     const messageText = message.content
 
+    if (message.isImage) {
+      return;
+    }
+
     if (!messageText.trim()) {
       return;
     }
@@ -662,8 +666,10 @@ export function UserChat({ messages, setMessages, username }: UserChatProps) {
                   <h1 className="text-xl font-bold">MathTutor</h1>
                   <div className="flex items-center gap-2">
                     <h3 className="text-lg text-muted-foreground">{username}</h3>
-                    {audioContext.isConnected && (
+                    {audioContext.isConnected ? (
                       <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                    ) : (
+                      <div className="w-3 h-3 bg-red-500 rounded-full"></div>
                     )}
                   </div>
                 </div>

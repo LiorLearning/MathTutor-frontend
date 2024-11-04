@@ -193,6 +193,7 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children, clientId
           const data = JSON.parse(event.data);
           
           if (data.type === 'stream_start') {
+            stopAudio();
             messageIdRef.current = data.messageId;
             isFirstChunkRef.current[data.messageId] = true;
             audioBufferQueueRef.current[data.messageId] = [];
