@@ -126,3 +126,9 @@ export const MarkdownComponent: React.FC<{ content: string }> = ({ content }) =>
         </ReactMarkdown>
     );
 };
+
+
+export const extractTextFromMessage = (message: string): string => {
+    const imageTagPattern = /!\[Generated image\]\(.*?\)/;
+    return message.replace(imageTagPattern, '').trim();
+};

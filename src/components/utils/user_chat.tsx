@@ -9,7 +9,8 @@ import { motion } from 'framer-motion'
 import { PanelRightClose, PanelLeftClose, ChevronLeft, ChevronRight, Send } from "lucide-react"
 
 import { 
-  Message, 
+  Message,
+  extractTextFromMessage,
   StartChatResponse, 
   GetChatHistoryResponse,
   API_BASE_URL,
@@ -24,7 +25,7 @@ import UserVideo from '@/components/webrtc/user';
 import { UserArtifactComponent } from '@/components/artifact/user';
 import MessageLoader from '@/components/ui/loaders/message_loader';
 
-const SPEAKOUT = true;
+const SPEAKOUT = false;
 const SPEED = 30;
 const PAGE_SIZE = 10;
 
@@ -131,10 +132,10 @@ export function UserChat({ messages, setMessages, username }: UserChatProps) {
 
   const handlePlayAudio = (message: Message) => {
     const messageId = message.message_id
-    const messageText = message.content
+    let messageText = message.content
 
     if (message.isImage) {
-      return;
+      messageText = extractTextFromMessage(messageText)
     }
 
     if (!messageText.trim()) {
@@ -157,10 +158,6 @@ export function UserChat({ messages, setMessages, username }: UserChatProps) {
   }
 
   const toggleAudio = useCallback(async (message: Message) => {
-    if (message.isImage) {
-      return
-    }
-
     const playingMessageIds = Object.keys(audioContext.scheduledAudioRef.current);
 
     playingMessageIds.forEach(id => {
@@ -279,7 +276,7 @@ export function UserChat({ messages, setMessages, username }: UserChatProps) {
         };
         const finalMessage = JSON.parse(JSON.stringify(tempMessage));
 
-        if (!isImage && SPEAKOUT) {
+        if (SPEAKOUT) {
           tempMessage.content = message;
           handlePlayAudio(tempMessage);
         }

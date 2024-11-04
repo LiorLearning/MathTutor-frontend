@@ -87,7 +87,7 @@ const MessageComponents: React.FC<MessageComponentsProps> = ({ messages, isLoadi
                   </>
                 ) }
                 
-                {(message.role === ASSISTANT && !message.isImage) && (
+                {(message.role === ASSISTANT) && (
                   <div className="mt-2 flex justify-end">
                     <Button 
                       size="sm"
