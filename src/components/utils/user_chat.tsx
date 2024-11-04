@@ -25,7 +25,7 @@ import UserVideo from '@/components/webrtc/user';
 import { UserArtifactComponent } from '@/components/artifact/user';
 import MessageLoader from '@/components/ui/loaders/message_loader';
 
-const SPEAKOUT = false;
+const SPEAKOUT = true;
 const SPEED = 30;
 const PAGE_SIZE = 10;
 
