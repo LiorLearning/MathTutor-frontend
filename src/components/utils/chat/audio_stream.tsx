@@ -7,7 +7,7 @@ interface AudioContextProps {
   scheduledAudioRef: React.MutableRefObject<Record<string, { source: AudioBufferSourceNode; gain: GainNode; startTime: number; }[]>>;
   nextStartTimeRef: React.MutableRefObject<Record<string, number>>;
   isFirstChunkRef: React.MutableRefObject<Record<string, boolean>>;
-  stopAudio: (messageId?: string) => void;  // Add this line
+  stopAudio: (messageId?: string) => void;
 }
 
 export const AudioContext = createContext<AudioContextProps | null>(null);
@@ -278,7 +278,7 @@ const cleanupFinishedAudio = useCallback(() => {
       scheduledAudioRef,
       nextStartTimeRef,
       isFirstChunkRef,
-      stopAudio  // Add this line
+      stopAudio
     }}>
       {children}
     </AudioContext.Provider>
