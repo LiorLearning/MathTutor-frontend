@@ -1,8 +1,7 @@
 'use client'
 
-import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { ScrollArea } from "./ui/scroll-area"
-import { Input } from "./ui/input"
 import { Textarea } from './ui/textarea';
 import { Button } from "./ui/button"
 import { useSearchParams } from 'next/navigation'
