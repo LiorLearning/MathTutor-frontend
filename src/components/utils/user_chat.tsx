@@ -12,7 +12,8 @@ import {
   GetChatHistoryResponse,
   API_BASE_URL,
   MarkdownComponent,
-} from '@/components/utils/chat_utils';
+} from './chat/chat_utils';
+import Popup from './chat/popup';
 import UserVideo from '@/components/webrtc/user';
 import { UserArtifactComponent } from '@/components/artifact/user';
 import { AudioContext } from '@/components/utils/audio_stream';
@@ -41,9 +42,11 @@ export function UserChat({ messages, setMessages, username }: UserChatProps) {
   if (!audioContext) {
     throw new Error('MessageCard must be used within an AudioProvider');
   }
-
-  const [showPopup, setShowPopup] = useState(false);
   
+  const [showPopup, setShowPopup] = useState(false);
+  const handleEnterClass = () => {
+    setShowPopup(false);
+  };
   
   const [chatId, setChatId] = useState("");
   const [isLoading, setIsLoading] = useState(true);
@@ -120,9 +123,6 @@ export function UserChat({ messages, setMessages, username }: UserChatProps) {
     setIsVideoVisible(prev => !prev); // Toggle visibility
   };
 
-  const handleEnterClass = () => {
-    setShowPopup(false)
-  }
   
   const handleStopAudio = (message: Message) => {
     const messageId = message.message_id;
@@ -629,29 +629,9 @@ export function UserChat({ messages, setMessages, username }: UserChatProps) {
   }
   return (
     <div className="flex h-screen overflow-hidden bg-background">
-      <AnimatePresence>
-        {showPopup && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.9 }}
-            className="absolute inset-0 flex items-center justify-center bg-black/50 z-50"
-          >
-            <motion.div
-              className="bg-card p-8 rounded-lg shadow-lg w-full max-w-md"
-              initial={{ y: -50 }}
-              animate={{ y: 0 }}
-            >
-              <h2 className="text-2xl font-bold mb-4">Welcome to MathTutor</h2>
-              <Button onClick={handleEnterClass} className="w-full">
-                Enter Class
-              </Button>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {!showPopup && (
+      {showPopup ? (
+        <Popup handleEnterClass={handleEnterClass} />
+      ) : (
         <React.Fragment>
           <motion.div
             className="flex-1 p-6 transition-all duration-200 ease-in-out"
@@ -802,14 +782,15 @@ export function UserChat({ messages, setMessages, username }: UserChatProps) {
             }}
           >
             <UserArtifactComponent 
-            username={username} 
-            isRightColumnCollapsed={isRightColumnCollapsedRef}
-            toggleRightColumn={toggleRightColumn} />
+              username={username} 
+              isRightColumnCollapsed={isRightColumnCollapsedRef}
+              toggleRightColumn={toggleRightColumn} 
+            />
           </motion.div>
 
-          <div className="fixed right-4 top-4 w-[15vw] h-[12vh] max-w-[256px] max-h-[192px]">
+          <div className="fixed right-4 top-4 w-[15vw] h-[calc(15vw * 4 / 3)] max-w-[256px] max-h-[calc(256px * 4 / 3)]">
             <UserVideo 
-              username={username} 
+              username={username}
               style={{ 
                 visibility: isVideoVisible ? 'visible' : 'hidden', // Hide the video feed
                 position: isVideoVisible ? 'static' : 'absolute', // Keep it in the flow or move it off-screen

@@ -7,7 +7,7 @@ import { useSearchParams } from 'next/navigation'
 import { CalendarPlus, MessageCircle, ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import axios from 'axios';
-import { Student, MODEL_API_BASE_URL } from '@/components/utils/admin_utils';
+import { Student, MODEL_API_BASE_URL } from '@/components/utils/admin/admin_utils';
 
 export function ManageStudentsComponent() {
   const searchParams = useSearchParams();

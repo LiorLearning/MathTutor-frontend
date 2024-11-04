@@ -4,7 +4,7 @@ import { UserChat } from "./utils/user_chat";
 import React, { useState } from 'react';
 import { AudioProvider} from '@/components/utils/audio_stream';
 import { useSearchParams } from 'next/navigation'
-import { Message } from "./utils/chat_utils";
+import { Message } from "./utils/chat/chat_utils";
 
 export default function Chat () {
   const searchParams = useSearchParams();

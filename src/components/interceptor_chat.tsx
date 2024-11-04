@@ -14,7 +14,7 @@ import {
   API_BASE_URL,
   MarkdownComponent,
 } from '@/components/utils/chat_utils'
-import { Student, MODEL_API_BASE_URL } from '@/components/utils/admin_utils'
+import { Student, MODEL_API_BASE_URL } from '@/components/utils/admin/admin_utils'
 import AdminVideo from '@/components/webrtc/admin';
 import { AdminArtifactComponent } from '@/components/artifact/admin';
 

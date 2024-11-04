@@ -9,7 +9,7 @@ import { Header } from "@/components/header";
 
 import { useEffect, useState } from 'react';
 import axios from 'axios';
-import { Student, MODEL_API_BASE_URL } from '@/components/utils/admin_utils'
+import { Student, MODEL_API_BASE_URL } from '@/components/utils/admin/admin_utils'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 
 
