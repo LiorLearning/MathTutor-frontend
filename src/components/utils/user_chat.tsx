@@ -75,20 +75,18 @@ export function UserChat({ messages, setMessages, username }: UserChatProps) {
 
   const toggleRightColumn = () => {
     setIsRightColumnCollapsed(prev => {
-      const newState = !prev; // Toggle the state
-      isRightColumnCollapsedRef.current = newState; // Update the ref
+      const newState = !prev;
+      isRightColumnCollapsedRef.current = newState;
       return newState;
     });
   };
   
   const toggleVideoFeed = () => {
-    setIsVideoVisible(prev => !prev); // Toggle visibility
+    setIsVideoVisible(prev => !prev);
   };
 
-  
   const handleStopAudio = (message: Message) => {
-    const messageId = message.message_id;
-    audioContext.stopAudio(messageId);
+    audioContext.stopAudio(message.message_id);
   };
 
   const handlePlayAudio = (message: Message) => {
@@ -116,17 +114,19 @@ export function UserChat({ messages, setMessages, username }: UserChatProps) {
       text: messageText.trim(),
       id: messageId,
     }));
-  }
+  };
 
   const toggleAudio = useCallback(async (message: Message) => {
     const playingMessageIds = Object.keys(audioContext.scheduledAudioRef.current);
 
+    // Stop audio for all other messages
     playingMessageIds.forEach(id => {
       if (id !== message.message_id) {
         audioContext.stopAudio(id);
       }
     });
 
+    // Handle audio for current message
     if (message.audioUrl) {
       console.log("Not implemented error")
     } else {
@@ -138,12 +138,6 @@ export function UserChat({ messages, setMessages, username }: UserChatProps) {
       } else {
         handlePlayAudio(message);
       }
-
-      setMessages(prevMessages => 
-        prevMessages.map(msg => 
-          msg.message_id === message.message_id ? { ...msg, isPlaying: !isPlaying } : msg
-        )
-      );
     }
   }, []);
 

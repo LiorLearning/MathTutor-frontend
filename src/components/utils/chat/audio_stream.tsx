@@ -15,10 +15,10 @@ export const AudioContext = createContext<AudioContextProps | null>(null);
 interface AudioProviderProps {
   children: ReactNode;
   clientId: string;
-  onPlaybackEnd?: (messageId: string) => void;
+  setIsPlaying: (messageId: string, isPlaying: boolean) => void;
 }
 
-export const AudioProvider: React.FC<AudioProviderProps> = ({ children, clientId, onPlaybackEnd }) => {
+export const AudioProvider: React.FC<AudioProviderProps> = ({ children, clientId, setIsPlaying }) => {
   const [isConnected, setIsConnected] = useState(false);
   
   const wsRef = useRef<WebSocket | null>(null);
@@ -75,10 +75,8 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children, clientId
         delete isFirstChunkRef.current[id];
         delete audioBufferQueueRef.current[id];
 
-        // Call onPlaybackEnd if provided
-        if (onPlaybackEnd) {
-          onPlaybackEnd(id);
-        }
+        // Set is playing to false
+        setIsPlaying(id, false);
       }
     });
 
@@ -139,9 +137,9 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children, clientId
         
         nextStartTimeRef.current[messageId] = startTime + audioBuffer.duration;
 
-        if (is_end && onPlaybackEnd) {
+        if (is_end) {
           console.log("Setting up is Playing to false")
-          onPlaybackEnd(messageId);
+          setIsPlaying(messageId, false)
         }
       }
     }
@@ -197,6 +195,7 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children, clientId
             messageIdRef.current = data.messageId;
             isFirstChunkRef.current[data.messageId] = true;
             audioBufferQueueRef.current[data.messageId] = [];
+            setIsPlaying(data.messageId, true);
           } else if (data.type === 'stream_end') {
             if (messageIdRef.current) {
               // Process any remaining audio in the queue
@@ -250,6 +249,7 @@ const cleanupFinishedAudio = useCallback(() => {
       delete scheduledAudioRef.current[messageId];
       delete nextStartTimeRef.current[messageId];
       delete audioBufferQueueRef.current[messageId];
+      setIsPlaying(messageId, false);
     }
   });
 }, []);

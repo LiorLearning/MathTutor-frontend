@@ -12,16 +12,16 @@ export default function Chat () {
 
   const [messages, setMessages] = useState<Message[]>([]);
 
-  const handlePlaybackEnd = (messageId: string) => {
+  const setIsPlaying = (messageId: string, isPlaying: boolean) => {
     setMessages(prevMessages => 
       prevMessages.map(msg => 
-        msg.message_id === messageId ? { ...msg, isPlaying: false } : msg
+        msg.message_id === messageId ? { ...msg, isPlaying: isPlaying } : msg
       )
     );
-  };
+  }
   
   return (
-    <AudioProvider clientId={username} onPlaybackEnd={handlePlaybackEnd}>
+    <AudioProvider clientId={username} setIsPlaying={setIsPlaying}>
       <UserChat username={username} messages={messages} setMessages={setMessages}/>
     </AudioProvider>
   );
