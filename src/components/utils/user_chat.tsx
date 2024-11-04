@@ -3,9 +3,10 @@
 import React, { useState, useRef, useEffect, useCallback, useContext } from 'react';
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Button } from "@/components/ui/button"
+import { Input } from '@/components/ui/input';
 import axios from 'axios'
-import { motion, AnimatePresence } from 'framer-motion'
-import { PanelRightCloseIcon, PanelLeftCloseIcon, ChevronLeft, ChevronRight, Send } from "lucide-react"
+import { motion } from 'framer-motion'
+import { PanelRightClose, PanelLeftClose, ChevronLeft, ChevronRight, Send } from "lucide-react"
 
 import { 
   Message, 
@@ -504,7 +505,7 @@ export function UserChat({ messages, setMessages, username }: UserChatProps) {
             className="flex-1 p-6 transition-all duration-200 ease-in-out"
             animate={{
               marginRight: isRightColumnCollapsed ? "15%" : "50%",
-              marginLeft: isRightColumnCollapsed ? "15%": "0%",
+              marginLeft: isRightColumnCollapsed ? "15%" : "0%",
             }}
           >
             <div className="h-full flex flex-col border-r border-border">
@@ -532,12 +533,12 @@ export function UserChat({ messages, setMessages, username }: UserChatProps) {
                         <SpeechToText onRecordingStart={handleRecordingStart} onRecordingStop={handleRecordingStop} />
                       </div>
                       <div className="relative w-1/2">
-                        <input
+                        <Input
                           type="text"
                           value={textInput}
                           onChange={(e) => setTextInput(e.target.value)}
                           placeholder="Type"
-                          className="w-full text-black placeholder-gray-400 rounded-2xl px-4 py-3 pr-12 text-xs focus:outline-none focus:ring-2 focus:ring-gray-600 border border-gray-600"
+                          className="w-full h-12 text-black placeholder-gray-400 rounded-2xl px-4 py-3 pr-12 text-xs focus:outline-none focus:ring-2 focus:ring-gray-600 border border-gray-600"
                           onKeyDown={(e) => {
                             if (e.key === 'Enter') {
                               handleTextSend();
@@ -576,15 +577,15 @@ export function UserChat({ messages, setMessages, username }: UserChatProps) {
             <UserVideo 
               username={username}
               style={{ 
-                visibility: isVideoVisible ? 'visible' : 'hidden', // Hide the video feed
-                position: isVideoVisible ? 'static' : 'absolute', // Keep it in the flow or move it off-screen
+                visibility: isVideoVisible ? 'visible' : 'hidden',
+                position: isVideoVisible ? 'static' : 'absolute',
               }}
             />
             <button 
               onClick={toggleVideoFeed} 
               className="absolute top-0 right-0 bg-gray-800 text-white p-2 rounded"
             >
-              {isVideoVisible ? <PanelRightCloseIcon className="h-4 w-4" /> : <PanelLeftCloseIcon className="h-4 w-4" />}
+              {isVideoVisible ? <PanelRightClose className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
             </button>
           </div>
 
@@ -598,5 +599,5 @@ export function UserChat({ messages, setMessages, username }: UserChatProps) {
         </React.Fragment>
       )}
     </div>
-  );
+  )
 }
