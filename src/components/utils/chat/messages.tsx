@@ -9,19 +9,13 @@ const ASSISTANT = 'assistant';
 const RETHINKING_MESSAGE = 'rethinking';
 interface MessageComponentsProps {
   messages: any[];
-  isLoadingMore: boolean;
   toggleAudio: (message: any) => void;
 }
 
-const MessageComponents: React.FC<MessageComponentsProps> = ({ messages, isLoadingMore, toggleAudio }) => {
+const MessageComponents: React.FC<MessageComponentsProps> = ({ messages, toggleAudio }) => {
   return useMemo(() => {
     return (
       <>
-        {isLoadingMore && (
-          <div className="flex justify-center py-4">
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
-          </div>
-        )}
         {Array.isArray(messages) && messages.map((message, index) => (
           (message.role == USER || message.role == ASSISTANT) && (
           <div 
@@ -109,7 +103,7 @@ const MessageComponents: React.FC<MessageComponentsProps> = ({ messages, isLoadi
         ))}
       </>
     );
-  }, [messages, toggleAudio, isLoadingMore]);
+  }, [messages, toggleAudio]);
 };
 
 export default MessageComponents;

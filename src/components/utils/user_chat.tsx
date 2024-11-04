@@ -73,45 +73,6 @@ export function UserChat({ messages, setMessages, username }: UserChatProps) {
   const [isRightColumnCollapsed, setIsRightColumnCollapsed] = React.useState(true);
   const isRightColumnCollapsedRef = useRef<boolean>(isRightColumnCollapsed);
 
-  const [currentPage, setCurrentPage] = useState(1);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [hasMore, setHasMore] = useState(true);
-  const [initialScrollComplete, setInitialScrollComplete] = useState(false);
-
-  const previousScrollHeight = useRef(0);
-
-  const loadMoreMessages = async () => {
-    if (isLoadingMore || !hasMore) return;
-
-    try {
-      setIsLoadingMore(true);
-      const nextPage = currentPage + 1;
-      
-      const historyResponse = await axios.get<GetChatHistoryResponse>(
-        `${API_BASE_URL}/chat_history?user_id=${username}`,
-        { headers: { 'Content-Type': 'application/json' } }
-      );
-
-      if (historyResponse.data.length === 0) {
-        setHasMore(false);
-        return;
-      }
-
-      // Save the current scroll height before adding new messages
-      const scrollElement = scrollAreaRef.current?.querySelector('[data-radix-scroll-area-viewport]');
-      if (scrollElement) {
-        previousScrollHeight.current = scrollElement.scrollHeight;
-      }
-
-      setMessages(prevMessages => [...historyResponse.data, ...prevMessages]);
-      setCurrentPage(nextPage);
-    } catch (error) {
-      console.error('Error loading more messages:', error);
-    } finally {
-      setIsLoadingMore(false);
-    }
-  };
-
   const toggleRightColumn = () => {
     setIsRightColumnCollapsed(prev => {
       const newState = !prev; // Toggle the state
@@ -371,7 +332,6 @@ export function UserChat({ messages, setMessages, username }: UserChatProps) {
           );
 
           setMessages(historyResponse.data);
-          setHasMore(historyResponse.data.length === PAGE_SIZE);
         }
 
         initChatWebSocket(username);
@@ -446,36 +406,12 @@ export function UserChat({ messages, setMessages, username }: UserChatProps) {
     const scrollElement = scrollAreaRef.current?.querySelector('[data-radix-scroll-area-viewport]');
     if (!scrollElement) return;
 
-    if (!initialScrollComplete) {
-      // Initial scroll to bottom for new chat
-      scrollElement.scrollTo({
-        top: scrollElement.scrollHeight,
-        behavior: 'auto'
-      });
-      setInitialScrollComplete(true);
-    } else {
-      // Maintain scroll position when loading older messages
-      const newScrollPosition = scrollElement.scrollHeight - previousScrollHeight.current;
-      if (newScrollPosition > 0) {
-        scrollElement.scrollTop = newScrollPosition;
-      }
-    }
-  }, [messages, initialScrollComplete]);
-
-  useEffect(() => {
-    const scrollElement = scrollAreaRef.current?.querySelector('[data-radix-scroll-area-viewport]');
-    if (!scrollElement) return;
-
-    const handleScroll = () => {
-      // Load more when user scrolls near the top (e.g., within 100px)
-      if (scrollElement.scrollTop < 100 && !isLoadingMore && hasMore) {
-        loadMoreMessages();
-      }
-    };
-
-    scrollElement.addEventListener('scroll', handleScroll);
-    return () => scrollElement.removeEventListener('scroll', handleScroll);
-  }, [isLoadingMore, hasMore]);
+    // Initial scroll to bottom for new chat
+    scrollElement.scrollTo({
+      top: scrollElement.scrollHeight,
+      behavior: 'auto'
+    });
+  }, [messages]);
 
   const handleSendMessage = useCallback(async (message: Blob | string) => {
     if (chatWebsocketRef.current?.readyState == WebSocket.OPEN) {
@@ -512,7 +448,6 @@ export function UserChat({ messages, setMessages, username }: UserChatProps) {
                 <div className="space-y-6">
                   <MessageComponents 
                     messages={messages}
-                    isLoadingMore={isLoadingMore}
                     toggleAudio={toggleAudio}
                   />
                 </div>
