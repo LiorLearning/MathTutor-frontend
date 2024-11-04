@@ -25,7 +25,7 @@ import UserVideo from '@/components/webrtc/user';
 import { UserArtifactComponent } from '@/components/artifact/user';
 import MessageLoader from '@/components/ui/loaders/message_loader';
 
-const SPEAKOUT = true;
+const SPEAKOUT = false;
 const SPEED = 30;
 const PAGE_SIZE = 10;
 
@@ -37,6 +37,7 @@ const PAUSE = 'pause';
 const NOTEXT = 'notext';
 
 const RETHINKING_MESSAGE = "Rethinking..."
+const SLEEP_TIME_AFTER_MESSAGE = 2000
 
 interface UserChatProps {
   messages: Message[];
@@ -58,8 +59,8 @@ export function UserChat({ messages, setMessages, username }: UserChatProps) {
   const [chatId, setChatId] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isSendingMessage, setIsSendingMessage] = useState(false);
-  const [sendMessageTimeout, setSendMessageTimeout] = useState<NodeJS.Timeout | null>(null);
   const [textInput, setTextInput] = useState("");
+  const [isChatConnected, setIsChatConnected] = useState(false);
 
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
@@ -147,8 +148,19 @@ export function UserChat({ messages, setMessages, username }: UserChatProps) {
         `${process.env.NEXT_PUBLIC_WS_BASE_URL}/chat/handle_chat/${username}`
       );
       chatWebsocketRef.current.onopen = () => {
+        setIsChatConnected(true);
         console.log("Chat WebSocket connection established");
       }
+
+      chatWebsocketRef.current.onerror = (error) => {
+        console.error("Chat WebSocket error:", error);
+        setIsChatConnected(false);
+      };
+
+      chatWebsocketRef.current.onclose = () => {
+        console.log("Chat WebSocket connection closed");
+        setIsChatConnected(false);
+      };
 
       chatWebsocketRef.current.onmessage = async (event) => {
         console.log("WebSocket message received:", event.data); // Log the received event data
@@ -215,10 +227,8 @@ export function UserChat({ messages, setMessages, username }: UserChatProps) {
         const isImage = message.startsWith("![Generated");
 
         setIsSendingMessage(false);
-        if (sendMessageTimeout) {
-          clearTimeout(sendMessageTimeout);
-          setSendMessageTimeout(null);
-        }
+
+        await new Promise(resolve => setTimeout(resolve, SLEEP_TIME_AFTER_MESSAGE));
 
         const tempMessage: Message = {
           role: ASSISTANT,
@@ -436,7 +446,11 @@ export function UserChat({ messages, setMessages, username }: UserChatProps) {
             }}
           >
             <div className="h-full flex flex-col border-r border-border">
-              <Header username={username} isAudioConnected={audioContext.isConnected} />
+              <Header 
+                username={username} 
+                isAudioConnected={audioContext.isConnected} 
+                isChatConnected={isChatConnected}
+              />
 
               <ScrollArea ref={scrollAreaRef} className="flex-grow p-4">
                 <div className="space-y-6">

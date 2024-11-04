@@ -330,7 +330,7 @@ export function InterceptorChat() {
       </div>
       <div className="w-1/2 p-4 flex flex-col h-full">
         <AdminArtifactComponent username={username} />
-        <div className="fixed left-4 top-4 w-[15vw] h-[12vh] lg:w-[15vw] lg:h-[12vh]">
+        <div className="fixed left-4 top-4 w-[15vw] h-[calc(15vw * 4 / 3)] max-w-[256px] max-h-[calc(256px * 4 / 3)]">
           <AdminVideo 
             username={username} 
             style={{ 
