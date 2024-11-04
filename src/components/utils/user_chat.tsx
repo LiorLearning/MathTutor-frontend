@@ -1,24 +1,26 @@
 'use client'
 
-import React, { useState, useRef, useEffect, useCallback, useMemo, useContext } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useContext } from 'react';
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Button } from "@/components/ui/button"
-import { Pause, Volume2, Square, Mic, PanelRightCloseIcon, PanelLeftCloseIcon, ChevronLeft, ChevronRight, Send } from "lucide-react"
 import axios from 'axios'
 import { motion, AnimatePresence } from 'framer-motion'
+import { Square, Mic, PanelRightCloseIcon, PanelLeftCloseIcon, ChevronLeft, ChevronRight, Send } from "lucide-react"
+
 import { 
   Message, 
   StartChatResponse, 
   GetChatHistoryResponse,
   API_BASE_URL,
-  MarkdownComponent,
 } from './chat/chat_utils';
 import MessageComponents from './chat/messages';
-
 import Popup from './chat/popup';
+import Header from './chat/header';
+
+import { AudioContext } from './audio_stream';
 import UserVideo from '@/components/webrtc/user';
 import { UserArtifactComponent } from '@/components/artifact/user';
-import { AudioContext } from '@/components/utils/audio_stream';
+import MessageLoader from '@/components/ui/loaders/message_loader';
 
 const SPEAKOUT = true;
 const SPEED = 30;
@@ -544,19 +546,7 @@ export function UserChat({ messages, setMessages, username }: UserChatProps) {
             }}
           >
             <div className="h-full flex flex-col border-r border-border">
-              <header className="pb-4 px-4 border-b border-border">
-                <div className="flex justify-between items-center">
-                  <h1 className="text-xl font-bold">MathTutor</h1>
-                  <div className="flex items-center gap-2">
-                    <h3 className="text-lg text-muted-foreground">{username}</h3>
-                    {audioContext.isConnected ? (
-                      <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                    ) : (
-                      <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                    )}
-                  </div>
-                </div>
-              </header>
+              <Header username={username} isAudioConnected={audioContext.isConnected} />
 
               <ScrollArea ref={scrollAreaRef} className="flex-grow p-4">
                 <div className="space-y-6">
@@ -570,8 +560,7 @@ export function UserChat({ messages, setMessages, username }: UserChatProps) {
               
               {isSendingMessage ? (
                 <div className="flex items-center justify-center h-12 w-full">
-                  {/* <MessageLoader /> */}
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                  <MessageLoader />
                 </div>
               ) : (
                 <div className="pt-4 border-t border-border flex items-center justify-center">
