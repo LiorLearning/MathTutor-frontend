@@ -12,9 +12,9 @@ import {
   Message, 
   GetChatHistoryResponse,
   API_BASE_URL,
-  MarkdownComponent,
-} from '@/components/utils/chat/chat_utils'
-import { Student, MODEL_API_BASE_URL } from '@/components/utils/admin/admin_utils'
+} from './utils/chat/chat_utils'
+import MessageComponents from './utils/admin/messages';
+
 import AdminVideo from '@/components/webrtc/admin';
 import { AdminArtifactComponent } from '@/components/artifact/admin';
 
@@ -23,48 +23,6 @@ const ASSISTANT = 'assistant';
 const CORRECTION = 'correction';
 const ADMIN = 'admin';
 
-function UserSidebar({ username }: { username: string }) {
-  const [studentDetails, setStudentDetails] = useState<Student | null>(null);
-
-  useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const response = await axios.get<Student>(`${MODEL_API_BASE_URL}/users/${username}`);
-        setStudentDetails(response.data);
-      } catch (error) {
-        console.error('Error fetching user data:', error);
-      }
-    };
-
-    fetchUserData();
-  }, [username]);
-
-  return (
-    <div className="w-1/5 bg-gray-100 p-4 border-r">
-      <div className="mb-4">
-        <h2 className="text-lg font-semibold mb-2">User Details</h2>
-        {studentDetails ? (
-          <div>
-            <p><strong>User ID:</strong> {studentDetails.userid}</p>
-            <p><strong>Name:</strong> {studentDetails.first_name} {studentDetails.last_name}</p>
-            <p><strong>Grade:</strong> {studentDetails.grade}</p>
-            <p><strong>Age:</strong> {studentDetails.age}</p>
-            <p><strong>Parent/Guardian:</strong> {studentDetails.parent_guardian}</p>
-            <p><strong>Email:</strong> {studentDetails.email}</p>
-            <p><strong>Phone:</strong> {studentDetails.phone}</p>
-            <p><strong>Country:</strong> {studentDetails.country}</p>
-          </div>
-        ) : (
-          <p>Loading user details...</p>
-        )}
-      </div>
-      <div>
-        <h2 className="text-lg font-semibold mb-2">User Context</h2>
-        <p className="text-sm">{studentDetails?.user_context || 'Loading user context...'}</p>
-      </div>
-    </div>
-  );
-}
 
 export function InterceptorChat() {
   const searchParams = useSearchParams();
@@ -75,12 +33,8 @@ export function InterceptorChat() {
   const [correctionText, setCorrectionText] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
-  const lastBotMessageRef = useRef<HTMLDivElement>(null);
   const chatWebsocketRef = useRef<WebSocket | null>(null);
   const [pausedMessage, setPausedMessage] = useState(false);
-  
-  
-
 
 
   const [isVideoVisible, setIsVideoVisible] = useState(true); // State to manage visibility
@@ -252,35 +206,6 @@ export function InterceptorChat() {
     }
   }, [])
 
-  const messageComponents = useMemo(() => (
-    Array.isArray(messages) ? messages.map((message, index) => (
-      <div 
-        key={message.message_id} 
-        className="flex flex-col items-center justify-center h-full"
-        ref={index === messages.length - 1 && message.role === ASSISTANT ? lastBotMessageRef : null}
-      >
-        <div className={`max-w-[90%] ${message.role === ASSISTANT ? 'self-start' : 'self-end'}`}>
-          <div
-            className={`rounded-3xl p-4 ${
-              message.role === USER
-                ? 'bg-primary text-white'
-                : message.role === CORRECTION
-                ? 'bg-yellow-200 text-gray-800'
-                : message.role === ADMIN
-                ? 'bg-green-200 text-gray-800'
-                : 'bg-gray-200 text-gray-800'
-            } ${(message.role === ADMIN || message.role == CORRECTION) && index < messages.length - 1 ? 'opacity-50' : ''} 
-            ${message.role !== USER && index === messages.length - 1 ? 'opacity-100' : ''}`}
-          >
-            <MarkdownComponent content={message.content} />
-          </div>
-          <div className="text-xs text-gray-500 mt-1">
-            {new Date(message.timestamp).toLocaleTimeString()}
-          </div>
-        </div>
-      </div>
-    )) : null
-  ), [messages]);
 
   if (isLoading) {
     return <div className="flex items-center justify-center h-screen">
@@ -290,7 +215,8 @@ export function InterceptorChat() {
 
   return (
     <div className="flex h-screen bg-background">
-      <UserSidebar username={username} />
+      {/* <UserSidebar username={username} /> */}
+      
       <div className="flex flex-col flex-grow w-1/2">
         <header className="p-4 border-b border-border">
           <div className="flex justify-between items-center">
@@ -310,7 +236,7 @@ export function InterceptorChat() {
 
         <ScrollArea className="flex-grow p-4" ref={scrollAreaRef}>
           <div className="space-y-6">
-            {messageComponents}
+            <MessageComponents messages={messages} />
           </div>
         </ScrollArea>
 
