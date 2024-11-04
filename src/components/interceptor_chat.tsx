@@ -1,9 +1,10 @@
 'use client'
 
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
+import { ScrollArea } from "./ui/scroll-area"
+import { Input } from "./ui/input"
+import { Textarea } from './ui/textarea';
+import { Button } from "./ui/button"
 import { useSearchParams } from 'next/navigation'
 import axios from 'axios'
 import { Send, User, PanelRightCloseIcon, PanelLeftCloseIcon } from "lucide-react"
@@ -15,8 +16,8 @@ import {
 } from './utils/chat/chat_utils'
 import MessageComponents from './utils/admin/messages';
 
-import AdminVideo from '@/components/webrtc/admin';
-import { AdminArtifactComponent } from '@/components/artifact/admin';
+import AdminVideo from './webrtc/admin';
+import { AdminArtifactComponent } from './artifact/admin';
 
 const USER = 'user';
 const ASSISTANT = 'assistant';
@@ -153,6 +154,13 @@ export function InterceptorChat() {
     setMessages(prevMessages => [...prevMessages, userMessage]);
     setInputText("");
 
+    const textareaElement = document.querySelector(
+      "textarea.send-input-textarea"
+    ) as HTMLTextAreaElement;
+    if (textareaElement) {
+      textareaElement.style.height = "auto";
+    }
+
     if (chatWebsocketRef.current) {
       chatWebsocketRef.current.send(JSON.stringify({
         'role': 'input',
@@ -184,6 +192,13 @@ export function InterceptorChat() {
 
       setCorrectionText("");
 
+      const textareaElement = document.querySelector(
+        "textarea.send-correction-textarea"
+      ) as HTMLTextAreaElement;
+      if (textareaElement) {
+        textareaElement.style.height = "auto";
+      }
+
       return updatedMessages;
     });
 
@@ -206,6 +221,11 @@ export function InterceptorChat() {
     }
   }, [])
 
+  const handleTextareaInput = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const textarea = event.target;
+    textarea.style.height = 'auto'; // Reset the height
+    textarea.style.height = `${Math.min(textarea.scrollHeight, 10 * 24)}px`; // Set the height based on content, with a max of 10 rows (assuming 24px per row)
+  };
 
   if (isLoading) {
     return <div className="flex items-center justify-center h-screen">
@@ -242,16 +262,22 @@ export function InterceptorChat() {
 
         <div className="p-6 border-t border-border flex items-center bg-muted space-x-2">
           {pausedMessage ? (
-            <Input 
-              className="flex-grow h-12 bg-white"
+            <Textarea
+              className="flex-grow h-12 bg-white send-correction-textarea"
               placeholder="Update last assistant message..." 
               value={correctionText}
-              onChange={(e) => setCorrectionText(e.target.value)}
+              onChange={(e) => {
+                setCorrectionText(e.target.value);
+                handleTextareaInput(e);
+              }}
+              onInput={handleTextareaInput}
               onKeyPress={(e) => {
                 if (e.key === 'Enter') {
                   handleCorrectionMessage();
                 }
               }}
+              rows={1}
+              style={{ maxHeight: '240px' }}
             />
           ) : (
             <Button 
@@ -276,16 +302,22 @@ export function InterceptorChat() {
         </div>
         
         <div className="p-6 border-t border-border flex items-center bg-gray-500">
-          <Input 
-            className="flex-grow mr-2 h-12 bg-white"
+          <Textarea
+            className="flex-grow mr-2 h-12 bg-white send-input-textarea"
             placeholder="Send follow up message..." 
             value={inputText}
-            onChange={(e) => setInputText(e.target.value)}
+            onChange={(e) => {
+              setInputText(e.target.value);
+              handleTextareaInput(e);
+            }}
+            onInput={handleTextareaInput}
             onKeyPress={(e) => {
               if (e.key === 'Enter') {
                 handleSendMessage();
               }
             }}
+            rows={1}
+            style={{ maxHeight: '240px' }}
           />
           <Button 
             size="icon" 
@@ -299,7 +331,7 @@ export function InterceptorChat() {
       </div>
       <div className="w-1/2 p-4 flex flex-col h-full">
         <AdminArtifactComponent username={username} />
-        <div className="fixed left-4 bottom-4 w-[15vw] h-[12vh] lg:w-[15vw] lg:h-[12vh]">
+        <div className="fixed left-4 top-4 w-[15vw] h-[12vh] lg:w-[15vw] lg:h-[12vh]">
           <AdminVideo 
             username={username} 
             style={{ 
@@ -309,7 +341,7 @@ export function InterceptorChat() {
           />
           <button 
             onClick={toggleVideoFeed} 
-            className="absolute left-0 bottom-0 bg-gray-800 text-white p-2 rounded"
+            className="absolute left-0 top-0 bg-gray-800 text-white p-2 rounded"
           >
             {isVideoVisible ? <PanelLeftCloseIcon className="h-4 w-4" /> : <PanelRightCloseIcon className="h-4 w-4" />}
           </button>
