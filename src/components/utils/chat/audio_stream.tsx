@@ -1,16 +1,8 @@
 import React, { useState, useEffect, useCallback, useRef, createContext, ReactNode } from 'react';
 
 interface AudioContextProps {
-  isConnected: boolean;
-  audioContextRef: React.MutableRefObject<AudioContext | null>;
-  scheduledAudioRef: React.MutableRefObject<Record<string, { source: AudioBufferSourceNode; gain: GainNode; startTime: number; }[]>>;
-  nextStartTimeRef: React.MutableRefObject<Record<string, number>>;
-  isFirstChunkRef: React.MutableRefObject<Record<string, boolean>>;
-  audioBufferQueueRef: React.MutableRefObject<Record<string, Float32Array[]>>;
-  webSocketRef: React.MutableRefObject<WebSocket | null>; // Added webSocketRef
   playAudio: (messageId: string, text: string) => void;
   stopAudio: (messageId?: string) => void;
-  setIsPlaying: (messageId: string, isPlaying: boolean) => void; // Added setIsPlaying
 }
 
 export const AudioContext = createContext<AudioContextProps | null>(null);
@@ -324,16 +316,8 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children, clientId
   return (
     <AudioContext.Provider
       value={{
-        isConnected,
-        audioContextRef,
-        scheduledAudioRef,
-        nextStartTimeRef,
-        isFirstChunkRef,
-        audioBufferQueueRef,
-        webSocketRef,
         playAudio,
         stopAudio,
-        setIsPlaying, // Provide setIsPlaying to context
       }}
     >
       {children}
