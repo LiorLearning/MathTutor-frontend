@@ -10,6 +10,9 @@ export function FallbackComponent() {
         <p className="text-lg">
           Can you please clear your existing tabs and try reloading the page?
         </p>
+        <p className="text-lg">
+          If the issue persists, please update your browser.
+        </p>
       </div>
     </div>
   );
