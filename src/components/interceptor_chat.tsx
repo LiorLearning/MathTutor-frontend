@@ -137,7 +137,7 @@ export function InterceptorChat() {
   };
 
   // Follow up message
-  const handleSendMessage = useCallback(async (message: string) => {
+  const handleSendMessage = useCallback(async (message: string, images: string[]) => {
     const userMessage: Message = {
       role: ADMIN,
       content: message,
@@ -148,23 +148,17 @@ export function InterceptorChat() {
 
     setMessages(prevMessages => [...prevMessages, userMessage]);
     
-    const textareaElement = document.querySelector(
-      "textarea.send-input-textarea"
-    ) as HTMLTextAreaElement;
-    if (textareaElement) {
-      textareaElement.style.height = "auto";
-    }
-    
     if (chatWebsocketRef.current) {
       chatWebsocketRef.current.send(JSON.stringify({
         'role': 'input',
-        'content': message
+        'content': message,
+        'images': images
       }));
     }
   }, []);
 
   // Correction message
-  const handleCorrectionMessage = useCallback(async (correction: string) => {
+  const handleCorrectionMessage = useCallback(async (correction: string, images: string[]) => {
     setMessages(prevMessages => {
       let updatedMessages = prevMessages.slice(0, -1);
       const lastMessage = updatedMessages[updatedMessages.length - 1];
@@ -180,14 +174,6 @@ export function InterceptorChat() {
       };
 
       updatedMessages = [...updatedMessages, userMessage];
-
-      
-      const textareaElement = document.querySelector(
-        "textarea.send-correction-textarea"
-      ) as HTMLTextAreaElement;
-      if (textareaElement) {
-        textareaElement.style.height = "auto";
-      }
       
       return updatedMessages;
     });
@@ -196,6 +182,7 @@ export function InterceptorChat() {
       chatWebsocketRef.current.send(JSON.stringify({
         'role': 'correction',
         'content': correction,
+        'images': images,
       }));
     }
   }, [messages]);

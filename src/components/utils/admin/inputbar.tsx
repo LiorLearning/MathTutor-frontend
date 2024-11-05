@@ -66,6 +66,13 @@ function InputBar({ onSendMessage }: InputBarProps) {
     onSendMessage(textInput, imageUrls);
     setTextInput("");
     clearImages();
+
+    const textareaElement = document.querySelector(
+      "textarea.textarea-send"
+    ) as HTMLTextAreaElement;
+    if (textareaElement) {
+      textareaElement.style.height = "auto";
+    }
   }
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -165,7 +172,7 @@ function InputBar({ onSendMessage }: InputBarProps) {
             }}
             onPaste={handlePaste}
             placeholder="Type a message or paste an image"
-            className="w-full h-12 text-black bg-gray-100 rounded-2xl px-4 py-3 pr-24 text-sm focus:outline-none focus:ring-2 focus:ring-gray-600 border border-gray-300"
+            className="w-full h-12 text-black bg-gray-100 rounded-2xl px-4 py-3 pr-24 text-sm focus:outline-none focus:ring-2 focus:ring-gray-600 border border-gray-300 textarea-send"
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault()

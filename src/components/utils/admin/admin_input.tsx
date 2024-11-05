@@ -5,8 +5,8 @@ import { Button } from '@/components/ui/button'
 import InputBar from './inputbar'
 
 interface AdminInputBarProps {
-  onSendMessage: (message: string) => void;
-  onSendCorrection: (correction: string) => void;
+  onSendMessage: (message: string, images: string[]) => void;
+  onSendCorrection: (correction: string, images: string[]) => void;
   pausedMessage: boolean;
   handlePauseMessage: () => void;
 }
@@ -14,11 +14,11 @@ interface AdminInputBarProps {
 
 const AdminInputBar: React.FC<AdminInputBarProps> = ({ onSendMessage, onSendCorrection, pausedMessage, handlePauseMessage }) => {
   const handleTextSend = (text: string, images: string[]) => {
-    onSendMessage(text);
+    onSendMessage(text, images);
   };
   
   const handleCorrectionSend = (text: string, images: string[]) => {
-    onSendCorrection(text);
+    onSendCorrection(text, images);
   };
 
   return (
