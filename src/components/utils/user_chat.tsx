@@ -3,7 +3,6 @@
 import React, { useState, useRef, useEffect, useCallback, useContext } from 'react';
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Button } from "@/components/ui/button"
-import { Input } from '@/components/ui/input';
 import axios from 'axios'
 import { motion } from 'framer-motion'
 import { PanelRightClose, PanelLeftClose, ChevronLeft, ChevronRight, Send } from "lucide-react"
@@ -23,7 +22,10 @@ import SpeechToText from './chat/speech_to_text';
 import { AudioContext } from './chat/audio_stream';
 import UserVideo from '@/components/webrtc/user';
 import { UserArtifactComponent } from '@/components/artifact/user';
+import InputBar from './chat/input_bar';
 import MessageLoader from '@/components/ui/loaders/message_loader';
+import PageLoader from '../ui/loaders/page_loader';
+
 
 const SPEAKOUT = true;
 const SPEED = 30;
@@ -58,7 +60,6 @@ export function UserChat({ messages, setMessages, username }: UserChatProps) {
   const [chatId, setChatId] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isSendingMessage, setIsSendingMessage] = useState(false);
-  const [textInput, setTextInput] = useState("");
   const [isChatConnected, setIsChatConnected] = useState(false);
 
   const scrollAreaRef = useRef<HTMLDivElement>(null);
@@ -85,6 +86,7 @@ export function UserChat({ messages, setMessages, username }: UserChatProps) {
     setIsVideoVisible(prev => !prev);
   };
 
+  // Text to Speech functions
   const handleStopAudio = (message: Message) => {
     audioContext.stopAudio(message.message_id);
   };
@@ -281,34 +283,42 @@ export function UserChat({ messages, setMessages, username }: UserChatProps) {
     }
   }, [audioContext, setMessages]);
 
+  // Speech to Text functions
   const handleRecordingStart = () => {
     audioContext.stopAudio();
   };
+
+  const handleSendMessage = useCallback(async (message: Blob | string) => {
+    if (chatWebsocketRef.current?.readyState == WebSocket.OPEN) {
+      chatWebsocketRef.current.send(message);
+    }
+
+    audioContext.stopAudio();
+
+    setIsSendingMessage(true);
+  }, []);
 
   const handleRecordingStop = (blob: Blob) => {
     handleSendMessage(blob);
   };
 
-  const handleTextSend = async () => {
-    if (textInput.trim() === "") return; // Prevent sending empty messages
-
+  const onSendTextMessage = async (message: string) => {
     // Dummy message
     if (chatWebsocketRef.current?.readyState == WebSocket.OPEN) {
-      chatWebsocketRef.current.send(textInput);
+      chatWebsocketRef.current.send(message);
     }
 
-    handleSendMessage(textInput);
+    handleSendMessage(message);
 
     const userMessage: Message = {
       role: USER,
-      content: textInput,
+      content: message,
       audioUrl: '',
       message_id: `temp-${Date.now()}`,
       timestamp: new Date().toISOString()
     };
 
     setMessages(prevMessages => [...prevMessages, userMessage]);
-    setTextInput(""); // Clear the input after sending
   };
 
   useEffect(() => {
@@ -402,20 +412,8 @@ export function UserChat({ messages, setMessages, username }: UserChatProps) {
     };
   }, [messages, isSendingMessage]);
 
-  const handleSendMessage = useCallback(async (message: Blob | string) => {
-    if (chatWebsocketRef.current?.readyState == WebSocket.OPEN) {
-      chatWebsocketRef.current.send(message);
-    }
-
-    audioContext.stopAudio();
-
-    setIsSendingMessage(true);
-  }, []);
-
   if (isLoading) {
-    return <div className="flex items-center justify-center h-screen">
-      <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
-    </div>;
+    return <PageLoader />;
   }
   return (
     <div className="flex h-screen overflow-hidden bg-background">
@@ -446,9 +444,7 @@ export function UserChat({ messages, setMessages, username }: UserChatProps) {
               </ScrollArea>
               
               {isSendingMessage ? (
-                <div className="flex items-center justify-center h-12 w-full">
-                  <MessageLoader />
-                </div>
+                <MessageLoader />
               ) : (
                 <div className="pt-4 border-t border-border flex items-center justify-center">
                   <div className="relative flex flex-col items-center">
@@ -456,27 +452,7 @@ export function UserChat({ messages, setMessages, username }: UserChatProps) {
                       <div className='relative w-1/2'>
                         <SpeechToText onRecordingStart={handleRecordingStart} onRecordingStop={handleRecordingStop} />
                       </div>
-                      <div className="relative w-1/2">
-                        <Input
-                          type="text"
-                          value={textInput}
-                          onChange={(e) => setTextInput(e.target.value)}
-                          placeholder="Type"
-                          className="w-full h-12 text-black placeholder-gray-400 rounded-2xl px-4 py-3 pr-12 text-xs focus:outline-none focus:ring-2 focus:ring-gray-600 border border-gray-600"
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                              handleTextSend();
-                            }
-                          }}
-                        />
-                        <button
-                          onClick={handleTextSend}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-black transition-colors"
-                          aria-label="Send message"
-                        >
-                          <Send size={20} />
-                        </button>
-                      </div>
+                      <InputBar onSendMessage={onSendTextMessage} />
                     </div>
                   </div>
                 </div>
@@ -505,12 +481,12 @@ export function UserChat({ messages, setMessages, username }: UserChatProps) {
                 position: isVideoVisible ? 'static' : 'absolute',
               }}
             />
-            <button 
+            <Button 
               onClick={toggleVideoFeed} 
               className="absolute top-0 right-0 bg-gray-800 text-white p-2 rounded"
             >
               {isVideoVisible ? <PanelRightClose className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
-            </button>
+            </Button>
           </div>
 
           <Button

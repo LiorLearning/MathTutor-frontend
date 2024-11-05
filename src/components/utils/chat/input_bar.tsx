@@ -1,0 +1,43 @@
+import React, { useState } from 'react';
+import { Input } from '@/components/ui/input';
+import { Send } from 'lucide-react';
+
+interface InputBarProps {
+  onSendMessage: (message: string) => void;
+}
+
+const InputBar: React.FC<InputBarProps> = ({ onSendMessage }) => {
+  const [textInput, setTextInput] = useState("");
+
+  const handleTextSend = () => {
+    if (textInput.trim() === "") return; // Prevent sending empty messages
+    onSendMessage(textInput);
+    setTextInput(""); // Clear the input after sending
+  };
+
+  return (
+    <div className="relative w-1/2">
+      <Input
+        type="text"
+        value={textInput}
+        onChange={(e) => setTextInput(e.target.value)}
+        placeholder="Type"
+        className="w-full h-12 text-black placeholder-gray-400 rounded-2xl px-4 py-3 pr-12 text-xs focus:outline-none focus:ring-2 focus:ring-gray-600 border border-gray-600"
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') {
+            handleTextSend();
+          }
+        }}
+      />
+      <button
+        onClick={handleTextSend}
+        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-black transition-colors"
+        aria-label="Send message"
+      >
+        <Send size={20} />
+      </button>
+    </div>
+  );
+};
+
+export default InputBar;
