@@ -25,7 +25,7 @@ import UserVideo from '@/components/webrtc/user';
 import { UserArtifactComponent } from '@/components/artifact/user';
 import MessageLoader from '@/components/ui/loaders/message_loader';
 
-const SPEAKOUT = false;
+const SPEAKOUT = true;
 const SPEED = 30;
 
 const CORRECTION = 'correction';
@@ -90,30 +90,18 @@ export function UserChat({ messages, setMessages, username }: UserChatProps) {
   };
 
   const handlePlayAudio = (message: Message) => {
-    const messageId = message.message_id
-    let messageText = message.content
+    const messageId = message.message_id;
+    let messageText = message.content;
 
     if (message.isImage) {
-      messageText = extractTextFromMessage(messageText)
+      messageText = extractTextFromMessage(messageText);
     }
 
     if (!messageText.trim()) {
       return;
     }
-    
-    if (!audioContext.wsRef.current || audioContext.wsRef.current.readyState !== WebSocket.OPEN) {
-      return;
-    }
 
-    if (audioContext.audioContextRef.current) {
-      audioContext.nextStartTimeRef.current[messageId] = audioContext.audioContextRef.current.currentTime;
-    }
-
-    audioContext.wsRef.current.send(JSON.stringify({
-      type: 'tts_request',
-      text: messageText.trim(),
-      id: messageId,
-    }));
+    audioContext.playAudio(messageId, messageText);
   };
 
   const toggleAudio = useCallback(async (message: Message) => {
