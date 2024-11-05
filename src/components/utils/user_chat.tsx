@@ -89,31 +89,24 @@ export function UserChat({ messages, setMessages, username }: UserChatProps) {
     audioContext.stopAudio(message.message_id);
   };
 
-  const handlePlayAudio = (message: Message) => {
-    const messageId = message.message_id;
-    let messageText = message.content;
-
-    if (message.isImage) {
-      messageText = extractTextFromMessage(messageText);
-    }
-
+  const handlePlayAudio = (messageId: string, messageText: string) => {
     if (!messageText.trim()) {
       return;
     }
+
+    // Update messages state immediately
+    setMessages(prevMessages => 
+      prevMessages.map(msg => 
+        msg.message_id === messageId
+          ? { ...msg, isPlaying: true }
+          : { ...msg, isPlaying: false }
+      )
+    );
 
     audioContext.playAudio(messageId, messageText);
   };
 
   const toggleAudio = useCallback(async (message: Message) => {
-    const playingMessageIds = Object.keys(audioContext.scheduledAudioRef.current);
-
-    // Stop audio for all other messages
-    playingMessageIds.forEach(id => {
-      if (id !== message.message_id) {
-        audioContext.stopAudio(id);
-      }
-    });
-
     // Handle audio for current message
     if (message.audioUrl) {
       console.log("Not implemented error")
@@ -121,10 +114,19 @@ export function UserChat({ messages, setMessages, username }: UserChatProps) {
       const isPlaying = message.isPlaying;
       console.log(`${isPlaying ? 'Pausing' : 'Playing'} audio for message ID:`, message.message_id);
 
+      // Update messages state immediately
+      setMessages(prevMessages => 
+        prevMessages.map(msg => 
+          msg.message_id === message.message_id 
+            ? { ...msg, isPlaying: !isPlaying }
+            : msg
+        )
+      );
+
       if (isPlaying) {
         handleStopAudio(message);
       } else {
-        handlePlayAudio(message);
+        handlePlayAudio(message.message_id, message.content);
       }
     }
   }, []);
@@ -217,20 +219,24 @@ export function UserChat({ messages, setMessages, username }: UserChatProps) {
 
         await new Promise(resolve => setTimeout(resolve, SLEEP_TIME_AFTER_MESSAGE));
 
-        const tempMessage: Message = {
+        const finalMessage: Message = {
           role: ASSISTANT,
           content: '',
           audioUrl: '',
           message_id: `bot-${Date.now()}`,
           timestamp: new Date().toISOString(),
-          isPlaying: false,
+          isPlaying: SPEAKOUT,
           isImage: isImage
         };
-        const finalMessage = JSON.parse(JSON.stringify(tempMessage));
+        // const finalMessage = JSON.parse(JSON.stringify(tempMessage));
 
         if (SPEAKOUT) {
-          tempMessage.content = message;
-          handlePlayAudio(tempMessage);
+          const messageId = finalMessage.message_id
+          let messageText = message
+          if (message.isImage) {
+            messageText = extractTextFromMessage(messageText);
+          }
+          handlePlayAudio(messageId, messageText);
         }
 
         if (isImage) {
@@ -427,7 +433,6 @@ export function UserChat({ messages, setMessages, username }: UserChatProps) {
             <div className="h-full flex flex-col border-r border-border">
               <Header 
                 username={username} 
-                isAudioConnected={audioContext.isConnected} 
                 isChatConnected={isChatConnected}
               />
 

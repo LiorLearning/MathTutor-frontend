@@ -64,9 +64,11 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children, clientId
 
     // Wait for connection before proceeding
     waitForConnection().then(() => {
+      console.log(`WebSocket connected, starting audio for messageId: ${messageId}`);
       setIsPlaying(messageId, true);
       
       if (webSocketRef.current) {
+        console.log(`Sending TTS request for messageId: ${messageId}`);
         webSocketRef.current.send(JSON.stringify({
           type: 'tts_request', 
           text: text.trim(),
@@ -74,6 +76,7 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children, clientId
         }));
       }
       
+      console.log(`Starting audio queue processing for messageId: ${messageId}`);
       processAudioQueue(messageId);
     });
 
