@@ -122,7 +122,15 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children, clientId
     }
   }, [setIsPlaying]);
 
-  const processAudioQueue = useCallback((messageId: string) => {
+  const processAudioQueue = useCallback((messageId: string, is_end: boolean = false) => {
+
+    // TODO: No need for a timeout
+    setTimeout(() => {
+      if (is_end) {
+        setIsPlaying(messageId, false);
+      }
+    }, 2000);
+    
     if (!audioContextRef.current || !audioBufferQueueRef.current[messageId]) {
       return;
     }
@@ -222,10 +230,10 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children, clientId
             audioBufferQueueRef.current[data.messageId] = [];
           } else if (data.type === 'stream_end') {
             // Process any remaining audio in the queue
-            processAudioQueue(data.messageId);
+            processAudioQueue(data.messageId, true);
 
             // Wait for a short time to ensure all chunks are processed
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise(resolve => setTimeout(resolve, 50));
 
             // Apply fade out to the last scheduled audio chunk
             const audioChunks = scheduledAudioRef.current[data.messageId];
