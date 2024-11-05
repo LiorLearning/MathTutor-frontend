@@ -140,7 +140,7 @@ export function InterceptorChat() {
   const handleSendMessage = useCallback(async (message: string, images: string[]) => {
     const userMessage: Message = {
       role: ADMIN,
-      content: message,
+      content: images.map(url => `![image](${url})`).join('\n') + `\n\n${message}`,
       audioUrl: '',
       message_id: `temp-${Date.now()}`,
       timestamp: new Date().toISOString()
@@ -167,7 +167,7 @@ export function InterceptorChat() {
 
       const userMessage: Message = {
         role: CORRECTION,
-        content: lastMessage.content + " (" + correction + ")",
+        content: lastMessage.content + " (" + correction + ")" + "\n\n" + images.map(url => `![image](${url})`).join('\n'),
         audioUrl: '',
         message_id: `temp-${Date.now()}`,
         timestamp: new Date().toISOString()
