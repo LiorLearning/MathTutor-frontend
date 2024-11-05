@@ -13,11 +13,11 @@ interface AdminInputBarProps {
 
 
 const AdminInputBar: React.FC<AdminInputBarProps> = ({ onSendMessage, onSendCorrection, pausedMessage, handlePauseMessage }) => {
-  const handleTextSend = (text: string, images: File[]) => {
+  const handleTextSend = (text: string, images: string[]) => {
     onSendMessage(text);
   };
   
-  const handleCorrectionSend = (text: string, images: File[]) => {
+  const handleCorrectionSend = (text: string, images: string[]) => {
     onSendCorrection(text);
   };
 

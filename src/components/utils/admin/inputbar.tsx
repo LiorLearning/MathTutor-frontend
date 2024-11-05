@@ -1,17 +1,27 @@
 import { Textarea } from '@/components/ui/textarea';
 import React, { useState, useRef, useCallback } from 'react'
 import { Button } from '@/components/ui/button';
-import { ImageIcon, Send, X } from 'lucide-react';
-
+import { ImageIcon, Send, X, Loader } from 'lucide-react';
+import axios from 'axios';
 
 interface InputBarProps {
-  onSendMessage: (message: string, images: File[]) => void
+  onSendMessage: (message: string, images: string[]) => void
+}
+
+interface UploadFileResponse {
+  filename: string;
+  url: string;
+}
+
+interface UploadImagesResponse {
+  uploaded_files: UploadFileResponse[];
 }
 
 function InputBar({ onSendMessage }: InputBarProps) {
   const [textInput, setTextInput] = useState("")
   const [selectedImages, setSelectedImages] = useState<File[]>([])
   const [previewUrls, setPreviewUrls] = useState<string[]>([])
+  const [isUploading, setIsUploading] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const textInputRef = useRef<HTMLTextAreaElement>(null)
 
@@ -21,11 +31,41 @@ function InputBar({ onSendMessage }: InputBarProps) {
     textarea.style.height = `${Math.min(textarea.scrollHeight, 10 * 24)}px`; // Set the height based on content, with a max of 10 rows (assuming 24px per row)
   };
 
-  const handleTextSend = () => {
-    if (textInput.trim() === "" && selectedImages.length === 0) return // Prevent sending empty messages
-    onSendMessage(textInput, selectedImages)
-    setTextInput("") // Clear the input after sending
-    clearImages() // Clear the selected images and previews
+  const handleFileUpload = async (files: File[]): Promise<string[]> => {
+    const formData = new FormData();
+    files.forEach(file => {
+      formData.append('files', file);
+    });
+
+    setIsUploading(true);
+    try {
+      const response = await axios.post<UploadImagesResponse>(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}api/v1/file/upload-images/`, 
+        formData, {
+          headers: {
+            'accept': 'application/json',
+            'Content-Type': 'multipart/form-data'
+          }
+        }
+      );
+      return response.data.uploaded_files.map((file: UploadFileResponse) => file.url);
+    } catch (error) {
+      console.error('Error uploading images:', error);
+      return [];
+    } finally {
+      setIsUploading(false);
+    }
+  }
+
+  const handleTextSend = async () => {
+    if (textInput.trim() === "" && selectedImages.length === 0) return; // Prevent sending empty messages
+
+    let imageUrls: string[] = [];
+    imageUrls = await handleFileUpload(selectedImages);
+
+    onSendMessage(textInput, imageUrls);
+    setTextInput("");
+    clearImages();
   }
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -152,7 +192,11 @@ function InputBar({ onSendMessage }: InputBarProps) {
               className="text-gray-400 hover:text-gray-600 transition-colors"
               aria-label="Send message"
             >
-              <Send size={20} />
+              {isUploading ? (
+                <Loader size={20} className="animate-spin text-gray-400" />
+              ) : (
+                <Send size={20} />
+              )}
             </Button>
           </div>
         </div>
