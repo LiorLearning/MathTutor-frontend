@@ -21,7 +21,7 @@ interface Artifact {
     created_at: string;
 }
 
-export default function AllStudentsPage() {
+export default function AllStudentsArtifactsPage() {
   const [selectedUser, setSelectedUser] = useState<string | undefined>(undefined);
   const [users, setUsers] = useState<Student[]>([]);
   const [htmlFiles, setHtmlFiles] = useState<Artifact[]>([]);

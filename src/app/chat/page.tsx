@@ -1,9 +1,11 @@
-import Chat from "@/components/chat";
-import React, { Suspense } from 'react';
+import React, { Suspense, lazy } from 'react';
+import { FallbackComponent } from "@/components/fallback";
+
+const Chat = lazy(() => import("@/components/chat"));
 
 export default function ChatPage() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={<FallbackComponent />}>
       <Chat />
     </Suspense>
   );
