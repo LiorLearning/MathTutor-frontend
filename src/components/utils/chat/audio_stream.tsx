@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef, createContext, ReactNode } from 'react';
 
 interface AudioContextProps {
+  isConnected: boolean;
   playAudio: (messageId: string, text: string) => void;
   stopAudio: (messageId?: string) => void;
 }
@@ -32,9 +33,6 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children, clientId
   const MIN_BUFFER_DURATION = 0.5;
 
   const playAudio = useCallback((messageId: string, text: string) => {
-    console.log(`Attempting to play audio for messageId: ${messageId}`);
-    
-    // Connect websocket and wait for it to be ready
     connectWebSocket(messageId);
     
     const waitForConnection = () => {
@@ -56,11 +54,9 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children, clientId
 
     // Wait for connection before proceeding
     waitForConnection().then(() => {
-      console.log(`WebSocket connected, starting audio for messageId: ${messageId}`);
       setIsPlaying(messageId, true);
       
       if (webSocketRef.current) {
-        console.log(`Sending TTS request for messageId: ${messageId}`);
         webSocketRef.current.send(JSON.stringify({
           type: 'tts_request', 
           text: text.trim(),
@@ -68,16 +64,13 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children, clientId
         }));
       }
       
-      console.log(`Starting audio queue processing for messageId: ${messageId}`);
       processAudioQueue(messageId);
     });
 
   }, [setIsPlaying]);
 
   const stopAudio = useCallback((messageId?: string) => {
-    console.log(`Stopping audio for messageId: ${messageId}`);
     if (!audioContextRef.current) {
-      console.warn('Audio context not available, cannot stop audio.');
       return;
     }
 
@@ -93,7 +86,6 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children, clientId
     messageIds.forEach(id => {
       // Stop all scheduled audio sources
       if (scheduledAudioRef.current[id]) {
-        console.log(`Stopping scheduled audio for messageId: ${id}`);
         scheduledAudioRef.current[id].forEach(({ source, gain }) => {
           try {
             // Apply quick fade out to avoid clicks
@@ -107,7 +99,6 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children, clientId
                 source.stop();
                 source.disconnect();
                 gain.disconnect();
-                console.log(`Audio stopped for messageId: ${id}`);
               } catch (e) {
                 console.error(`Error stopping audio for messageId: ${id}`, e);
               }
@@ -126,23 +117,18 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children, clientId
     });
 
     // If no specific messageId was provided, reset the current message
-    if (!messageId) {
-      console.log('Resetting current message audio.');
-    } else {
+    if (messageId) {
       setIsPlaying(messageId, false); // Call setIsPlaying when audio stops
     }
   }, [setIsPlaying]);
 
   const processAudioQueue = useCallback((messageId: string) => {
-    console.log(`Processing audio queue for messageId: ${messageId}`);
     if (!audioContextRef.current || !audioBufferQueueRef.current[messageId]) {
-      console.warn(`Audio context not available or no audio buffer for messageId: ${messageId}`);
       return;
     }
 
     const queue = audioBufferQueueRef.current[messageId];
     if (!queue.length) {
-      console.log(`No audio data in queue for messageId: ${messageId}`);
       return;
     }
 
@@ -154,7 +140,6 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children, clientId
 
     // Start processing if we have enough buffer
     if (totalBufferedDuration >= MIN_BUFFER_DURATION || (queue.length >= BUFFER_SIZE_THRESHOLD)) {
-      console.log(`Starting audio playback for messageId: ${messageId}, totalBufferedDuration: ${totalBufferedDuration}`);
       while (queue.length > 0) {
         const audioData = queue.shift()!;
         const source = audioContextRef.current.createBufferSource();
@@ -181,7 +166,6 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children, clientId
         }
 
         source.start(startTime);
-        console.log(`Audio started for messageId: ${messageId} at time: ${startTime}`);
 
         if (!scheduledAudioRef.current[messageId]) {
           scheduledAudioRef.current[messageId] = [];
@@ -190,13 +174,10 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children, clientId
 
         nextStartTimeRef.current[messageId] = startTime + audioBuffer.duration;
       }
-    } else {
-      console.log(`Not enough buffer to start playback for messageId: ${messageId}`);
     }
   }, []);
 
   const connectWebSocket = useCallback((messageId: string) => {
-    console.log(`Connecting WebSocket for messageId: ${messageId}`);
     if (webSocketRef.current) {
       webSocketRef.current.close();
     }
@@ -204,13 +185,11 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children, clientId
     webSocketRef.current = new WebSocket(`${process.env.NEXT_PUBLIC_WS_BASE_URL}/cartesia/${messageId}/ws`);
 
     webSocketRef.current.onopen = () => {
-      console.log('WebSocket connection opened');
       setIsConnected(true);
       audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
     };
 
     webSocketRef.current.onclose = () => {
-      console.log('WebSocket connection closed');
       setIsConnected(false);
     };
 
@@ -220,7 +199,6 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children, clientId
     };
 
     webSocketRef.current.onmessage = async (event) => {
-      console.log('WebSocket message received');
       if (event.data instanceof Blob) {
         const arrayBuffer = await event.data.arrayBuffer();
         const audioData = new Float32Array(arrayBuffer);
@@ -232,21 +210,17 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children, clientId
 
         // Add to queue
         audioBufferQueueRef.current[messageId].push(audioData);
-        console.log(`Audio data added to queue for messageId: ${messageId}`);
 
         // Process queue
         processAudioQueue(messageId);
       } else {
         try {
           const data = JSON.parse(event.data);
-          console.log(`Parsed message data:`, data);
 
           if (data.type === 'stream_start') {
-            console.log(`Stream started for messageId: ${data.messageId}`);
             isFirstChunkRef.current[data.messageId] = true;
             audioBufferQueueRef.current[data.messageId] = [];
           } else if (data.type === 'stream_end') {
-            console.log(`Stream ended for messageId: ${data.messageId}`);
             // Process any remaining audio in the queue
             processAudioQueue(data.messageId);
 
@@ -260,7 +234,6 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children, clientId
               const endTime = lastChunk.startTime + (lastChunk.source.buffer?.duration || 0);
               lastChunk.gain.gain.setValueAtTime(1, endTime - FADE_OUT_DURATION);
               lastChunk.gain.gain.linearRampToValueAtTime(0, endTime);
-              console.log(`Fade out applied to last chunk for messageId: ${data.messageId}`);
             }
 
             // Close the WebSocket connection
@@ -288,7 +261,6 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children, clientId
             try {
               gain.disconnect();
               source.disconnect();
-              console.log(`Finished audio cleaned up for messageId: ${messageId}`);
             } catch (e) {
               console.error(`Error during cleanup for messageId: ${messageId}`, e);
             }
@@ -303,7 +275,6 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children, clientId
         delete scheduledAudioRef.current[messageId];
         delete nextStartTimeRef.current[messageId];
         delete audioBufferQueueRef.current[messageId];
-        console.log(`Cleaned up empty audio data for messageId: ${messageId}`);
       }
     });
   }, []);
@@ -316,6 +287,7 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children, clientId
   return (
     <AudioContext.Provider
       value={{
+        isConnected,
         playAudio,
         stopAudio,
       }}
