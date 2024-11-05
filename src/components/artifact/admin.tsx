@@ -60,11 +60,23 @@ export const AdminArtifactComponent: React.FC<{ username: string }> = ({ usernam
       };
       htmlWebsocketRef.current.send(JSON.stringify(message));
       setAdminPrompt("");
+      const textareaElement = document.querySelector(
+        "textarea.generate-html"
+      ) as HTMLTextAreaElement;
+      if (textareaElement) {
+        textareaElement.style.height = "auto";
+      }
     }
   }, [sendLoadingMessage, adminPrompt]); // Include sendLoadingMessage in dependencies
 
   const handleHtmlChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
     setHtmlContent(event.target.value);
+  };
+
+  const handleTextareaInput = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const textarea = event.target;
+    textarea.style.height = 'auto'; // Reset the height
+    textarea.style.height = `${Math.min(textarea.scrollHeight, 10 * 48)}px`; // Set the height based on content, with a max of 10 rows (assuming 24px per row)
   };
 
   const sendHtmlContent = () => {
@@ -186,16 +198,19 @@ export const AdminArtifactComponent: React.FC<{ username: string }> = ({ usernam
       )}
       <div className="flex items-center mt-4">
         <div className="flex items-center w-full">
-          <Input 
+          <Textarea 
+            className="flex-grow mr-2 h-12 generate-html" 
+            placeholder="Enter prompt here..." 
             value={adminPrompt} 
-            className="flex-grow mr-2 h-12" 
+            onInput={handleTextareaInput}
             onChange={(e) => setAdminPrompt(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === 'Enter') {
+              if (e.key === 'Enter' && !e.shiftKey) {
                 generateHtml();
               }
             }}
-            placeholder="Enter prompt here..." 
+            rows={1}
+            style={{ maxHeight: '480px' }}
           />
           <Button
             onClick={generateHtml}
@@ -208,5 +223,3 @@ export const AdminArtifactComponent: React.FC<{ username: string }> = ({ usernam
     </>    
   );
 }
-
-

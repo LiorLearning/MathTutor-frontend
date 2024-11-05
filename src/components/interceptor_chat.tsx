@@ -270,8 +270,8 @@ export function InterceptorChat() {
                 handleTextareaInput(e);
               }}
               onInput={handleTextareaInput}
-              onKeyPress={(e) => {
-                if (e.key === 'Enter') {
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
                   handleCorrectionMessage();
                 }
               }}
@@ -310,8 +310,8 @@ export function InterceptorChat() {
               handleTextareaInput(e);
             }}
             onInput={handleTextareaInput}
-            onKeyPress={(e) => {
-              if (e.key === 'Enter') {
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
                 handleSendMessage();
               }
             }}
