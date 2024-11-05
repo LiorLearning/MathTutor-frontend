@@ -2,11 +2,10 @@
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { ScrollArea } from "./ui/scroll-area"
-import { Textarea } from './ui/textarea';
 import { Button } from "./ui/button"
 import { useSearchParams } from 'next/navigation'
 import axios from 'axios'
-import { Send, User, PanelRightCloseIcon, PanelLeftCloseIcon } from "lucide-react"
+import { User, PanelRightCloseIcon, PanelLeftCloseIcon } from "lucide-react"
 
 import { 
   Message, 
@@ -17,6 +16,7 @@ import MessageComponents from './utils/admin/messages';
 
 import AdminVideo from './webrtc/admin';
 import { AdminArtifactComponent } from './artifact/admin';
+import AdminInputBar from './utils/admin/admin_input';
 
 const USER = 'user';
 const ASSISTANT = 'assistant';
@@ -29,8 +29,6 @@ export function InterceptorChat() {
   const username = searchParams.get('username') || 'testuser';
   
   const [messages, setMessages] = useState<Message[]>([]);
-  const [inputText, setInputText] = useState("");
-  const [correctionText, setCorrectionText] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const chatWebsocketRef = useRef<WebSocket | null>(null);
@@ -139,40 +137,34 @@ export function InterceptorChat() {
   };
 
   // Follow up message
-  const handleSendMessage = useCallback(async () => {
-    if (inputText.trim() === "") return;
-
+  const handleSendMessage = useCallback(async (message: string) => {
     const userMessage: Message = {
       role: ADMIN,
-      content: inputText,
+      content: message,
       audioUrl: '',
       message_id: `temp-${Date.now()}`,
       timestamp: new Date().toISOString()
     };
 
     setMessages(prevMessages => [...prevMessages, userMessage]);
-    setInputText("");
-
+    
     const textareaElement = document.querySelector(
       "textarea.send-input-textarea"
     ) as HTMLTextAreaElement;
     if (textareaElement) {
       textareaElement.style.height = "auto";
     }
-
+    
     if (chatWebsocketRef.current) {
       chatWebsocketRef.current.send(JSON.stringify({
         'role': 'input',
-        'content': inputText
+        'content': message
       }));
     }
-  }, [inputText]);
+  }, []);
 
   // Correction message
-  const handleCorrectionMessage = useCallback(async () => {
-    if (correctionText.trim() === "") return;
-
-
+  const handleCorrectionMessage = useCallback(async (correction: string) => {
     setMessages(prevMessages => {
       let updatedMessages = prevMessages.slice(0, -1);
       const lastMessage = updatedMessages[updatedMessages.length - 1];
@@ -181,7 +173,7 @@ export function InterceptorChat() {
 
       const userMessage: Message = {
         role: CORRECTION,
-        content: lastMessage.content + " (" + correctionText + ")",
+        content: lastMessage.content + " (" + correction + ")",
         audioUrl: '',
         message_id: `temp-${Date.now()}`,
         timestamp: new Date().toISOString()
@@ -189,25 +181,24 @@ export function InterceptorChat() {
 
       updatedMessages = [...updatedMessages, userMessage];
 
-      setCorrectionText("");
-
+      
       const textareaElement = document.querySelector(
         "textarea.send-correction-textarea"
       ) as HTMLTextAreaElement;
       if (textareaElement) {
         textareaElement.style.height = "auto";
       }
-
+      
       return updatedMessages;
     });
-
+    
     if (chatWebsocketRef.current) {
       chatWebsocketRef.current.send(JSON.stringify({
         'role': 'correction',
-        'content': correctionText,
+        'content': correction,
       }));
     }
-  }, [correctionText, messages]);
+  }, [messages]);
 
   // Pause message
   const handlePauseMessage = useCallback(async () => {
@@ -220,11 +211,6 @@ export function InterceptorChat() {
     }
   }, [])
 
-  const handleTextareaInput = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const textarea = event.target;
-    textarea.style.height = 'auto'; // Reset the height
-    textarea.style.height = `${Math.min(textarea.scrollHeight, 10 * 24)}px`; // Set the height based on content, with a max of 10 rows (assuming 24px per row)
-  };
 
   if (isLoading) {
     return <div className="flex items-center justify-center h-screen">
@@ -259,74 +245,13 @@ export function InterceptorChat() {
           </div>
         </ScrollArea>
 
-        <div className="p-6 border-t border-border flex items-center bg-muted space-x-2">
-          {pausedMessage ? (
-            <Textarea
-              className="flex-grow h-12 bg-white send-correction-textarea"
-              placeholder="Update last assistant message..." 
-              value={correctionText}
-              onChange={(e) => {
-                setCorrectionText(e.target.value);
-                handleTextareaInput(e);
-              }}
-              onInput={handleTextareaInput}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  handleCorrectionMessage();
-                }
-              }}
-              rows={1}
-              style={{ maxHeight: '240px' }}
-            />
-          ) : (
-            <Button 
-              className="flex-grow h-12 bg-gray-500" 
-              onClick={() => {
-                handlePauseMessage();
-              }}
-              disabled={messages.length > 0 && messages[messages.length - 1].role === USER}
-            >
-              Update last assistant message...
-            </Button>
-          )}
-          
-          <Button 
-            size="icon" 
-            className="h-12 w-12" 
-            onClick={handleCorrectionMessage}
-            disabled={correctionText.trim() === ''}
-          >
-            <Send className="h-5 w-5" />
-          </Button>
-        </div>
-        
-        <div className="p-6 border-t border-border flex items-center bg-gray-500">
-          <Textarea
-            className="flex-grow mr-2 h-12 bg-white send-input-textarea"
-            placeholder="Send follow up message..." 
-            value={inputText}
-            onChange={(e) => {
-              setInputText(e.target.value);
-              handleTextareaInput(e);
-            }}
-            onInput={handleTextareaInput}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                handleSendMessage();
-              }
-            }}
-            rows={1}
-            style={{ maxHeight: '240px' }}
-          />
-          <Button 
-            size="icon" 
-            className="h-12 w-12" 
-            onClick={handleSendMessage}
-            disabled={inputText.trim() === ''}
-          >
-            <Send className="h-5 w-5" />
-          </Button>
-        </div>
+        <AdminInputBar 
+          onSendMessage={handleSendMessage}
+          onSendCorrection={handleCorrectionMessage}
+          pausedMessage={pausedMessage}
+          handlePauseMessage={handlePauseMessage}
+        />
+
       </div>
       <div className="w-1/2 p-4 flex flex-col h-full">
         <AdminArtifactComponent username={username} />
