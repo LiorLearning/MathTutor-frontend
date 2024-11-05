@@ -25,9 +25,8 @@ import UserVideo from '@/components/webrtc/user';
 import { UserArtifactComponent } from '@/components/artifact/user';
 import MessageLoader from '@/components/ui/loaders/message_loader';
 
-const SPEAKOUT = true;
+const SPEAKOUT = false;
 const SPEED = 30;
-const PAGE_SIZE = 10;
 
 const CORRECTION = 'correction';
 const INTERRUPT = 'interrupt';
@@ -331,11 +330,15 @@ export function UserChat({ messages, setMessages, username }: UserChatProps) {
           setChatId(response.data.chat_id);
           
           const historyResponse = await axios.get<GetChatHistoryResponse>(
-            `${API_BASE_URL}/chat_history?user_id=${username}&page=1&page_size=${PAGE_SIZE}`,
+            `${API_BASE_URL}/chat_history?user_id=${username}`,
             { headers: { 'Content-Type': 'application/json' } }
           );
 
-          setMessages(historyResponse.data);
+          const filteredMessages = historyResponse.data.filter(
+            message => message.role === USER || message.role === ASSISTANT
+          );
+
+          setMessages(filteredMessages);
         }
 
         initChatWebSocket(username);
@@ -372,36 +375,17 @@ export function UserChat({ messages, setMessages, username }: UserChatProps) {
   }, [username, chatId, initChatWebSocket]);
 
   useEffect(() => {
-    const cleanup = async () => {
-      try {
-        await axios.post(`${API_BASE_URL}/end_chat?user_id=${username}`, {}, {
-          headers: {
-            'Content-Type': 'application/json',
-          }
-        });
-      } catch (error) {
-        console.error('Error ending chat:', error);
-      }
-    };
-
-    const handleUnload = () => {
-      cleanup();
-    };
-
     const handleLoad = async () => {
       console.log("Handle load - WebSocket initialization");
       await initChatWebSocket(username);
     };
 
-    window.addEventListener('beforeunload', handleUnload);
     window.addEventListener('load', handleLoad);
     
     // Call handleLoad only when the component mounts
     handleLoad();
 
     return () => {
-      cleanup();
-      window.removeEventListener('beforeunload', handleUnload);
       window.removeEventListener('load', handleLoad);
     }
   }, [username, initChatWebSocket])
