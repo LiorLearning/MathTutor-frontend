@@ -25,7 +25,7 @@ import UserVideo from '@/components/webrtc/user';
 import { UserArtifactComponent } from '@/components/artifact/user';
 import MessageLoader from '@/components/ui/loaders/message_loader';
 
-const SPEAKOUT = false;
+const SPEAKOUT = true;
 const SPEED = 30;
 const PAGE_SIZE = 10;
 
@@ -286,7 +286,7 @@ export function UserChat({ messages, setMessages, username }: UserChatProps) {
         }
       }
     }
-  }, []);
+  }, [audioContext, setMessages]);
 
   const handleRecordingStart = () => {
     audioContext.stopAudio();
@@ -410,12 +410,19 @@ export function UserChat({ messages, setMessages, username }: UserChatProps) {
     const scrollElement = scrollAreaRef.current?.querySelector('[data-radix-scroll-area-viewport]');
     if (!scrollElement) return;
 
-    // Initial scroll to bottom for new chat
-    scrollElement.scrollTo({
-      top: scrollElement.scrollHeight,
-      behavior: 'auto'
-    });
-  }, [messages]);
+    const handleScroll = () => {
+      scrollElement.scrollTo({
+        top: scrollElement.scrollHeight,
+        behavior: 'auto'
+      });
+    };
+
+    handleScroll();
+
+    return () => {
+      scrollElement.removeEventListener('scroll', handleScroll);
+    };
+  }, [messages, isSendingMessage]);
 
   const handleSendMessage = useCallback(async (message: Blob | string) => {
     if (chatWebsocketRef.current?.readyState == WebSocket.OPEN) {
@@ -452,7 +459,7 @@ export function UserChat({ messages, setMessages, username }: UserChatProps) {
                 isChatConnected={isChatConnected}
               />
 
-              <ScrollArea ref={scrollAreaRef} className="flex-grow p-4">
+              <ScrollArea ref={scrollAreaRef} className="flex-grow p-4 overflow-y-auto">
                 <div className="space-y-6">
                   <MessageComponents 
                     messages={messages}
