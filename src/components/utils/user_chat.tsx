@@ -288,6 +288,10 @@ export function UserChat({ messages, setMessages, username }: UserChatProps) {
     audioContext.stopAudio();
   };
 
+  const handleRecordingStop = (blob: Blob) => {
+    handleSendMessage(blob);
+  };
+
   const handleSendMessage = useCallback(async (message: Blob | string) => {
     if (chatWebsocketRef.current?.readyState == WebSocket.OPEN) {
       chatWebsocketRef.current.send(message);
@@ -297,10 +301,6 @@ export function UserChat({ messages, setMessages, username }: UserChatProps) {
 
     setIsSendingMessage(true);
   }, []);
-
-  const handleRecordingStop = (blob: Blob) => {
-    handleSendMessage(blob);
-  };
 
   const onSendTextMessage = async (message: string) => {
     // Dummy message
@@ -362,37 +362,7 @@ export function UserChat({ messages, setMessages, username }: UserChatProps) {
     if (typeof window !== 'undefined') {
       initializeChat();
     }
-
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        console.log("Visibility changed to visible - Reinitializing WebSocket");
-        initChatWebSocket(username);
-      }
-    };
-
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    }
-
   }, [username, chatId, initChatWebSocket]);
-
-  useEffect(() => {
-    const handleLoad = async () => {
-      console.log("Handle load - WebSocket initialization");
-      await initChatWebSocket(username);
-    };
-
-    window.addEventListener('load', handleLoad);
-    
-    // Call handleLoad only when the component mounts
-    handleLoad();
-
-    return () => {
-      window.removeEventListener('load', handleLoad);
-    }
-  }, [username, initChatWebSocket])
 
   useEffect(() => {
     const scrollElement = scrollAreaRef.current?.querySelector('[data-radix-scroll-area-viewport]');

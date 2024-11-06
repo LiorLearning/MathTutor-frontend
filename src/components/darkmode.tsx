@@ -4,11 +4,14 @@ import { Button } from "@/components/ui/button";
 
 export default function DarkModeToggle() {
   const getInitialTheme = () => {
-    if (localStorage.theme === "dark" || (!("theme" in localStorage) && window.matchMedia("(prefers-color-scheme: dark)").matches)) {
-      return true;
-    } else {
-      return false;
+    if (typeof window !== "undefined") {
+      if (localStorage.theme === "dark" || (!("theme" in localStorage) && window.matchMedia("(prefers-color-scheme: dark)").matches)) {
+        return true;
+      } else {
+        return false;
+      }
     }
+    return false;
   };
 
   const [isDarkMode, setIsDarkMode] = useState(getInitialTheme);
@@ -24,10 +27,14 @@ export default function DarkModeToggle() {
   const toggleDarkMode = () => {
     if (isDarkMode) {
       document.documentElement.classList.remove("dark");
-      localStorage.theme = "light";
+      if (typeof window !== "undefined") {
+        localStorage.theme = "light";
+      }
     } else {
       document.documentElement.classList.add("dark");
-      localStorage.theme = "dark";
+      if (typeof window !== "undefined") {
+        localStorage.theme = "dark";
+      }
     }
     setIsDarkMode(!isDarkMode);
   };
