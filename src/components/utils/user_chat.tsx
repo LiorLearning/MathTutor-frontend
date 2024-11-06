@@ -245,7 +245,7 @@ export function UserChat({ messages, setMessages, username }: UserChatProps) {
         };
         // const finalMessage = JSON.parse(JSON.stringify(tempMessage));
 
-        if (SPEAKOUT) {
+        if (SPEAKOUT && !isLastMessagePauseRef.current) {
           const messageId = finalMessage.message_id
           let messageText = message
           if (message.isImage) {
