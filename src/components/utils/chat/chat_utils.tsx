@@ -49,8 +49,8 @@ const MarkdownImage: React.FC<{ src?: string; alt?: string }> = ({ src, alt }) =
     return (
         <div className="relative">
             {isLoading && (
-                <div className="absolute inset-0 flex items-center justify-center bg-gray-200">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+                <div className="absolute inset-0 flex items-center justify-center bg-gray-200 dark:bg-gray-700">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-gray-100"></div>
                 </div>
             )}
             <Image
@@ -109,11 +109,11 @@ export const MarkdownComponent: React.FC<{ content: string }> = ({ content }) =>
             h5: (props) => <h5 className="text-lg font-medium my-1" {...props} />,
             h6: (props) => <h6 className="text-base font-medium my-1" {...props} />,
             p: (props) => <p className="my-2" {...props} />,
-            a: (props) => <a className="text-blue-500 hover:underline" target="_blank" rel="noopener noreferrer" {...props} />,
+            a: (props) => <a className="text-blue-500 dark:text-blue-300 hover:underline" target="_blank" rel="noopener noreferrer" {...props} />,
             ul: (props) => <ul className="list-disc pl-6 my-2" {...props} />,
             ol: (props) => <ol className="list-decimal pl-6 my-2" {...props} />,
             li: (props) => <li className="my-0.5" {...props} />,
-            blockquote: (props) => <blockquote className="border-l-4 border-gray-300 pl-4 py-1 my-2 italic" {...props} />,
+            blockquote: (props) => <blockquote className="border-l-4 border-gray-300 dark:border-gray-600 pl-4 py-1 my-2 italic" {...props} />,
             img: (props) => <MarkdownImage src={props.src} alt={props.alt} />,
             pre: (props) => <pre className="my-2" {...props} />,
             table: (props) => <table className="border-collapse table-auto w-full my-2" {...props} />,

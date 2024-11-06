@@ -62,7 +62,7 @@ const SpeechToText: React.FC<SpeechToTextProps> = ({ onRecordingStart, onRecordi
               {[...Array(5)].map((_, i) => (
                 <motion.div
                   key={i}
-                  className="w-1 bg-primary rounded-full"
+                  className="w-1 bg-primary dark:bg-primary-foreground rounded-full"
                   animate={{
                     height: [8, 32, 16, 24, 8],
                   }}
@@ -86,7 +86,7 @@ const SpeechToText: React.FC<SpeechToTextProps> = ({ onRecordingStart, onRecordi
             exit={{ opacity: 0, scale: 0.8 }}
           >
             <motion.div
-              className="w-4 h-4 bg-muted-foreground rounded-full"
+              className="w-4 h-4 bg-muted-foreground dark:bg-muted rounded-full"
               animate={{
                 scale: [1, 1.2, 1],
               }}
@@ -104,7 +104,7 @@ const SpeechToText: React.FC<SpeechToTextProps> = ({ onRecordingStart, onRecordi
         <Button
           onClick={isRecording ? stopRecording : startRecording}
           className={`w-full h-12 rounded-full flex items-center justify-center transition-colors ${
-            isRecording ? "bg-destructive hover:bg-destructive/90" : "bg-primary hover:bg-primary/90"
+            isRecording ? "bg-destructive hover:bg-destructive/90 dark:bg-destructive dark:hover:bg-destructive/90" : "bg-primary hover:bg-primary/90 dark:bg-primary dark:hover:bg-primary/90"
           }`}
           aria-label={isRecording ? "Stop recording" : "Start recording"}
         >
@@ -117,9 +117,9 @@ const SpeechToText: React.FC<SpeechToTextProps> = ({ onRecordingStart, onRecordi
               transition={{ duration: 0.2 }}
             >
               {isRecording ? (
-                <Square className="w-8 h-8 text-destructive-foreground" />
+                <Square className="w-8 h-8 text-destructive-foreground dark:text-destructive-foreground" />
               ) : (
-                <Mic className="w-8 h-8 text-primary-foreground" />
+                <Mic className="w-8 h-8 text-primary-foreground dark:text-primary-foreground" />
               )}
             </motion.div>
           </AnimatePresence>

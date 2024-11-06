@@ -23,12 +23,12 @@ const AdminInputBar: React.FC<AdminInputBarProps> = ({ onSendMessage, onSendCorr
 
   return (
     <div>
-      <div className="p-6 border-t border-border flex items-center bg-muted">
+      <div className="p-6 border-t border-border flex items-center bg-muted dark:bg-muted-dark">
         {pausedMessage ? (
           <InputBar onSendMessage={handleCorrectionSend} />
         ) : (
           <Button 
-            className="flex-grow h-12 bg-gray-500" 
+            className="flex-grow h-12 bg-primary dark:bg-primary-dark" 
             onClick={() => {
               handlePauseMessage();
             }}
@@ -38,7 +38,7 @@ const AdminInputBar: React.FC<AdminInputBarProps> = ({ onSendMessage, onSendCorr
         )}
       </div>
       
-      <div className="p-6 border-t border-border flex items-center bg-gray-400">
+      <div className="p-6 border-t border-border flex items-center bg-muted dark:bg-muted-dark">
         <InputBar 
           onSendMessage={handleTextSend}
         />

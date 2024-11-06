@@ -228,7 +228,7 @@ export default function InputBar({ onSendMessage }: InputBarProps) {
             }}
             onPaste={handlePaste}
             placeholder="Type a message or paste an image"
-            className="w-full h-12 text-black bg-gray-100 rounded-2xl px-4 py-3 pr-24 text-sm focus:outline-none focus:ring-2 focus:ring-gray-600 border border-gray-300 textarea-send"
+            className="w-full h-12 text-foreground bg-background rounded-2xl px-4 py-3 pr-24 text-sm focus:outline-none focus:ring-2 focus:ring-ring border border-border textarea-send"
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault()
@@ -243,7 +243,7 @@ export default function InputBar({ onSendMessage }: InputBarProps) {
               size="icon"
               variant="ghost"
               onClick={() => fileInputRef.current?.click()}
-              className="text-gray-400 hover:text-gray-600 transition-colors"
+              className="text-muted-foreground hover:text-foreground transition-colors"
               aria-label="Upload images"
             >
               <ImageIcon size={20} />
@@ -252,7 +252,7 @@ export default function InputBar({ onSendMessage }: InputBarProps) {
               size="icon"
               variant="ghost"
               onClick={handleTextSend}
-              className="text-gray-400 hover:text-gray-600 transition-colors"
+              className="text-muted-foreground hover:text-foreground transition-colors"
               aria-label="Send message"
             >
               <Send size={20} />

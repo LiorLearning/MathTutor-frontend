@@ -8,10 +8,10 @@ import { Brain, Calculator, Zap, Stars } from 'lucide-react'
 export function MessageLoader() {
   const [messageIndex, setMessageIndex] = useState(0)
   const messages = [
-    { text: "Thinking", icon: Brain, color: "text-blue-500" },
-    { text: "Calculating", icon: Calculator, color: "text-green-500" },
-    { text: "Processing", icon: Zap, color: "text-yellow-500" },
-    { text: "Evaluating", icon: Stars, color: "text-purple-500" }
+    { text: "Thinking", icon: Brain, color: "text-blue-500 dark:text-blue-300" },
+    { text: "Calculating", icon: Calculator, color: "text-green-500 dark:text-green-300" },
+    { text: "Processing", icon: Zap, color: "text-yellow-500 dark:text-yellow-300" },
+    { text: "Evaluating", icon: Stars, color: "text-purple-500 dark:text-purple-300" }
   ]
 
   useEffect(() => {
@@ -23,7 +23,7 @@ export function MessageLoader() {
   }, [])
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-white">
+    <div className="flex items-center justify-center min-h-screen bg-white dark:bg-background">
       <motion.div
         className="relative w-16 h-16"
         animate={{ rotate: 360 }}

@@ -24,7 +24,7 @@ const UserSidebar: React.FC<UserSidebarProps> = ({ username }) => {
   }, [username]);
 
   return (
-    <div className="w-1/5 bg-gray-100 p-4 border-r">
+    <div className="w-1/5 bg-card p-4 border-r border-border text-foreground">
       <div className="mb-4">
         <h2 className="text-lg font-semibold mb-2">User Details</h2>
         {studentDetails ? (

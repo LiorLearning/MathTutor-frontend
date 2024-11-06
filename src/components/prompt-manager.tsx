@@ -131,9 +131,9 @@ export function PromptManagerComponent() {
   }
 
   return (
-    <div className="container mx-auto p-4 grid grid-cols-1 md:grid-cols-4 gap-4">
+    <div className="container mx-auto p-4 grid grid-cols-1 md:grid-cols-4 gap-4 bg-background text-foreground">
       <div className="col-span-1">
-        <Card className="mb-4">
+        <Card className="mb-4 bg-card text-card-foreground">
           <CardHeader>
             <CardTitle>Create New Prompt</CardTitle>
           </CardHeader>
@@ -143,17 +143,20 @@ export function PromptManagerComponent() {
                 placeholder="Prompt Name"
                 value={newPrompt.name}
                 onChange={(e) => setNewPrompt({ ...newPrompt, name: e.target.value })}
+                className="bg-input text-foreground"
               />
               <Input
                 placeholder="Prompt Description"
                 value={newPrompt.desc}
                 onChange={(e) => setNewPrompt({ ...newPrompt, desc: e.target.value })}
+                className="bg-input text-foreground"
               />
               <Textarea
                 placeholder="Prompt Content"
                 value={newPrompt.content}
                 onChange={(e) => setNewPrompt({ ...newPrompt, content: e.target.value })}
                 style={{ height: '200px' }} // Increased default height
+                className="bg-input text-foreground"
               />
             </div>
           </CardContent>
@@ -164,19 +167,19 @@ export function PromptManagerComponent() {
       </div>
 
       <div className="col-span-3">
-        <Card>
+        <Card className="bg-card text-card-foreground">
           <CardHeader>
             <CardTitle>Manage Prompts</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               <Select onValueChange={setSelectedName}>
-                <SelectTrigger>
+                <SelectTrigger className="bg-input text-foreground">
                   <SelectValue placeholder="Select a prompt name" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-card text-card-foreground">
                   {promptNames.map((name) => (
-                    <SelectItem key={name} value={name}>
+                    <SelectItem key={name} value={name} className="bg-card text-card-foreground">
                       {name}
                     </SelectItem>
                   ))}
@@ -195,10 +198,10 @@ export function PromptManagerComponent() {
               )}
             </div>
             {selectedName && (
-              <Card key={prompt.id} className="mt-4">
+              <Card key={prompt.id} className="mt-4 bg-card text-card-foreground">
                 <CardContent className="pt-4">
                   <div className="flex justify-between items-center mb-2">
-                    <span className="text-sm text-gray-500">Created: {new Date(prompt.created_at).toLocaleString()}</span>
+                    <span className="text-sm text-muted-foreground">Created: {new Date(prompt.created_at).toLocaleString()}</span>
                     <div className="flex space-x-2">
                       <Button 
                         variant="ghost" 
@@ -217,21 +220,22 @@ export function PromptManagerComponent() {
                     value={promptInput}
                     onChange={(e) => setPromptInput(e.target.value)}
                     style={{ height: '400px' }} // Size to match content
+                    className="bg-input text-foreground"
                   />
                 </CardContent>
               </Card>
             )}
             
             {expandedPrompts && allPrompts.map((prompt) => (
-              <Card key={prompt.id} className="mt-4">
+              <Card key={prompt.id} className="mt-4 bg-card text-card-foreground">
                 <CardContent className="pt-4">
                   <div className="flex justify-between items-center mb-2">
-                    <span className="text-sm text-gray-500">Created: {new Date(prompt.created_at).toLocaleString()}</span>
+                    <span className="text-sm text-muted-foreground">Created: {new Date(prompt.created_at).toLocaleString()}</span>
                     <Button variant="ghost" size="sm" onClick={() => handleDeletePrompt(prompt.id)}>
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
-                  <span className="text-sm text-gray-500 mb-2">{prompt.desc}</span>
+                  <span className="text-sm text-muted-foreground mb-2">{prompt.desc}</span>
                   <Textarea
                     value={prompt.content}
                     onChange={(e) => {
@@ -239,6 +243,7 @@ export function PromptManagerComponent() {
                       setPrompt(updatedPrompt)
                     }}
                     style={{ height: '300px' }}
+                    className="bg-input text-foreground"
                   />
                 </CardContent>
               </Card>

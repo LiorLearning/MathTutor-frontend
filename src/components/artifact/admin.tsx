@@ -67,7 +67,6 @@ export const AdminArtifactComponent: React.FC<{ username: string }> = ({ usernam
   };
 
   const sendHtmlContent = () => {
-    // TODO: update images
     if (htmlWebsocketRef.current) {
       htmlWebsocketRef.current.send(JSON.stringify({ 
         action: "SEND", 
@@ -144,11 +143,11 @@ export const AdminArtifactComponent: React.FC<{ username: string }> = ({ usernam
           <Textarea
             value={htmlContent}
             onChange={handleHtmlChange}
-            className="flex-grow font-mono text-sm"
+            className="flex-grow font-mono text-sm bg-background text-foreground"
             placeholder="HTML code will appear here"
           />
       ) : (
-        <div className="relative flex-grow border-2 border-border rounded-md">
+        <div className="relative flex-grow border-2 border-border rounded-md bg-background text-foreground">
           <div className="absolute top-2 left-1/2 transform -translate-x-1/2 flex items-center">
             <Switch
               id="user-artifact"
@@ -172,14 +171,14 @@ export const AdminArtifactComponent: React.FC<{ username: string }> = ({ usernam
               </button>
               <iframe 
                 srcDoc={htmlContent} 
-                className="w-full h-full"
+                className="w-full h-full bg-background text-foreground"
                 title="Generated HTML"
               />
             </>
           ) : (
             <iframe 
               srcDoc={userHtmlContent} 
-              className="w-full h-full"
+              className="w-full h-full bg-background text-foreground"
               title="Generated HTML"
             />
           )}

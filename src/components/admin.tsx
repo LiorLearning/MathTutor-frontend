@@ -6,35 +6,35 @@ import { CalendarPlus, Users } from "lucide-react"
 
 export function AdminPageComponent() {
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen bg-background text-foreground">
       <main className="flex-grow container mx-auto py-8 px-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-          <Card>
+          <Card className="bg-card text-card-foreground">
             <CardHeader>
               <CardTitle>Quick Actions</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex flex-wrap gap-4">
-                <Button className="bg-primary hover:bg-primary-600 text-white">
+                <Button className="bg-primary hover:bg-primary-600 text-primary-foreground">
                   <CalendarPlus className="mr-2 h-4 w-4" />
                   Schedule Class
                 </Button>
-                <Button className="bg-primary hover:bg-primary-600 text-white" onClick={() => window.location.assign('/admin/all-students')}>
+                <Button className="bg-primary hover:bg-primary-600 text-primary-foreground" onClick={() => window.location.assign('/admin/all-students')}>
                   <Users className="mr-2 h-4 w-4" />
                   Manage Students
                 </Button>
-                <Button className="bg-primary hover:bg-primary-600 text-white" onClick={() => window.location.assign('/admin/prompt')}>
+                <Button className="bg-primary hover:bg-primary-600 text-primary-foreground" onClick={() => window.location.assign('/admin/prompt')}>
                   <Users className="mr-2 h-4 w-4" />
                   Manage Prompts
                 </Button>
-                <Button className="bg-primary hover:bg-primary-600 text-white" onClick={() => window.location.assign('/admin/artifacts')}>
+                <Button className="bg-primary hover:bg-primary-600 text-primary-foreground" onClick={() => window.location.assign('/admin/artifacts')}>
                   <Users className="mr-2 h-4 w-4" />
                   Manage Artifacts
                 </Button>
               </div>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="bg-card text-card-foreground">
             <CardHeader>
               <CardTitle>Key Data</CardTitle>
             </CardHeader>
@@ -61,7 +61,7 @@ export function AdminPageComponent() {
           </Card>
         </div>
 
-        <Card className="mb-8">
+        <Card className="mb-8 bg-card text-card-foreground">
           <CardHeader>
             <CardTitle>Upcoming Classes</CardTitle>
           </CardHeader>
@@ -99,7 +99,7 @@ export function AdminPageComponent() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="bg-card text-card-foreground">
           <CardHeader>
             <CardTitle>Past Classes</CardTitle>
           </CardHeader>
@@ -138,7 +138,7 @@ export function AdminPageComponent() {
         </Card>
       </main>
 
-      <footer className="bg-gray-100 py-4 px-6 text-center text-sm text-gray-600">
+      <footer className="bg-muted text-muted-foreground py-4 px-6 text-center text-sm">
         © 2023 MathMentor AI. All rights reserved.
       </footer>
     </div>

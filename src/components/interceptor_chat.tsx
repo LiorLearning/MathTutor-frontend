@@ -200,24 +200,24 @@ export function InterceptorChat() {
 
 
   if (isLoading) {
-    return <div className="flex items-center justify-center h-screen">
-      <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
+    return <div className="flex items-center justify-center h-screen bg-background text-foreground dark:bg-background dark:text-foreground">
+      <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary dark:border-primary"></div>
     </div>;
   }
 
   return (
-    <div className="flex h-screen bg-background">
+    <div className="flex h-screen bg-background text-foreground dark:bg-background dark:text-foreground">
       {/* <UserSidebar username={username} /> */}
       
       <div className="flex flex-col flex-grow w-1/2">
-        <header className="p-4 border-b border-border">
+        <header className="p-4 border-b border-border dark:border-border">
           <div className="flex justify-between items-center">
-            <h1 className="text-xl font-bold text-primary-foreground">MathTutor</h1>
+            <h1 className="text-xl font-bold text-primary-foreground dark:text-primary-foreground">MathTutor</h1>
             <div className="flex items-center gap-2">
-              <User className="h-5 w-5 text-muted-foreground" />
-              <h3 className="text-lg text-muted-foreground">{username}</h3>
+              <User className="h-5 w-5 text-muted-foreground dark:text-muted-foreground" />
+              <h3 className="text-lg text-muted-foreground dark:text-muted-foreground">{username}</h3>
               <Button 
-                className="bg-destructive text-white" 
+                className="bg-destructive text-destructive-foreground dark:bg-destructive dark:text-destructive-foreground" 
                 onClick={handleDeleteChat}
               >
                 Delete Chat
@@ -252,7 +252,7 @@ export function InterceptorChat() {
           />
           <button 
             onClick={toggleVideoFeed} 
-            className="absolute left-0 top-0 bg-gray-800 text-white p-2 rounded"
+            className="absolute left-0 top-0 bg-muted text-muted-foreground dark:bg-muted dark:text-muted-foreground p-2 rounded"
           >
             {isVideoVisible ? <PanelLeftCloseIcon className="h-4 w-4" /> : <PanelRightCloseIcon className="h-4 w-4" />}
           </button>

@@ -416,7 +416,7 @@ export function UserChat({ messages, setMessages, username }: UserChatProps) {
     return <PageLoader />;
   }
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
+    <div className="flex h-screen overflow-hidden bg-background dark:bg-dark-background">
       {showPopup ? (
         <Popup handleEnterClass={handleEnterClass} />
       ) : (
@@ -428,7 +428,7 @@ export function UserChat({ messages, setMessages, username }: UserChatProps) {
               marginLeft: isRightColumnCollapsed ? "15%" : "0%",
             }}
           >
-            <div className="h-full flex flex-col border-r border-border">
+            <div className="h-full flex flex-col border-r border-border dark:border-dark-border">
               <Header 
                 username={username} 
                 isChatConnected={isChatConnected}
@@ -446,7 +446,7 @@ export function UserChat({ messages, setMessages, username }: UserChatProps) {
               {isSendingMessage ? (
                 <MessageLoader />
               ) : (
-                <div className="pt-4 border-t border-border flex items-center justify-center">
+                <div className="pt-4 border-t border-border dark:border-dark-border flex items-center justify-center">
                   <div className="relative flex flex-col items-center">
                     <div className="flex flex-col items-center gap-4 max-w-xs mx-auto">
                       <div className='relative w-1/2'>
@@ -461,7 +461,7 @@ export function UserChat({ messages, setMessages, username }: UserChatProps) {
           </motion.div>
 
           <motion.div
-            className="fixed right-0 top-0 h-full w-[50%] bg-secondary p-6 shadow-lg transition-all duration-200 ease-in-out"
+            className="fixed right-0 top-0 h-full w-[50%] bg-secondary dark:bg-dark-secondary p-6 shadow-lg transition-all duration-200 ease-in-out"
             animate={{
               x: isRightColumnCollapsed ? "100%" : "0%",
             }}
@@ -483,7 +483,7 @@ export function UserChat({ messages, setMessages, username }: UserChatProps) {
             />
             <Button 
               onClick={toggleVideoFeed} 
-              className="absolute top-0 right-0 bg-gray-800 text-white p-2 rounded"
+              className="absolute top-0 right-0 bg-gray-800 dark:bg-dark-gray-800 text-white p-2 rounded"
             >
               {isVideoVisible ? <PanelRightClose className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
             </Button>

@@ -40,7 +40,7 @@ export function StudentList() {
   }
 
   return (
-    <div className="container mx-auto py-10 px-4">
+    <div className="container mx-auto py-10 px-4 bg-background text-foreground">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold mb-5">Student List</h1>
         <Link href="/admin">
@@ -57,7 +57,7 @@ export function StudentList() {
           placeholder="Search students..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="pl-10"
+          className="pl-10 bg-input text-foreground"
         />
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
       </div>
@@ -65,7 +65,7 @@ export function StudentList() {
         {filteredStudents.map((student, index) => (
           <Card 
             key={`${student.userid}-${index}`} 
-            className="w-full cursor-pointer hover:shadow-lg transition-shadow"
+            className="w-full cursor-pointer hover:shadow-lg transition-shadow bg-card text-card-foreground"
             onClick={() => window.location.assign(`/admin/student?username=${student.userid}`)}
           >
             <CardHeader>

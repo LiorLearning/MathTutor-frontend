@@ -96,17 +96,17 @@ export const UserArtifactComponent: React.FC<UserArtifactProps> = ({
     <div className="flex-grow relative w-full h-full">
       {isHtmlLoading && (
         <motion.div 
-          className="absolute inset-0 bg-muted/50 flex items-center justify-center"
+          className="absolute inset-0 bg-muted/50 dark:bg-muted/30 flex items-center justify-center"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
         >
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary"></div>
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary dark:border-primary-foreground"></div>
         </motion.div>
       )}
       <iframe 
         srcDoc={htmlContentRef.current} // Update to use htmlContentRef
-        className="w-full h-full border-2 border-border rounded-lg" 
+        className="w-full h-full border-2 border-border dark:border-border rounded-lg" 
         title="Generated HTML"
       />
     </div>

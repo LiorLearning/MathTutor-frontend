@@ -28,12 +28,12 @@ export function ManageStudentsComponent() {
   }, [username]);
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen bg-background text-foreground dark:bg-background dark:text-foreground">
       <main className="flex-grow container mx-auto py-8 px-4">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-3xl font-bold">Manage Students</h2>
+          <h2 className="text-3xl font-bold text-primary-foreground dark:text-primary-foreground">Manage Students</h2>
           <Link href="/admin/all-students">
-            <Button variant="outline" className="flex items-center">
+            <Button variant="outline" className="flex items-center bg-muted text-muted-foreground dark:bg-muted dark:text-muted-foreground">
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Students List
             </Button>
@@ -41,7 +41,7 @@ export function ManageStudentsComponent() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-          <Card>
+          <Card className="bg-card text-card-foreground dark:bg-card dark:text-card-foreground">
             <CardHeader>
               <CardTitle>Student Details</CardTitle>
             </CardHeader>
@@ -62,26 +62,26 @@ export function ManageStudentsComponent() {
               </div>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="bg-card text-card-foreground dark:bg-card dark:text-card-foreground">
             <CardHeader>
               <CardTitle>Quick Actions</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex flex-col space-y-4 w-3/5 mx-auto">
                 <Link href={`/admin/schedule?username=${username}`}>
-                  <Button className="bg-primary text-white flex items-center justify-center w-full">
+                  <Button className="bg-primary text-primary-foreground dark:bg-primary dark:text-primary-foreground flex items-center justify-center w-full">
                     <CalendarPlus className="mr-2 h-4 w-4" />
                     Schedule New Class
                   </Button>
                 </Link>
                 <Link href={`/admin/interceptor?username=${username}`}>
-                  <Button className="bg-primary text-white flex items-center justify-center w-full">
+                  <Button className="bg-primary text-primary-foreground dark:bg-primary dark:text-primary-foreground flex items-center justify-center w-full">
                     <MessageCircle className="mr-2 h-4 w-4" />
                     Go to Interceptor Page
                   </Button>
                 </Link>
                 <Link href={`/chat?username=${username}`}>
-                  <Button className="bg-primary text-white flex items-center justify-center w-full">
+                  <Button className="bg-primary text-primary-foreground dark:bg-primary dark:text-primary-foreground flex items-center justify-center w-full">
                     <MessageCircle className="mr-2 h-4 w-4" />
                     Go to Chat Page
                   </Button>
@@ -91,7 +91,7 @@ export function ManageStudentsComponent() {
           </Card>
         </div>
 
-        <Card className="mb-8">
+        <Card className="mb-8 bg-card text-card-foreground dark:bg-card dark:text-card-foreground">
           <CardHeader>
             <CardTitle>User context</CardTitle>
           </CardHeader>
@@ -100,7 +100,7 @@ export function ManageStudentsComponent() {
           </CardContent>
         </Card>
 
-        <Card className="mb-8">
+        <Card className="mb-8 bg-card text-card-foreground dark:bg-card dark:text-card-foreground">
           <CardHeader>
             <CardTitle>Upcoming Classes</CardTitle>
           </CardHeader>
@@ -120,7 +120,7 @@ export function ManageStudentsComponent() {
                   <td>May 15, 3:00 PM</td>
                   <td>45 minutes</td>
                   <td>
-                    <Button className="bg-primary text-white" size="sm">Reschedule</Button>
+                    <Button className="bg-primary text-primary-foreground dark:bg-primary dark:text-primary-foreground" size="sm">Reschedule</Button>
                   </td>
                 </tr>
                 <tr>
@@ -128,7 +128,7 @@ export function ManageStudentsComponent() {
                   <td>May 18, 4:00 PM</td>
                   <td>45 minutes</td>
                   <td>
-                    <Button className="bg-primary text-white" size="sm">Reschedule</Button>
+                    <Button className="bg-primary text-primary-foreground dark:bg-primary dark:text-primary-foreground" size="sm">Reschedule</Button>
                   </td>
                 </tr>
               </tbody>
@@ -136,7 +136,7 @@ export function ManageStudentsComponent() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="bg-card text-card-foreground dark:bg-card dark:text-card-foreground">
           <CardHeader>
             <CardTitle>Past Classes</CardTitle>
           </CardHeader>

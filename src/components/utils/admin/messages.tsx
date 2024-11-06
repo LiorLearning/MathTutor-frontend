@@ -21,18 +21,18 @@ const MessageComponents: React.FC<MessageComponentsProps> = ({ messages }) => {
           <div
             className={`rounded-3xl p-4 ${
               message.role === USER
-                ? 'bg-primary text-white'
+                ? 'bg-primary text-primary-foreground'
                 : message.role === CORRECTION
-                ? 'bg-yellow-200 text-gray-800'
+                ? 'bg-yellow-200 text-gray-800 dark:bg-yellow-700 dark:text-gray-200'
                 : message.role === ADMIN
-                ? 'bg-green-200 text-gray-800'
-                : 'bg-gray-200 text-gray-800'
+                ? 'bg-green-200 text-gray-800 dark:bg-green-700 dark:text-gray-200'
+                : 'bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200'
             } ${(message.role === ADMIN || message.role === CORRECTION) && index < messages.length - 1 ? 'opacity-50' : ''} 
             ${message.role !== USER && index === messages.length - 1 ? 'opacity-100' : ''}`}
           >
             <MarkdownComponent content={message.content} />
           </div>
-          <div className="text-xs text-gray-500 mt-1">
+          <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
             {new Date(message.timestamp).toLocaleTimeString()}
           </div>
         </div>
