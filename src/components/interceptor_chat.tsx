@@ -5,7 +5,7 @@ import { ScrollArea } from "./ui/scroll-area"
 import { Button } from "./ui/button"
 import { useSearchParams } from 'next/navigation'
 import axios from 'axios'
-import { User, PanelRightCloseIcon, PanelLeftCloseIcon } from "lucide-react"
+import { Wifi, WifiOff, User, PanelRightCloseIcon, PanelLeftCloseIcon } from "lucide-react"
 
 import { 
   Message, 
@@ -18,12 +18,13 @@ import AdminVideo from './webrtc/admin';
 import { AdminArtifactComponent } from './artifact/admin';
 import AdminInputBar from './utils/admin/admin_input';
 import DarkModeToggle from './darkmode';
+import ImageLoader from '@/components/ui/loaders/image_loader';
 
 const USER = 'user';
 const ASSISTANT = 'assistant';
 const CORRECTION = 'correction';
 const ADMIN = 'admin';
-
+const GENERATING_IMAGE = 'generating_image';
 
 export function InterceptorChat() {
   const searchParams = useSearchParams();
@@ -34,7 +35,8 @@ export function InterceptorChat() {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const chatWebsocketRef = useRef<WebSocket | null>(null);
   const [pausedMessage, setPausedMessage] = useState(false);
-
+  const [isChatConnected, setIsChatConnected] = useState(false);
+  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
 
   const [isVideoVisible, setIsVideoVisible] = useState(true); // State to manage visibility
   const toggleVideoFeed = () => {
@@ -47,8 +49,19 @@ export function InterceptorChat() {
       chatWebsocketRef.current = new WebSocket(
         `${process.env.NEXT_PUBLIC_WS_BASE_URL}/chat/interceptor/${username}`
       );
+
       chatWebsocketRef.current.onopen = () => {
+        setIsChatConnected(true); // Set WebSocket connection status to true
         console.log("Chat WebSocket connection established");
+      }
+
+      chatWebsocketRef.current.onclose = () => {
+        setIsChatConnected(false); // Set WebSocket connection status to false
+        console.log("Chat WebSocket connection closed");
+      }
+
+      chatWebsocketRef.current.onerror = (error) => {
+        console.error("WebSocket error observed:", error);
       }
 
       chatWebsocketRef.current.onmessage = async (event) => {
@@ -56,6 +69,14 @@ export function InterceptorChat() {
         const message = data.content;
         if (data.role === 'correction') {
           // setMessages(prevMessages => prevMessages.slice(0, -2));
+        } else if (data.role === GENERATING_IMAGE) {
+          if (message === "start") {
+            console.log("Image generation started");
+            setIsGeneratingImage(true);
+          } else if (message === "done") {
+            console.log("Image generation done");
+            setIsGeneratingImage(false);
+          }
         } else if (data.role !== USER && data.role !== ASSISTANT) {
           console.error("Error: Unrecognized role received in WebSocket message:", data.role);
         }
@@ -182,10 +203,12 @@ export function InterceptorChat() {
   // Pause message
   const handlePauseMessage = useCallback(async () => {
     setPausedMessage(true);
+    console.log("Message paused by the user.")
     if (chatWebsocketRef.current) {
       chatWebsocketRef.current.send(JSON.stringify({
         'role': 'pause',
         'content': '',
+        'images': [],
       }))
     }
   }, [])
@@ -208,6 +231,11 @@ export function InterceptorChat() {
             <div className="flex items-center gap-2">
               <User className="h-5 w-5 text-muted-foreground dark:text-muted-foreground" />
               <h3 className="text-lg text-muted-foreground dark:text-muted-foreground">{username}</h3>
+              {(isChatConnected) ? (
+                <Wifi className="text-green-500" size={20} />
+              ) : (
+                <WifiOff className="text-red-500" size={20} />
+              )}
               <DarkModeToggle />
               <Button 
                 className="bg-destructive text-destructive-foreground dark:bg-destructive dark:text-destructive-foreground" 
@@ -225,12 +253,18 @@ export function InterceptorChat() {
           </div>
         </ScrollArea>
 
-        <AdminInputBar 
-          onSendMessage={handleSendMessage}
-          onSendCorrection={handleCorrectionMessage}
-          pausedMessage={pausedMessage}
-          handlePauseMessage={handlePauseMessage}
-        />
+        {isGeneratingImage ? (
+          <div className="p-8">
+            <ImageLoader />
+          </div>
+        ) : (
+          <AdminInputBar 
+            onSendMessage={handleSendMessage}
+            onSendCorrection={handleCorrectionMessage}
+            pausedMessage={pausedMessage}
+            handlePauseMessage={handlePauseMessage}
+          />
+        )}
 
       </div>
       <div className="w-1/2 p-4 flex flex-col h-full">
