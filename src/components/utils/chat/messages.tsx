@@ -71,7 +71,7 @@ function MessageItem({ message, toggleAudio }: MessageItemProps) {
       <div className={`max-w-[90%] ${message.role === USER ? 'self-end' : 'self-start'}`}>
         <div
           className={`rounded-3xl p-4 ${
-            message.role === USER ? 'bg-primary text-primary-foreground dark:bg-primary dark:text-primary-foreground' : 'bg-secondary text-secondary-foreground dark:bg-secondary dark:text-secondary-foreground'
+            message.role === USER ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground'
           }`}
         >
           {message.content === RETHINKING_MESSAGE ? (
@@ -93,7 +93,7 @@ function MessageItem({ message, toggleAudio }: MessageItemProps) {
           </div>
           )}
         </div>
-        <div className="text-xs text-muted-foreground dark:text-muted-foreground mt-1">{new Date(message.timestamp).toLocaleTimeString()}</div>
+        <div className="text-xs text-muted-foreground mt-1">{new Date(message.timestamp).toLocaleTimeString()}</div>
       </div>
     </div>
   )
@@ -101,7 +101,7 @@ function MessageItem({ message, toggleAudio }: MessageItemProps) {
 
 function RethinkingAnimation() {
   return (
-    <div className="flex items-center justify-center bg-secondary dark:bg-secondary rounded-lg px-8 py-4">
+    <div className="flex items-center justify-center bg-secondary rounded-lg px-8 py-4">
       <motion.div
         className="flex flex-col items-center gap-2"
         initial={{ opacity: 0 }}
@@ -109,7 +109,7 @@ function RethinkingAnimation() {
         transition={{ duration: 0.5 }}
       >
         <motion.div
-          className="text-lg font-medium text-secondary-foreground dark:text-secondary-foreground"
+          className="text-lg font-medium text-secondary-foreground"
           initial={{ scale: 1 }}
           animate={{
             opacity: [0.5, 1, 0.5],
@@ -127,7 +127,7 @@ function RethinkingAnimation() {
           {[0, 1, 2].map((i) => (
             <motion.div
               key={i}
-              className="w-2 h-2 bg-primary dark:bg-primary rounded-full"
+              className="w-2 h-2 bg-primary rounded-full"
               initial={{ scale: 0.8, opacity: 0.5 }}
               animate={{
                 scale: [0.8, 1.2, 0.8],

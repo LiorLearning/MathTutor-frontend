@@ -25,6 +25,7 @@ import { UserArtifactComponent } from '@/components/artifact/user';
 import InputBar from './chat/input_bar';
 import MessageLoader from '@/components/ui/loaders/message_loader';
 import PageLoader from '../ui/loaders/page_loader';
+import ImageLoader from '@/components/ui/loaders/image_loader';
 
 
 const SPEAKOUT = true;
@@ -36,6 +37,7 @@ const ASSISTANT = 'assistant';
 const USER = 'user';
 const PAUSE = 'pause';
 const NOTEXT = 'notext';
+const GENERATING_IMAGE = "generating_image"
 
 const RETHINKING_MESSAGE = "Rethinking..."
 const SLEEP_TIME_AFTER_MESSAGE = 2000
@@ -61,6 +63,7 @@ export function UserChat({ messages, setMessages, username }: UserChatProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [isSendingMessage, setIsSendingMessage] = useState(false);
   const [isChatConnected, setIsChatConnected] = useState(false);
+  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
 
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
@@ -203,6 +206,16 @@ export function UserChat({ messages, setMessages, username }: UserChatProps) {
           case INTERRUPT:
             console.log("Received INTERRUPT signal, pausing audio.");
             audioContext.stopAudio()
+            return;
+            
+          case GENERATING_IMAGE:
+            if (message === "start") {
+              console.log("Image generation started");
+              setIsGeneratingImage(true);
+            } else if (message === "done") {
+              console.log("Image generation done");
+              setIsGeneratingImage(false);
+            }
             return;
 
           case CORRECTION:
@@ -413,7 +426,9 @@ export function UserChat({ messages, setMessages, username }: UserChatProps) {
                 </div>
               </ScrollArea>
               
-              {isSendingMessage ? (
+              {isGeneratingImage ? (
+                <ImageLoader />
+              ) : isSendingMessage ? (
                 <MessageLoader />
               ) : (
                 <div className="pt-4 border-t border-border dark:border-dark-border flex items-center justify-center">
