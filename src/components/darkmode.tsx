@@ -3,17 +3,23 @@ import { Sun, Moon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function DarkModeToggle() {
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const getInitialTheme = () => {
+    if (localStorage.theme === "dark" || (!("theme" in localStorage) && window.matchMedia("(prefers-color-scheme: dark)").matches)) {
+      return true;
+    } else {
+      return false;
+    }
+  };
+
+  const [isDarkMode, setIsDarkMode] = useState(getInitialTheme);
 
   useEffect(() => {
-    if (localStorage.theme === "dark" || (!("theme" in localStorage) && window.matchMedia("(prefers-color-scheme: dark)").matches)) {
+    if (isDarkMode) {
       document.documentElement.classList.add("dark");
-      setIsDarkMode(true);
     } else {
       document.documentElement.classList.remove("dark");
-      setIsDarkMode(false);
     }
-  }, []);
+  }, [isDarkMode]);
 
   const toggleDarkMode = () => {
     if (isDarkMode) {
@@ -36,7 +42,7 @@ export default function DarkModeToggle() {
       {isDarkMode ? (
         <Sun className="w-6 h-6 text-primary-background" />
       ) : (
-        <Moon className="w-6 h-6 text-primary-foreground" />
+        <Moon className="w-6 h-6 text-gray-500" />
       )}
     </Button>
   );

@@ -1,5 +1,6 @@
 import React from 'react';
 import { Wifi, WifiOff } from 'lucide-react';
+import DarkModeToggle from '@/components/darkmode';
 
 interface HeaderProps {
   username: string;
@@ -14,10 +15,11 @@ const Header: React.FC<HeaderProps> = ({ username, isChatConnected }) => {
         <div className="flex items-center gap-2">
           <h3 className="text-lg text-muted-foreground">{username}</h3>
           {(isChatConnected) ? (
-            <Wifi className="text-primary" size={20} />
+            <Wifi className="text-green-500" size={20} />
           ) : (
-            <WifiOff className="text-destructive" size={20} />
+            <WifiOff className="text-red-500" size={20} />
           )}
+          <DarkModeToggle />
         </div>
       </div>
     </header>

@@ -17,6 +17,7 @@ import MessageComponents from './utils/admin/messages';
 import AdminVideo from './webrtc/admin';
 import { AdminArtifactComponent } from './artifact/admin';
 import AdminInputBar from './utils/admin/admin_input';
+import DarkModeToggle from './darkmode';
 
 const USER = 'user';
 const ASSISTANT = 'assistant';
@@ -216,6 +217,7 @@ export function InterceptorChat() {
             <div className="flex items-center gap-2">
               <User className="h-5 w-5 text-muted-foreground dark:text-muted-foreground" />
               <h3 className="text-lg text-muted-foreground dark:text-muted-foreground">{username}</h3>
+              <DarkModeToggle />
               <Button 
                 className="bg-destructive text-destructive-foreground dark:bg-destructive dark:text-destructive-foreground" 
                 onClick={handleDeleteChat}
