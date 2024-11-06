@@ -5,7 +5,7 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Button } from "@/components/ui/button"
 import axios from 'axios'
 import { motion } from 'framer-motion'
-import { PanelRightClose, PanelLeftClose, ChevronLeft, ChevronRight, Send } from "lucide-react"
+import { PanelRightClose, PanelLeftClose, ChevronLeft, ChevronRight } from "lucide-react"
 
 import { 
   Message,
