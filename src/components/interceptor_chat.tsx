@@ -23,6 +23,7 @@ import ImageLoader from '@/components/ui/loaders/image_loader';
 const USER = 'user';
 const ASSISTANT = 'assistant';
 const CORRECTION = 'correction';
+const INPUT = 'input';
 const ADMIN = 'admin';
 const GENERATING_IMAGE = 'generating_image';
 
@@ -67,9 +68,9 @@ export function InterceptorChat() {
       chatWebsocketRef.current.onmessage = async (event) => {
         const data = JSON.parse(event.data);
         const message = data.content;
-        if (data.role === CORRECTION) {
-          // setMessages(prevMessages => prevMessages.slice(0, -2));
-        } else if (data.role === GENERATING_IMAGE) {
+        const role = data.role;
+
+        if (role === GENERATING_IMAGE) {
           if (message === "start") {
             console.log("Image generation started");
             setIsGeneratingImage(true);
@@ -77,8 +78,7 @@ export function InterceptorChat() {
             console.log("Image generation done");
             setIsGeneratingImage(false);
           }
-        } else if (data.role !== USER && data.role !== ASSISTANT) {
-          console.error("Error: Unrecognized role received in WebSocket message:", data.role);
+          return;
         }
 
         const finalMessage: Message = {
@@ -163,7 +163,7 @@ export function InterceptorChat() {
     
     if (chatWebsocketRef.current) {
       chatWebsocketRef.current.send(JSON.stringify({
-        'role': 'input',
+        'role': INPUT,
         'content': message,
         'images': images
       }));
@@ -174,7 +174,7 @@ export function InterceptorChat() {
   const handleCorrectionMessage = useCallback(async (correction: string, images: string[]) => {
     setMessages(prevMessages => {
       let updatedMessages = prevMessages.slice(0, -1);
-      const lastMessage = updatedMessages[updatedMessages.length - 1];
+      // const lastMessage = updatedMessages[updatedMessages.length - 1];
 
       setPausedMessage(false);
 
