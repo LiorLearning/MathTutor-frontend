@@ -98,18 +98,9 @@ export function InterceptorChat() {
       initializeChat();
     }
 
-    const handleUnload = () => {
-      chatWebsocketRef.current?.close()
-      chatWebsocketRef.current = null;
-    };
-
-    window.addEventListener('beforeunload', handleUnload);
-
     return () => {
       chatWebsocketRef.current?.close()
       chatWebsocketRef.current = null;
-
-      window.removeEventListener('beforeunload', handleUnload);
     }
 
   }, [username, initChatWebSocket]);
