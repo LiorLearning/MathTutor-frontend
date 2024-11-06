@@ -1,77 +1,103 @@
-import { Textarea } from '@/components/ui/textarea';
+'use client'
+
+import { Textarea } from '@/components/ui/textarea'
 import React, { useState, useRef, useCallback } from 'react'
-import { Button } from '@/components/ui/button';
-import { ImageIcon, Send, X, Loader } from 'lucide-react';
-import axios from 'axios';
+import { Button } from '@/components/ui/button'
+import { ImageIcon, Send, X, Loader, Upload, Check } from 'lucide-react'
+import axios from 'axios'
 
 interface InputBarProps {
   onSendMessage: (message: string, images: string[]) => void
 }
 
 interface UploadFileResponse {
-  filename: string;
-  url: string;
+  filename: string
+  url: string
 }
 
 interface UploadImagesResponse {
-  uploaded_files: UploadFileResponse[];
+  uploaded_files: UploadFileResponse[]
 }
 
-function InputBar({ onSendMessage }: InputBarProps) {
+interface ImageFile {
+  file: File
+  previewUrl: string
+  uploaded: boolean
+  url?: string
+  isUploading: boolean
+}
+
+export default function InputBar({ onSendMessage }: InputBarProps) {
   const [textInput, setTextInput] = useState("")
-  const [selectedImages, setSelectedImages] = useState<File[]>([])
-  const [previewUrls, setPreviewUrls] = useState<string[]>([])
-  const [isUploading, setIsUploading] = useState(false)
+  const [selectedImages, setSelectedImages] = useState<ImageFile[]>([])
   const fileInputRef = useRef<HTMLInputElement>(null)
   const textInputRef = useRef<HTMLTextAreaElement>(null)
 
   const handleTextareaInput = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const textarea = event.target;
-    textarea.style.height = 'auto'; // Reset the height
-    textarea.style.height = `${Math.min(textarea.scrollHeight, 10 * 24)}px`; // Set the height based on content, with a max of 10 rows (assuming 24px per row)
-  };
+    const textarea = event.target
+    textarea.style.height = 'auto'
+    textarea.style.height = `${Math.min(textarea.scrollHeight, 10 * 24)}px`
+  }
 
-  const handleFileUpload = async (files: File[]): Promise<string[]> => {
-    const formData = new FormData();
-    files.forEach(file => {
-      formData.append('files', file);
-    });
+  const handleFileUpload = async (file: File, index: number): Promise<string | null> => {
+    const formData = new FormData()
+    formData.append('files', file)
 
-    setIsUploading(true);
     try {
       const response = await axios.post<UploadImagesResponse>(
         `${process.env.NEXT_PUBLIC_API_BASE_URL}api/v1/file/upload-images/`, 
-        formData, {
+        formData, 
+        {
           headers: {
             'accept': 'application/json',
             'Content-Type': 'multipart/form-data'
           }
         }
-      );
-      return response.data.uploaded_files.map((file: UploadFileResponse) => file.url);
+      )
+      return response.data.uploaded_files[0].url
     } catch (error) {
-      console.error('Error uploading images:', error);
-      return [];
+      console.error('Error uploading image:', error)
+      return null
     } finally {
-      setIsUploading(false);
+      setSelectedImages(prevImages => 
+        prevImages.map((img, i) => 
+          i === index ? { ...img, isUploading: false } : img
+        )
+      )
     }
   }
 
   const handleTextSend = async () => {
-    if (textInput.trim() === "" && selectedImages.length === 0) return; // Prevent sending empty messages
+    if (textInput.trim() === "" && selectedImages.length === 0) return
 
-    let imageUrls: string[] = [];
-    imageUrls = await handleFileUpload(selectedImages);
+    const imageUrls: string[] = []
 
-    onSendMessage(textInput, imageUrls);
-    setTextInput("");
-    clearImages();
+    for (let index = 0; index < selectedImages.length; index++) {
+      const image = selectedImages[index];
+      if (!image.uploaded) {
+        setSelectedImages(prevImages => 
+          prevImages.map((img, i) => 
+            i === index ? { ...img, isUploading: true } : img
+          )
+        )
+        const url = await handleFileUpload(image.file, index)
+        if (url) {
+          imageUrls.push(url)
+        }
+      } else if (image.url) {
+        imageUrls.push(image.url)
+      }
+    }
+
+    onSendMessage(textInput, imageUrls)
+    setTextInput("")
+    setSelectedImages([])
 
     const textareaElement = document.querySelector(
       "textarea.textarea-send"
-    ) as HTMLTextAreaElement;
+    ) as HTMLTextAreaElement
     if (textareaElement) {
-      textareaElement.style.height = "auto";
+      textareaElement.style.height = "auto"
     }
   }
 
@@ -83,20 +109,17 @@ function InputBar({ onSendMessage }: InputBarProps) {
   }
 
   const addNewImages = (newFiles: File[]) => {
-    setSelectedImages(prevImages => [...prevImages, ...newFiles])
-    
-    newFiles.forEach(file => {
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        setPreviewUrls(prevUrls => [...prevUrls, reader.result as string])
-      }
-      reader.readAsDataURL(file)
-    })
+    const newImageFiles: ImageFile[] = newFiles.map(file => ({
+      file,
+      previewUrl: URL.createObjectURL(file),
+      uploaded: false,
+      isUploading: false
+    }))
+    setSelectedImages(prevImages => [...prevImages, ...newImageFiles])
   }
 
   const clearImages = () => {
     setSelectedImages([])
-    setPreviewUrls([])
     if (fileInputRef.current) {
       fileInputRef.current.value = ''
     }
@@ -104,7 +127,6 @@ function InputBar({ onSendMessage }: InputBarProps) {
 
   const removeImage = (index: number) => {
     setSelectedImages(prevImages => prevImages.filter((_, i) => i !== index))
-    setPreviewUrls(prevUrls => prevUrls.filter((_, i) => i !== index))
   }
 
   const handlePaste = useCallback((e: React.ClipboardEvent) => {
@@ -126,18 +148,42 @@ function InputBar({ onSendMessage }: InputBarProps) {
     }
   }, [])
 
+  const handleUploadImage = async (index: number) => {
+    const image = selectedImages[index]
+    if (!image.uploaded) {
+      setSelectedImages(prevImages => 
+        prevImages.map((img, i) => 
+          i === index ? { ...img, isUploading: true } : img
+        )
+      )
+      const url = await handleFileUpload(image.file, index)
+      if (url) {
+        setSelectedImages(prevImages => 
+          prevImages.map((img, i) => 
+            i === index ? { ...img, uploaded: true, url } : img
+          )
+        )
+      }
+    }
+  }
+
   return (
     <div className="relative w-full">
-      {previewUrls.length > 0 && (
+      {selectedImages.length > 0 && (
         <div className="mb-2 flex flex-wrap gap-2 items-center justify-between">
           <div className="flex flex-wrap gap-2">
-            {previewUrls.map((url, index) => (
+            {selectedImages.map((image, index) => (
               <div key={index} className="relative">
                 <img
-                  src={url}
+                  src={image.previewUrl}
                   alt={`Preview ${index + 1}`}
-                  className="w-20 h-20 object-cover rounded-md"
+                  className={`w-20 h-20 object-cover rounded-md ${image.isUploading ? 'opacity-50' : ''}`}
                 />
+                {image.isUploading && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 rounded-md">
+                    <Loader size={20} className="animate-spin text-white" />
+                  </div>
+                )}
                 <Button
                   size="icon"
                   variant="secondary"
@@ -146,6 +192,16 @@ function InputBar({ onSendMessage }: InputBarProps) {
                   aria-label={`Remove image ${index + 1}`}
                 >
                   <X size={16} />
+                </Button>
+                <Button
+                  size="icon"
+                  variant="secondary"
+                  onClick={() => handleUploadImage(index)}
+                  className="absolute bottom-0 right-0 bg-gray-800 text-white rounded-full p-1"
+                  aria-label={`Upload image ${index + 1}`}
+                  disabled={image.uploaded || image.isUploading}
+                >
+                  {image.uploaded ? <Check size={16} /> : <Upload size={16} />}
                 </Button>
               </div>
             ))}
@@ -199,11 +255,7 @@ function InputBar({ onSendMessage }: InputBarProps) {
               className="text-gray-400 hover:text-gray-600 transition-colors"
               aria-label="Send message"
             >
-              {isUploading ? (
-                <Loader size={20} className="animate-spin text-gray-400" />
-              ) : (
-                <Send size={20} />
-              )}
+              <Send size={20} />
             </Button>
           </div>
         </div>
@@ -219,5 +271,3 @@ function InputBar({ onSendMessage }: InputBarProps) {
     </div>
   )
 }
-
-export default InputBar;
