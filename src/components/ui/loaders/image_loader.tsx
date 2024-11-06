@@ -8,13 +8,13 @@ export default function Component() {
   
   return (
     <div className="flex items-center justify-center h-12 w-full">
-      <div className="bg-white/80 dark:bg-gray-700/80 p-6 rounded-lg shadow-sm">
+      <div className="bg-card/80 dark:bg-card/80 p-6 rounded-lg shadow-sm">
         <div className="flex items-center space-x-3">
           <div className="flex">
             {text.split("").map((char, index) => (
               <motion.span
                 key={index}
-                className="text-lg font-semibold text-gray-800 dark:text-gray-200"
+                className="text-lg font-semibold text-card-foreground dark:text-card-foreground"
                 initial={{ opacity: 0.2 }}
                 animate={{ opacity: 1 }}
                 transition={{
