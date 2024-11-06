@@ -67,7 +67,7 @@ export function InterceptorChat() {
       chatWebsocketRef.current.onmessage = async (event) => {
         const data = JSON.parse(event.data);
         const message = data.content;
-        if (data.role === 'correction') {
+        if (data.role === CORRECTION) {
           // setMessages(prevMessages => prevMessages.slice(0, -2));
         } else if (data.role === GENERATING_IMAGE) {
           if (message === "start") {
@@ -153,7 +153,7 @@ export function InterceptorChat() {
   const handleSendMessage = useCallback(async (message: string, images: string[]) => {
     const userMessage: Message = {
       role: ADMIN,
-      content: images.map(url => `![image](${url})`).join('\n') + `\n\n${message}`,
+      content: images.map(url => `![image](${url})\n\n`).join() + message,
       audioUrl: '',
       message_id: `temp-${Date.now()}`,
       timestamp: new Date().toISOString()
@@ -180,7 +180,7 @@ export function InterceptorChat() {
 
       const userMessage: Message = {
         role: CORRECTION,
-        content: lastMessage.content + " (" + correction + ")" + "\n\n" + images.map(url => `![image](${url})`).join('\n'),
+        content: images.map(url => `![image](${url})\n\n`).join() + correction,
         audioUrl: '',
         message_id: `temp-${Date.now()}`,
         timestamp: new Date().toISOString()
