@@ -1,6 +1,6 @@
 import React from 'react';
 import { Wifi, WifiOff } from 'lucide-react';
-import DarkModeToggle from '@/components/darkmode';
+import { DarkModeToggle } from '@/components/themeContext';
 
 interface HeaderProps {
   username: string;

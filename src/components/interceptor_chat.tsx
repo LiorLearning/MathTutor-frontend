@@ -17,7 +17,7 @@ import MessageComponents from './utils/admin/messages';
 import AdminVideo from './webrtc/admin';
 import { AdminArtifactComponent } from './artifact/admin';
 import AdminInputBar from './utils/admin/admin_input';
-import DarkModeToggle from './darkmode';
+import { DarkModeToggle } from './themeContext';
 import ImageLoader from '@/components/ui/loaders/image_loader';
 
 const USER = 'user';

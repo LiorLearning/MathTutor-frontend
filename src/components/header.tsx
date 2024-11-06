@@ -9,7 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import DarkModeToggle from "@/components/darkmode"
+import { DarkModeToggle } from "./themeContext"
 
 export function Header() {
   return (
