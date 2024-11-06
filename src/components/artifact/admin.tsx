@@ -6,12 +6,12 @@ import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { X } from 'lucide-react'
+import InputBar from '@/components/utils/admin/inputbar';
 
 export const AdminArtifactComponent: React.FC<{ username: string }> = ({ username }) => {
   const [htmlContent, setHtmlContent] = useState("");
   const [userHtmlContent, setUserHtmlContent] = useState("");
   
-  const [adminPrompt, setAdminPrompt] = useState("");
   const htmlWebsocketRef = useRef<WebSocket | null>(null);
   
   const [seeUserHtml, setSeeUserHtml] = useState(true);
@@ -49,41 +49,31 @@ export const AdminArtifactComponent: React.FC<{ username: string }> = ({ usernam
     }
   }, []);
 
-  const generateHtml = useCallback(() => {
+  const generateHtml = useCallback((message: string, images: string[]) => {
     if (htmlWebsocketRef.current) {
       setHtmlContent("");
-      const message = { 
+      const wsMessage = { 
         action: "GENERATE", 
         content: sendLoadingMessage ? "loading" : "",
-        prompt: adminPrompt,
+        prompt: message,
+        images: images
       };
-      htmlWebsocketRef.current.send(JSON.stringify(message));
-      setAdminPrompt("");
-      const textareaElement = document.querySelector(
-        "textarea.generate-html"
-      ) as HTMLTextAreaElement;
-      if (textareaElement) {
-        textareaElement.style.height = "auto";
-      }
+      htmlWebsocketRef.current.send(JSON.stringify(wsMessage));
     }
-  }, [sendLoadingMessage, adminPrompt]); // Include sendLoadingMessage in dependencies
+  }, [sendLoadingMessage]); // Include sendLoadingMessage in dependencies
 
   const handleHtmlChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
     setHtmlContent(event.target.value);
   };
 
-  const handleTextareaInput = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const textarea = event.target;
-    textarea.style.height = 'auto'; // Reset the height
-    textarea.style.height = `${Math.min(textarea.scrollHeight, 10 * 48)}px`; // Set the height based on content, with a max of 10 rows (assuming 24px per row)
-  };
-
   const sendHtmlContent = () => {
+    // TODO: update images
     if (htmlWebsocketRef.current) {
       htmlWebsocketRef.current.send(JSON.stringify({ 
         action: "SEND", 
         content: htmlContent,
-        prompt: ""
+        prompt: "",
+        images: [],
       }));
     }
   };
@@ -197,26 +187,9 @@ export const AdminArtifactComponent: React.FC<{ username: string }> = ({ usernam
       )}
       <div className="flex items-center mt-4">
         <div className="flex items-center w-full">
-          <Textarea 
-            className="flex-grow mr-2 h-12 generate-html" 
-            placeholder="Enter prompt here..." 
-            value={adminPrompt} 
-            onInput={handleTextareaInput}
-            onChange={(e) => setAdminPrompt(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                generateHtml();
-              }
-            }}
-            rows={1}
-            style={{ maxHeight: '480px' }}
+          <InputBar 
+            onSendMessage={generateHtml}
           />
-          <Button
-            onClick={generateHtml}
-            className="h-12" 
-          >
-            Generate Artifact
-          </Button>
         </div>
       </div>
     </>    
