@@ -118,7 +118,9 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children, clientId
         try {
           const message = JSON.parse(event.data);
           if (message.type === 'stream_start') {
-            initializeAudioPlayback();
+            setTimeout(() => {
+              initializeAudioPlayback();
+            }, 1000);
           } else if (message.type === 'stream_end') {
             processAudioQueue();
           }

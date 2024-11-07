@@ -26,20 +26,6 @@ export interface StartChatResponse {
 
 export type GetChatHistoryResponse = Message[];
 
-export const ImageComponent: React.FC<{ src?: string; alt?: string; onLoad?: () => void }> = ({ src, alt, onLoad }) => {
-    return (
-        <Image
-            src={src || ''}
-            alt={alt || ''}
-            width={300}
-            height={300}
-            className="rounded-lg"
-            style={{ objectFit: 'contain', width: '80%', height: 'auto' }}
-            onLoad={onLoad}
-        />
-    );
-};
-
 // Create a separate component for markdown images
 const MarkdownImage: React.FC<{ src?: string; alt?: string }> = ({ src, alt }) => {
     const [isLoading, setIsLoading] = useState(true);
@@ -47,7 +33,7 @@ const MarkdownImage: React.FC<{ src?: string; alt?: string }> = ({ src, alt }) =
     const handleLoad = () => setIsLoading(false);
 
     return (
-        <div className="relative flex justify-center">
+        <div className="relative flex justify-start">
             {isLoading && (
                 <div className="absolute inset-0 flex items-center justify-center bg-gray-200 dark:bg-gray-700">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-gray-100"></div>
@@ -59,7 +45,7 @@ const MarkdownImage: React.FC<{ src?: string; alt?: string }> = ({ src, alt }) =
                 width={300}
                 height={300}
                 className="rounded-lg"
-                style={{ objectFit: 'contain', width: '60%', height: 'auto' }}
+                style={{ objectFit: 'contain', width: '50%', height: 'auto' }}
                 onLoad={handleLoad}
             />
         </div>

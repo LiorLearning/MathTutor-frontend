@@ -16,7 +16,7 @@ const InputBar: React.FC<InputBarProps> = ({ onSendMessage }) => {
   };
 
   return (
-    <div className="relative w-1/2">
+    <div className="relative">
       <Input
         type="text"
         value={textInput}

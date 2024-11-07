@@ -438,12 +438,12 @@ export function UserChat({ messages, setMessages, username }: UserChatProps) {
                 <MessageLoader />
               ) : (
                 <div className="pt-4 border-t border-border dark:border-dark-border flex items-center justify-center">
-                  <div className="relative flex flex-col items-center">
-                    <div className="flex flex-col items-center gap-4 max-w-xs mx-auto">
-                      <div className='relative w-1/2'>
-                        <SpeechToText onRecordingStart={handleRecordingStart} onRecordingStop={handleRecordingStop} />
-                      </div>
+                  <div className="relative flex flex-row items-center gap-4 max-w-xs mx-auto">
+                    <div className='relative'>
                       <InputBar onSendMessage={onSendTextMessage} />
+                    </div>
+                    <div className='relative w-1/2'>
+                      <SpeechToText onRecordingStart={handleRecordingStart} onRecordingStop={handleRecordingStop} />
                     </div>
                   </div>
                 </div>
@@ -464,7 +464,7 @@ export function UserChat({ messages, setMessages, username }: UserChatProps) {
             />
           </motion.div>
 
-          <div className="fixed left-4 bottom-4 w-[15vw] h-[calc(15vw * 4 / 3)] max-w-[256px] max-h-[calc(256px * 4 / 3)]">
+          <div className="fixed right-8 top-20 w-[15vw] h-[calc(15vw * 4 / 3)] max-w-[256px] max-h-[calc(256px * 4 / 3)]">
             <UserVideo 
               username={username}
               style={{ 
@@ -474,7 +474,7 @@ export function UserChat({ messages, setMessages, username }: UserChatProps) {
             />
             <Button 
               onClick={toggleVideoFeed} 
-              className="absolute bottom-0 left-0 bg-gray-800 dark:bg-dark-gray-800 text-white p-2 rounded"
+              className="absolute top-0 right-0 bg-gray-800 dark:bg-dark-gray-800 text-white p-2 rounded"
             >
               {isVideoVisible ? <PanelRightClose className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
             </Button>

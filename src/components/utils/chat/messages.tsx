@@ -37,15 +37,7 @@ export default function MessageComponents({ messages, toggleAudio }: MessageComp
   const visibleMessages = messages.slice(-visibleCount)
 
   return (
-    <div className="flex flex-col h-[calc(100vh-200px)] overflow-hidden">
-      {visibleCount < messages.length && (
-        <div className="flex justify-center my-4">
-          <Button onClick={handleLoadMore} variant="outline" size="sm">
-            <ChevronUp className="mr-2 h-4 w-4" />
-            Load More
-          </Button>
-        </div>
-      )}
+    <div className="flex flex-col h-[calc(100vh-200px)] overflow-hidden relative">
       <div className="overflow-y-auto flex-grow">
         {visibleMessages.map((message) => (
           <MessageItem 
@@ -56,6 +48,13 @@ export default function MessageComponents({ messages, toggleAudio }: MessageComp
         ))}
         <div ref={messagesEndRef} />
       </div>
+      {visibleCount < messages.length && (
+        <div className="absolute top-4 left-1/2 transform -translate-x-1/2 opacity-60">
+          <Button onClick={handleLoadMore} variant="outline" size="sm">
+            <ChevronUp className="h-4 w-4" />
+          </Button>
+        </div>
+      )}
     </div>
   )
 }
