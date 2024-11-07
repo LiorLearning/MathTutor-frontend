@@ -19,7 +19,7 @@ import Popup from './chat/popup';
 import Header from './chat/header';
 import SpeechToText from './chat/speech_to_text';
 
-import { AudioContext } from './chat/audio_stream';
+import { AudioContext } from './chat/openai_audio_stream';
 import UserVideo from '@/components/webrtc/user';
 import { UserArtifactComponent } from '@/components/artifact/user';
 import InputBar from './chat/input_bar';
@@ -131,7 +131,11 @@ export function UserChat({ messages, setMessages, username }: UserChatProps) {
       if (isPlaying) {
         handleStopAudio(message);
       } else {
-        handlePlayAudio(message.message_id, message.content);
+        let messageText = message.content;
+        if (message.isImage) {
+          messageText = extractTextFromMessage(messageText);
+        }
+        handlePlayAudio(message.message_id, messageText);
       }
     }
   }, []);
@@ -460,7 +464,7 @@ export function UserChat({ messages, setMessages, username }: UserChatProps) {
             />
           </motion.div>
 
-          <div className="fixed right-4 top-4 w-[15vw] h-[calc(15vw * 4 / 3)] max-w-[256px] max-h-[calc(256px * 4 / 3)]">
+          <div className="fixed left-4 bottom-4 w-[15vw] h-[calc(15vw * 4 / 3)] max-w-[256px] max-h-[calc(256px * 4 / 3)]">
             <UserVideo 
               username={username}
               style={{ 
@@ -470,7 +474,7 @@ export function UserChat({ messages, setMessages, username }: UserChatProps) {
             />
             <Button 
               onClick={toggleVideoFeed} 
-              className="absolute top-0 right-0 bg-gray-800 dark:bg-dark-gray-800 text-white p-2 rounded"
+              className="absolute bottom-0 left-0 bg-gray-800 dark:bg-dark-gray-800 text-white p-2 rounded"
             >
               {isVideoVisible ? <PanelRightClose className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
             </Button>
