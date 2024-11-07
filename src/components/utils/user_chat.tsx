@@ -407,8 +407,10 @@ export function UserChat({ messages, setMessages, username }: UserChatProps) {
           <motion.div
             className="flex-1 p-6 transition-all duration-200 ease-in-out"
             animate={{
-              marginRight: isRightColumnCollapsed ? "15%" : "50%",
-              marginLeft: isRightColumnCollapsed ? "15%" : "0%",
+              width: isRightColumnCollapsed ? "100%" : "50%",
+            }}
+            style={{
+              marginRight: isRightColumnCollapsed ? "0%" : "50%",
             }}
           >
             <div className="h-full flex flex-col border-r border-border dark:border-dark-border">

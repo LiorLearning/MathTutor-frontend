@@ -120,7 +120,7 @@ export const MarkdownComponent: React.FC<{ content: string }> = ({ content }) =>
             th: (props) => <th className="border border-gray-300 dark:border-gray-600 px-4 py-1 text-left" {...props} />,
             td: (props) => <td className="border border-gray-300 dark:border-gray-600 px-4 py-1" {...props} />,
           }}
-          className="prose dark:prose-invert max-w-none"
+          className="prose dark:prose-invert break-words"
         >
           {content}
         </ReactMarkdown>
