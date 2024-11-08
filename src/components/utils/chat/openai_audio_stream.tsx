@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, createContext, ReactNode } from 'react';
 
-const STREAM_CLOSE_DELAY = 1000; // Time in milliseconds to wait before closing the stream after the last chunk
+const STREAM_CLOSE_DELAY = 2000; // Time in milliseconds to wait before closing the stream after the last chunk
+const BUFFER_QUEUE_THRESHOLD = 3; // Minimum number of chunks to queue before starting playback
 
 interface AudioContextProps {
   isConnected: boolean;
@@ -183,7 +184,7 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children, clientId
       return; // Already playing
     }
 
-    if (audioBufferQueueRef.current.length === 0) {
+    if (audioBufferQueueRef.current.length < BUFFER_QUEUE_THRESHOLD) {
       // Schedule stream close if no more chunks are received
       if (streamCloseTimeoutRef.current) {
         clearTimeout(streamCloseTimeoutRef.current);
@@ -192,18 +193,24 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children, clientId
       streamCloseTimeoutRef.current = setTimeout(() => {
         finalizeAudioPlayback();
       }, STREAM_CLOSE_DELAY);
-      return; // Nothing to play
+      return; // Not enough data to play yet
     }
 
-    // Clear any existing stream close timeout since we have data
+    // Clear any existing stream close timeout since we have enough data
     if (streamCloseTimeoutRef.current) {
       clearTimeout(streamCloseTimeoutRef.current);
       streamCloseTimeoutRef.current = null;
     }
 
-    const float32Data = audioBufferQueueRef.current.shift();
-    if (!float32Data) {
-      return;
+    // Combine the first 3 (or more) chunks into a single buffer
+    const combinedData = new Float32Array(audioBufferQueueRef.current.reduce((total, chunk) => total + chunk.length, 0));
+    let offset = 0;
+    while (audioBufferQueueRef.current.length > 0) {
+      const chunk = audioBufferQueueRef.current.shift();
+      if (chunk) {
+        combinedData.set(chunk, offset);
+        offset += chunk.length;
+      }
     }
 
     if (!audioContextRef.current) {
@@ -214,8 +221,8 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children, clientId
     const sampleRate = 24000; // Ensure this matches your PCM data's sample rate
 
     // Create an AudioBuffer
-    const buffer = audioCtx.createBuffer(1, float32Data.length, sampleRate);
-    buffer.copyToChannel(float32Data, 0, 0);
+    const buffer = audioCtx.createBuffer(1, combinedData.length, sampleRate);
+    buffer.copyToChannel(combinedData, 0, 0);
 
     // Create a BufferSource
     const bufferSource = audioCtx.createBufferSource();
