@@ -123,7 +123,7 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children, clientId
               initializeAudioPlayback();
             }, 1000);
           } else if (message.type === 'stream_end') {
-            processAudioQueue();
+            processAudioQueue(true);
           }
         } catch (error) {
           console.error('Error parsing JSON message:', error);
@@ -175,7 +175,7 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children, clientId
   /**
    * Processes the audio buffer queue by playing the next buffer if not already playing.
    */
-  const processAudioQueue = () => {
+  const processAudioQueue = (is_end: boolean = false) => {
     if (!isPlayingRef.current) {
       return;
     }
@@ -184,7 +184,7 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children, clientId
       return; // Already playing
     }
 
-    if (audioBufferQueueRef.current.length < BUFFER_QUEUE_THRESHOLD) {
+    if (audioBufferQueueRef.current.length < BUFFER_QUEUE_THRESHOLD && !is_end) {
       // Schedule stream close if no more chunks are received
       if (streamCloseTimeoutRef.current) {
         clearTimeout(streamCloseTimeoutRef.current);
@@ -202,8 +202,9 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children, clientId
       streamCloseTimeoutRef.current = null;
     }
 
-    // Combine the first 3 (or more) chunks into a single buffer
+    // Combine all chunks into a single buffer
     const combinedData = new Float32Array(audioBufferQueueRef.current.reduce((total, chunk) => total + chunk.length, 0));
+
     let offset = 0;
     while (audioBufferQueueRef.current.length > 0) {
       const chunk = audioBufferQueueRef.current.shift();
@@ -232,7 +233,7 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children, clientId
     // When the buffer ends, play the next one in the queue
     bufferSource.onended = () => {
       currentSourceRef.current = null;
-      processAudioQueue();
+      processAudioQueue(is_end);
     };
 
     // Start playback immediately
