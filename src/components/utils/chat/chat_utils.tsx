@@ -33,7 +33,7 @@ const MarkdownImage: React.FC<{ src?: string; alt?: string }> = ({ src, alt }) =
     const handleLoad = () => setIsLoading(false);
 
     return (
-        <div className="relative flex justify-start">
+        <div className="relative flex justify-start" style={{ width: '50%', height: 'auto' }}>
             {isLoading && (
                 <div className="absolute inset-0 flex items-center justify-center bg-gray-200 dark:bg-gray-700">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-gray-100"></div>
@@ -45,7 +45,7 @@ const MarkdownImage: React.FC<{ src?: string; alt?: string }> = ({ src, alt }) =
                 width={300}
                 height={300}
                 className="rounded-lg"
-                style={{ objectFit: 'contain', width: '50%', height: 'auto' }}
+                style={{ objectFit: 'contain', width: '100%', height: 'auto' }}
                 onLoad={handleLoad}
             />
         </div>
