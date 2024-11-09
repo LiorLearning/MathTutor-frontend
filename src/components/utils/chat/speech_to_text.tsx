@@ -15,8 +15,31 @@ const SpeechToText: React.FC<SpeechToTextProps> = ({ onRecordingStart, onRecordi
 
   const startRecording = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      mediaRecorderRef.current = new MediaRecorder(stream);
+      // Request both audio and video but only use audio
+      // This is a workaround for iOS Safari
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          sampleRate: 44100,
+        },
+        video: false
+      });
+
+      // Determine supported MIME types
+      const mimeType = [
+        'audio/webm',
+        'audio/mp4',
+        'audio/mpeg',
+        'audio/ogg',
+        'audio/wav'
+      ].find(type => MediaRecorder.isTypeSupported(type)) || '';
+
+      // Create MediaRecorder with supported type and proper settings
+      mediaRecorderRef.current = new MediaRecorder(stream, {
+        mimeType: mimeType,
+        audioBitsPerSecond: 128000
+      });
 
       mediaRecorderRef.current.ondataavailable = (event) => {
         if (event.data.size > 0) {
@@ -24,11 +47,14 @@ const SpeechToText: React.FC<SpeechToTextProps> = ({ onRecordingStart, onRecordi
         }
       };
 
-      mediaRecorderRef.current.start();
+      // Start recording with smaller time slices for better compatibility
+      mediaRecorderRef.current.start(100);
       setIsRecording(true);
       onRecordingStart();
     } catch (err) {
       console.error('Error accessing microphone:', err);
+      // Handle the error gracefully - you might want to show a user-friendly error message
+      alert('Unable to access the microphone. Please ensure you have granted the necessary permissions and are using a supported browser.');
     }
   };
 
@@ -38,11 +64,21 @@ const SpeechToText: React.FC<SpeechToTextProps> = ({ onRecordingStart, onRecordi
       setIsRecording(false);
 
       mediaRecorderRef.current.onstop = () => {
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        // Determine the correct MIME type for the Blob
+        const mimeType = mediaRecorderRef.current?.mimeType || 'audio/webm';
+        
+        // Create blob with the detected MIME type
+        const audioBlob = new Blob(audioChunksRef.current, { type: mimeType });
         audioChunksRef.current = [];
         onRecordingStop(audioBlob);
 
-        mediaRecorderRef.current?.stream.getTracks().forEach(track => track.stop());
+        // Properly clean up all tracks
+        if (mediaRecorderRef.current?.stream) {
+          mediaRecorderRef.current.stream.getTracks().forEach(track => {
+            track.stop();
+            mediaRecorderRef.current?.stream.removeTrack(track);
+          });
+        }
       };
     }
   };
