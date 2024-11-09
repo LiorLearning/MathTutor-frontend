@@ -107,29 +107,27 @@ function RethinkingAnimation() {
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5 }}
       >
-        <motion.div
-          className="text-lg font-medium text-secondary-foreground"
-          initial={{ scale: 1 }}
-          animate={{
-            opacity: [0.5, 1, 0.5],
-          }}
-          transition={{
-            duration: 2,
-            repeat: Infinity,
-            ease: 'easeInOut',
-          }}
-        >
-          Rethinking...
-        </motion.div>
+        <div className="text-lg font-medium text-secondary-foreground">
+          <motion.span
+            initial={{ opacity: 0.5 }}
+            animate={{ opacity: [0.5, 1, 0.5] }}
+            transition={{
+              duration: 2,
+              repeat: Infinity,
+              ease: 'easeInOut',
+            }}
+          >
+            Rethinking...
+          </motion.span>
+        </div>
 
         <div className="flex gap-1">
           {[0, 1, 2].map((i) => (
             <motion.div
               key={i}
               className="w-2 h-2 bg-primary rounded-full"
-              initial={{ scale: 0.8, opacity: 0.5 }}
+              initial={{ opacity: 0.5 }}
               animate={{
-                scale: [0.8, 1.2, 0.8],
                 opacity: [0.5, 1, 0.5],
               }}
               transition={{

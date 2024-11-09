@@ -39,7 +39,7 @@ const PAUSE = 'pause';
 const NOTEXT = 'notext';
 const GENERATING_IMAGE = "generating_image"
 
-const RETHINKING_MESSAGE = "Rethinking..."
+const RETHINKING_MESSAGE = "rethinking"
 const SLEEP_TIME_AFTER_MESSAGE = 2000
 
 interface UserChatProps {
