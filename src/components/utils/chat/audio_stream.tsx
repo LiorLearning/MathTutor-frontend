@@ -11,11 +11,12 @@ export const AudioContext = createContext<AudioContextProps | null>(null);
 interface AudioProviderProps {
   children: ReactNode;
   clientId: string;
-  setIsPlaying: (messageId: string, isPlaying: boolean) => void; // Added setIsPlaying
+  setIsPlaying: (messageId: string, isPlaying: boolean) => void;
 }
 
 export const AudioProvider: React.FC<AudioProviderProps> = ({ children, clientId, setIsPlaying }) => {
   const [isConnected, setIsConnected] = useState(false);
+  const [hasInteracted, setHasInteracted] = useState(false);
 
   const audioContextRef = useRef<AudioContext | null>(null);
   const scheduledAudioRef = useRef<Record<string, { source: AudioBufferSourceNode; gain: GainNode; startTime: number; }[]>>({});
@@ -32,7 +33,48 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children, clientId
   const FADE_OUT_DURATION = -0.1;
   const MIN_BUFFER_DURATION = 0.5;
 
-  const playAudio = useCallback((messageId: string, text: string) => {
+  // Initialize or resume AudioContext
+  const initializeAudioContext = useCallback(async () => {
+    if (!audioContextRef.current) {
+      audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+    }
+
+    // Handle suspended state in Safari
+    if (audioContextRef.current.state === 'suspended') {
+      try {
+        await audioContextRef.current.resume();
+      } catch (error) {
+        console.error('Failed to resume AudioContext:', error);
+      }
+    }
+  }, []);
+
+  // Add interaction handler
+  useEffect(() => {
+    const handleInteraction = async () => {
+      if (!hasInteracted) {
+        await initializeAudioContext();
+        setHasInteracted(true);
+      }
+    };
+
+    // Add listeners for common user interactions
+    const interactionEvents = ['touchstart', 'touchend', 'click', 'keydown'];
+    interactionEvents.forEach(event => 
+      document.addEventListener(event, handleInteraction, { once: true })
+    );
+
+    return () => {
+      interactionEvents.forEach(event =>
+        document.removeEventListener(event, handleInteraction)
+      );
+    };
+  }, [hasInteracted, initializeAudioContext]);
+
+  const playAudio = useCallback(async (messageId: string, text: string) => {
+    // Ensure AudioContext is initialized and resumed
+    await initializeAudioContext();
+    
     connectWebSocket(messageId);
     
     const waitForConnection = () => {
@@ -67,7 +109,7 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children, clientId
       processAudioQueue(messageId);
     });
 
-  }, [setIsPlaying]);
+  }, [setIsPlaying, initializeAudioContext]);
 
   const stopAudio = useCallback((messageId?: string) => {
     if (!audioContextRef.current) {
@@ -84,16 +126,13 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children, clientId
     const messageIds = messageId ? [messageId] : Object.keys(scheduledAudioRef.current);
 
     messageIds.forEach(id => {
-      // Stop all scheduled audio sources
       if (scheduledAudioRef.current[id]) {
         scheduledAudioRef.current[id].forEach(({ source, gain }) => {
           try {
-            // Apply quick fade out to avoid clicks
             gain.gain.cancelScheduledValues(currentTime);
             gain.gain.setValueAtTime(gain.gain.value, currentTime);
             gain.gain.linearRampToValueAtTime(0, currentTime + 0.05);
 
-            // Schedule the source to stop shortly after the fade
             setTimeout(() => {
               try {
                 source.stop();
@@ -108,7 +147,6 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children, clientId
           }
         });
 
-        // Clean up references
         delete scheduledAudioRef.current[id];
         delete nextStartTimeRef.current[id];
         delete isFirstChunkRef.current[id];
@@ -116,15 +154,12 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children, clientId
       }
     });
 
-    // If no specific messageId was provided, reset the current message
     if (messageId) {
-      setIsPlaying(messageId, false); // Call setIsPlaying when audio stops
+      setIsPlaying(messageId, false);
     }
   }, [setIsPlaying]);
 
   const processAudioQueue = useCallback((messageId: string, is_end: boolean = false) => {
-
-    // TODO: No need for a timeout
     setTimeout(() => {
       if (is_end) {
         setIsPlaying(messageId, false);
@@ -140,13 +175,11 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children, clientId
       return;
     }
 
-    // Calculate total buffered duration, including currently playing audio
     const scheduledDuration = (scheduledAudioRef.current[messageId] || [])
       .reduce((acc, { source }) => acc + (source.buffer?.duration || 0), 0);
     const queuedDuration = queue.reduce((acc, chunk) => acc + (chunk.length / 24000), 0);
     const totalBufferedDuration = scheduledDuration + queuedDuration;
 
-    // Start processing if we have enough buffer
     if (totalBufferedDuration >= MIN_BUFFER_DURATION || (queue.length >= BUFFER_SIZE_THRESHOLD)) {
       while (queue.length > 0) {
         const audioData = queue.shift()!;
@@ -194,7 +227,6 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children, clientId
 
     webSocketRef.current.onopen = () => {
       setIsConnected(true);
-      audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
     };
 
     webSocketRef.current.onclose = () => {
@@ -211,15 +243,11 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children, clientId
         const arrayBuffer = await event.data.arrayBuffer();
         const audioData = new Float32Array(arrayBuffer);
 
-        // Initialize queue if needed
         if (!audioBufferQueueRef.current[messageId]) {
           audioBufferQueueRef.current[messageId] = [];
         }
 
-        // Add to queue
         audioBufferQueueRef.current[messageId].push(audioData);
-
-        // Process queue
         processAudioQueue(messageId);
       } else {
         try {
@@ -229,13 +257,10 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children, clientId
             isFirstChunkRef.current[data.messageId] = true;
             audioBufferQueueRef.current[data.messageId] = [];
           } else if (data.type === 'stream_end') {
-            // Process any remaining audio in the queue
             processAudioQueue(data.messageId, true);
 
-            // Wait for a short time to ensure all chunks are processed
             await new Promise(resolve => setTimeout(resolve, 50));
 
-            // Apply fade out to the last scheduled audio chunk
             const audioChunks = scheduledAudioRef.current[data.messageId];
             if (audioChunks && audioChunks.length > 0) {
               const lastChunk = audioChunks[audioChunks.length - 1];
@@ -244,7 +269,6 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children, clientId
               lastChunk.gain.gain.linearRampToValueAtTime(0, endTime);
             }
 
-            // Close the WebSocket connection
             if (webSocketRef.current) {
               webSocketRef.current.close();
               webSocketRef.current = null;
@@ -264,7 +288,6 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children, clientId
     Object.keys(scheduledAudioRef.current).forEach(messageId => {
       scheduledAudioRef.current[messageId] = scheduledAudioRef.current[messageId].filter(({ source, gain, startTime }) => {
         if (startTime + (source.buffer?.duration || 0) < currentTime) {
-          // Add a small buffer time to ensure the audio has actually finished
           if (currentTime > startTime + (source.buffer?.duration || 0) + 0.1) {
             try {
               gain.disconnect();
@@ -278,7 +301,6 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children, clientId
         return true;
       });
 
-      // Clean up empty message arrays
       if (scheduledAudioRef.current[messageId].length === 0) {
         delete scheduledAudioRef.current[messageId];
         delete nextStartTimeRef.current[messageId];
