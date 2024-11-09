@@ -16,7 +16,7 @@ interface AudioProviderProps {
 
 export const AudioProvider: React.FC<AudioProviderProps> = ({ children, clientId, setIsPlaying }) => {
   const [isConnected, setIsConnected] = useState(false);
-  const [audioContextInitialized, setAudioContextInitialized] = useState(false);
+  // const [audioContextInitialized, setAudioContextInitialized] = useState(false);
 
   const audioContextRef = useRef<AudioContext | null>(null);
   const scheduledAudioRef = useRef<Record<string, { source: AudioBufferSourceNode; gain: GainNode; startTime: number; }[]>>({});
@@ -54,7 +54,7 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children, clientId
         oscillator.start();
         oscillator.stop(audioContextRef.current.currentTime + 0.001);
         
-        setAudioContextInitialized(true);
+        // setAudioContextInitialized(true);
         console.log('AudioContext initialized:', audioContextRef.current.state);
       } catch (error) {
         console.error('Failed to initialize AudioContext:', error);
