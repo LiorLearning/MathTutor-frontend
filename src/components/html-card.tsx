@@ -15,6 +15,7 @@ const HtmlCard: React.FC<HtmlCardProps> = ({ htmlContent, name }) => (
     className="html-card"
     style={{ aspectRatio: '4/3' }} // Fixing the aspect ratio
     dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(htmlContent, { ADD_ATTR: ['style'], SAFE_FOR_TEMPLATES: true }) }}
+    title={name} // Using name as the title attribute
   />
 );
 
