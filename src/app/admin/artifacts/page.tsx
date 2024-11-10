@@ -1,9 +1,6 @@
 'use client'
 
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Button } from "@/components/ui/button"
-import { FileIcon, Maximize2Icon } from 'lucide-react'
 import { Header } from "@/components/header";
 
 import { useEffect, useState } from 'react';
@@ -72,7 +69,7 @@ export default function AllStudentsArtifactsPage() {
         
         {selectedUser && (
           <HtmlList artifacts={htmlFiles.filter(file => file.userid === selectedUser).map(file => ({
-            url: `${process.env.NEXT_PUBLIC_API_BASE_URL}${file.file_path}`,
+            url: `${file.file_path}`,
             name: file.name,
             desc: file.desc
           }))} />

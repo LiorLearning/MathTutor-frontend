@@ -13,8 +13,8 @@ interface HtmlCardProps {
 const HtmlCard: React.FC<HtmlCardProps> = ({ htmlContent, name }) => (
   <div
     className="html-card"
-    style={{ aspectRatio: '16/9' }} // Fixing the aspect ratio
-    dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(htmlContent) }}
+    style={{ aspectRatio: '4/3' }} // Fixing the aspect ratio
+    dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(htmlContent, { ADD_ATTR: ['style'], SAFE_FOR_TEMPLATES: true }) }}
   />
 );
 
@@ -47,10 +47,10 @@ const HtmlList: React.FC<HtmlListProps> = ({ artifacts }) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
       {artifacts.map((artifact, index) => (
-        <Card key={artifact.url} className="overflow-hidden max-w-xs">
+        <Card key={artifact.url} className="overflow-hidden max-w-xs" style={{ aspectRatio: '8/7' }}>
           <CardHeader>
             <CardTitle className="flex items-center">
-              <FileIcon className="mr-2" />
+              <FileIcon className="mr-1" />
               {artifact.name}
             </CardTitle>
           </CardHeader>
