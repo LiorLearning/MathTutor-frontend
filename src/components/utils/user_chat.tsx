@@ -28,7 +28,7 @@ import PageLoader from '../ui/loaders/page_loader';
 import ImageLoader from '@/components/ui/loaders/image_loader';
 
 
-const SPEAKOUT = true;
+const SPEAKOUT = false;
 const SPEED = 30;
 
 const CORRECTION = 'correction';
