@@ -68,14 +68,16 @@ export const MarkdownComponent: React.FC<{ content: string }> = ({ content }) =>
         document.body.appendChild(script);
     
         script.onload = () => {
-            (window.MathJax as any).Hub.Config({
-                tex2jax: {
-                    inlineMath: [['$', '$'], ['\\$$', '\\$$']],
-                    displayMath: [['$$', '$$'], ['\\[', '\\]']],
-                    processEscapes: true,
-                },
-            });
-            (window.MathJax as any).Hub.Queue(['Typeset', (window.MathJax as any).Hub]);
+            if (window.MathJax) {
+                window.MathJax.Hub.Config({
+                    tex2jax: {
+                        inlineMath: [['$', '$'], ['\\$$', '\\$$']],
+                        displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                        processEscapes: true,
+                    },
+                });
+                window.MathJax.Hub.Queue(['Typeset', window.MathJax.Hub]);
+            }
         };
     
         return () => {
