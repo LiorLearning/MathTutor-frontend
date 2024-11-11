@@ -35,29 +35,73 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children, clientId
     };
   }, []);
 
-  // Initialize AudioContext once
+  // Initialize AudioContext on component mount
   useEffect(() => {
-    audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
-    
-    const unlockAudioContext = () => {
-      if (audioContextRef.current?.state === 'suspended') {
-        audioContextRef.current.resume();
+    const initAudioContext = async () => {
+      try {
+        // Force sample rate to 48000 for Safari compatibility
+        const options = {
+          sampleRate: 48000,
+          latencyHint: 'interactive' as AudioContextLatencyCategory
+        };
+        
+        audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)(options);
+        
+        // Create and connect a dummy oscillator to initialize audio chain
+        const oscillator = audioContextRef.current.createOscillator();
+        const gainNode = audioContextRef.current.createGain();
+        gainNode.gain.value = 0; // Mute it
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContextRef.current.destination);
+        oscillator.start();
+        oscillator.stop(audioContextRef.current.currentTime + 0.001);
+        
+        // setAudioContextInitialized(true);
+        console.log('AudioContext initialized:', audioContextRef.current.state);
+      } catch (error) {
+        console.error('Failed to initialize AudioContext:', error);
       }
     };
-  
-    // Add event listeners to unlock AudioContext on user interaction
-    ['touchstart', 'touchend', 'click', 'keydown'].forEach(event => {
-      document.addEventListener(event, unlockAudioContext, { once: true });
-    });
-  
+
+    initAudioContext();
+
+    // Cleanup
     return () => {
-      audioContextRef.current?.close();
-      ['touchstart', 'touchend', 'click', 'keydown'].forEach(event => {
-        document.removeEventListener(event, unlockAudioContext);
-      });
+      if (audioContextRef.current) {
+        audioContextRef.current.close();
+      }
     };
   }, []);
 
+  // Initialize AudioContext once
+  useEffect(() => {
+    const unlockAudio = async () => {
+      if (!audioContextRef.current) return;
+
+      try {
+        if (audioContextRef.current.state === 'suspended') {
+          await audioContextRef.current.resume();
+          console.log('AudioContext resumed:', audioContextRef.current.state);
+        }
+      } catch (error) {
+        console.error('Failed to resume AudioContext:', error);
+      }
+    };
+
+    const handleInteraction = () => {
+      unlockAudio();
+    };
+
+    ['touchstart', 'touchend', 'click', 'keydown'].forEach(event => {
+      document.addEventListener(event, handleInteraction, { once: true });
+    });
+
+    return () => {
+      ['touchstart', 'touchend', 'click', 'keydown'].forEach(event => {
+        document.removeEventListener(event, handleInteraction);
+      });
+    };
+  }, []);
   /**
    * Initiates audio playback by connecting to the WebSocket.
    * @param messageId Unique identifier for the message.
