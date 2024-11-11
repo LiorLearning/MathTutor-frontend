@@ -230,7 +230,7 @@ export function UserChat({ messages, setMessages, username }: UserChatProps) {
             break;
         }
 
-        const isImage = message.startsWith("![Generated");
+        const isImage = message.includes('![Generated');
 
         setIsSendingMessage(false);
 
