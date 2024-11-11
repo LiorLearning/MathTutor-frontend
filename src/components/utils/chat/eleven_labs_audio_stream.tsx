@@ -35,6 +35,29 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children, clientId
     };
   }, []);
 
+  // Initialize AudioContext once
+  useEffect(() => {
+    audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+    
+    const unlockAudioContext = () => {
+      if (audioContextRef.current?.state === 'suspended') {
+        audioContextRef.current.resume();
+      }
+    };
+  
+    // Add event listeners to unlock AudioContext on user interaction
+    ['touchstart', 'touchend', 'click', 'keydown'].forEach(event => {
+      document.addEventListener(event, unlockAudioContext, { once: true });
+    });
+  
+    return () => {
+      audioContextRef.current?.close();
+      ['touchstart', 'touchend', 'click', 'keydown'].forEach(event => {
+        document.removeEventListener(event, unlockAudioContext);
+      });
+    };
+  }, []);
+
   /**
    * Initiates audio playback by connecting to the WebSocket.
    * @param messageId Unique identifier for the message.
