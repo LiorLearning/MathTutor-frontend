@@ -132,9 +132,7 @@ export function UserChat({ messages, setMessages, username }: UserChatProps) {
         handleStopAudio(message);
       } else {
         let messageText = message.content;
-        if (message.isImage) {
-          messageText = extractTextFromMessage(messageText);
-        }
+        messageText = extractTextFromMessage(messageText);
         handlePlayAudio(message.message_id, messageText);
       }
     }
