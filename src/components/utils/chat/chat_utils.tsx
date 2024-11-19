@@ -83,8 +83,14 @@ export const MarkdownComponent: React.FC<{ content: string }> = ({ content }) =>
         return () => {
             document.body.removeChild(script);
         };
+    }, []);
+    
+    useEffect(() => {
+        if (window.MathJax) {
+            window.MathJax.Hub.Queue(['Typeset', window.MathJax.Hub]);
+        }
     }, [content]);
-
+    
     return (
         <ReactMarkdown
           remarkPlugins={[remarkGfm]}
