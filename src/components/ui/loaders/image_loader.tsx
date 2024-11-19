@@ -8,7 +8,7 @@ export default function Component() {
   
   return (
     <div className="flex items-center justify-center h-12 w-full">
-      <div className="bg-card/80 dark:bg-card/80 p-6 rounded-lg shadow-sm">
+      <div className="bg-card dark:bg-card p-6 rounded-lg shadow-sm">
         <div className="flex items-center space-x-3">
           <div className="flex">
             {text.split("").map((char, index) => (
