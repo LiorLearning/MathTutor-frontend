@@ -5,7 +5,7 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Button } from "@/components/ui/button"
 import axios from 'axios'
 import { motion } from 'framer-motion'
-import { PanelRightClose, PanelLeftClose, ChevronLeft, ChevronRight } from "lucide-react"
+import { ChevronLeft, ChevronRight } from "lucide-react"
 
 import { 
   Message,
@@ -20,7 +20,7 @@ import Header from './chat/header';
 import SpeechToText from './chat/speech_to_text';
 
 import { AudioContext } from './chat/eleven_labs_audio_stream';
-import UserVideo from '@/components/webrtc/user';
+// import UserVideo from '@/components/webrtc/user';
 import { UserArtifactComponent } from '@/components/artifact/user';
 import InputBar from './chat/input_bar';
 import MessageLoader from '@/components/ui/loaders/message_loader';
@@ -28,8 +28,8 @@ import PageLoader from '../ui/loaders/page_loader';
 import ImageLoader from '@/components/ui/loaders/image_loader';
 
 
-const SPEAKOUT = true;
-const SPEED = 30;
+// const SPEAKOUT = true;
+const SPEED = 20;
 
 const CORRECTION = 'correction';
 const INTERRUPT = 'interrupt';
@@ -65,6 +65,8 @@ export function UserChat({ messages, setMessages, username }: UserChatProps) {
   const [isChatConnected, setIsChatConnected] = useState(false);
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
 
+  const [speakout, setSpeakout] = useState(true);
+
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   const chatWebsocketRef = useRef<WebSocket | null>(null);
@@ -72,7 +74,7 @@ export function UserChat({ messages, setMessages, username }: UserChatProps) {
 
   const isLastMessagePauseRef = useRef<boolean>(false);
 
-  const [isVideoVisible, setIsVideoVisible] = useState(true);
+  // const [isVideoVisible, setIsVideoVisible] = useState(true);
 
   const [isRightColumnCollapsed, setIsRightColumnCollapsed] = React.useState(true);
   const isRightColumnCollapsedRef = useRef<boolean>(isRightColumnCollapsed);
@@ -85,8 +87,12 @@ export function UserChat({ messages, setMessages, username }: UserChatProps) {
     });
   };
   
-  const toggleVideoFeed = () => {
-    setIsVideoVisible(prev => !prev);
+  // const toggleVideoFeed = () => {
+  //   setIsVideoVisible(prev => !prev);
+  // };
+
+  const toggleSpeakout = () => {
+    setSpeakout(prev => !prev);
   };
 
   // Text to Speech functions
@@ -99,6 +105,8 @@ export function UserChat({ messages, setMessages, username }: UserChatProps) {
       return;
     }
 
+    messageText = extractTextFromMessage(messageText);
+
     // Update messages state immediately
     setMessages(prevMessages => 
       prevMessages.map(msg => 
@@ -109,15 +117,16 @@ export function UserChat({ messages, setMessages, username }: UserChatProps) {
     );
 
     audioContext.playAudio(messageId, messageText);
+
   };
 
   const toggleAudio = useCallback(async (message: Message) => {
     // Handle audio for current message
     if (message.audioUrl) {
-      console.log("Not implemented error")
+      console.error("Not implemented error")
     } else {
       const isPlaying = message.isPlaying;
-      console.log(`${isPlaying ? 'Pausing' : 'Playing'} audio for message ID:`, message.message_id);
+      // console.log(`${isPlaying ? 'Pausing' : 'Playing'} audio for message ID:`, message.message_id);
 
       // Update messages state immediately
       setMessages(prevMessages => 
@@ -131,14 +140,12 @@ export function UserChat({ messages, setMessages, username }: UserChatProps) {
       if (isPlaying) {
         handleStopAudio(message);
       } else {
-        let messageText = message.content;
-        messageText = extractTextFromMessage(messageText);
-        handlePlayAudio(message.message_id, messageText);
+        handlePlayAudio(message.message_id, message.content);
       }
     }
   }, []);
 
-  const initChatWebSocket = useCallback(async (username: string) => {
+  const initChatWebSocket = useCallback(async (username: string, speak: boolean = false) => {
     if (!chatWebsocketRef.current) {
       chatWebsocketRef.current = new WebSocket(
         `${process.env.NEXT_PUBLIC_WS_BASE_URL}/chat/handle_chat/${username}`
@@ -159,21 +166,18 @@ export function UserChat({ messages, setMessages, username }: UserChatProps) {
       };
 
       chatWebsocketRef.current.onmessage = async (event) => {
-        console.log("WebSocket message received:", event.data); // Log the received event data
-
         const data = JSON.parse(event.data);
         const message = data.content;
         const role = data.role;
-        console.log("Parsed message content:", message, "Role:", role); // Log parsed message and role
 
         switch (role) {
           case NOTEXT:
-            console.log("No text received, setting isSendingMessage to false.");
+            // console.log("No text received, setting isSendingMessage to false.");
             setIsSendingMessage(false);
             return;
 
           case PAUSE:
-            console.log("Received PAUSE signal, setting rethinking state to true.");
+            // console.log("Received PAUSE signal, setting rethinking state to true.");
             isLastMessagePauseRef.current = true;
             setMessages(prevMessages => {
                 if (prevMessages[prevMessages.length - 1]?.role === ASSISTANT) {
@@ -194,7 +198,7 @@ export function UserChat({ messages, setMessages, username }: UserChatProps) {
             return;
 
           case USER:
-            console.log("User message received:", message);
+            // console.log("User message received:", message);
             const userMessage: Message = {
               role: USER,
               content: message,
@@ -206,16 +210,16 @@ export function UserChat({ messages, setMessages, username }: UserChatProps) {
             return;
 
           case INTERRUPT:
-            console.log("Received INTERRUPT signal, pausing audio.");
+            // console.log("Received INTERRUPT signal, pausing audio.");
             audioContext.stopAudio()
             return;
             
           case GENERATING_IMAGE:
             if (message === "start") {
-              console.log("Image generation started");
+              // console.log("Image generation started");
               setIsGeneratingImage(true);
             } else if (message === "done") {
-              console.log("Image generation done");
+              // console.log("Image generation done");
               setIsGeneratingImage(false);
             }
             return;
@@ -226,7 +230,7 @@ export function UserChat({ messages, setMessages, username }: UserChatProps) {
             break;
 
           default:
-            console.log("Unknown role received:", role);
+            console.error("Unknown role received:", role);
             break;
         }
 
@@ -242,18 +246,13 @@ export function UserChat({ messages, setMessages, username }: UserChatProps) {
           audioUrl: '',
           message_id: `bot-${Date.now()}`,
           timestamp: new Date().toISOString(),
-          isPlaying: SPEAKOUT,
+          isPlaying: speak,
           isImage: isImage
         };
         // const finalMessage = JSON.parse(JSON.stringify(tempMessage));
 
-        if (SPEAKOUT && !isLastMessagePauseRef.current) {
-          const messageId = finalMessage.message_id
-          let messageText = message
-          if (message.isImage) {
-            messageText = extractTextFromMessage(messageText);
-          }
-          handlePlayAudio(messageId, messageText);
+        if (speak && !isLastMessagePauseRef.current) {
+          handlePlayAudio(finalMessage.message_id, message);
         }
 
         if (isImage) {
@@ -296,7 +295,7 @@ export function UserChat({ messages, setMessages, username }: UserChatProps) {
         }
       }
     }
-  }, [audioContext, setMessages]);
+  }, [speakout, audioContext, setMessages]);
 
   // Speech to Text functions
   const handleRecordingStart = () => {
@@ -335,6 +334,18 @@ export function UserChat({ messages, setMessages, username }: UserChatProps) {
 
     setMessages(prevMessages => [...prevMessages, userMessage]);
   };
+
+  useEffect(() => {
+    const initializeWebSocket = async () => {
+      if (chatWebsocketRef.current) {
+        chatWebsocketRef.current.close();
+        chatWebsocketRef.current = null;
+      }
+      await initChatWebSocket(username, speakout);
+    };
+
+    initializeWebSocket();
+  }, [speakout]);
 
   useEffect(() => {
     const initializeChat = async () => {
@@ -419,6 +430,8 @@ export function UserChat({ messages, setMessages, username }: UserChatProps) {
               <Header 
                 username={username} 
                 isChatConnected={isChatConnected}
+                speakout={speakout}
+                toggleSpeakout={toggleSpeakout}
               />
 
               <ScrollArea ref={scrollAreaRef} className="flex-grow p-4 overflow-y-auto">
@@ -462,7 +475,7 @@ export function UserChat({ messages, setMessages, username }: UserChatProps) {
             />
           </motion.div>
 
-          <div className="fixed right-8 top-20 w-[15vw] h-[calc(15vw * 4 / 3)] max-w-[256px] max-h-[calc(256px * 4 / 3)]">
+          {/* <div className="fixed right-8 top-20 w-[15vw] h-[calc(15vw * 4 / 3)] max-w-[256px] max-h-[calc(256px * 4 / 3)]">
             <UserVideo 
               username={username}
               style={{ 
@@ -476,7 +489,7 @@ export function UserChat({ messages, setMessages, username }: UserChatProps) {
             >
               {isVideoVisible ? <PanelRightClose className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
             </Button>
-          </div>
+          </div> */}
 
           <Button
             className="fixed bottom-4 right-4 z-10"

@@ -5,7 +5,7 @@ import { ScrollArea } from "./ui/scroll-area"
 import { Button } from "./ui/button"
 import { useSearchParams } from 'next/navigation'
 import axios from 'axios'
-import { Wifi, WifiOff, User, PanelRightCloseIcon, PanelLeftCloseIcon } from "lucide-react"
+import { Wifi, WifiOff, User } from "lucide-react"
 
 import { 
   Message, 
@@ -14,7 +14,7 @@ import {
 } from './utils/chat/chat_utils'
 import MessageComponents from './utils/admin/messages';
 
-import AdminVideo from './webrtc/admin';
+// import AdminVideo from './webrtc/admin';
 import { AdminArtifactComponent } from './artifact/admin';
 import AdminInputBar from './utils/admin/admin_input';
 import { DarkModeToggle } from './themeContext';
@@ -39,10 +39,10 @@ export function InterceptorChat() {
   const [isChatConnected, setIsChatConnected] = useState(false);
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
 
-  const [isVideoVisible, setIsVideoVisible] = useState(true); // State to manage visibility
-  const toggleVideoFeed = () => {
-    setIsVideoVisible(prev => !prev); // Toggle visibility
-  };
+  // const [isVideoVisible, setIsVideoVisible] = useState(true); // State to manage visibility
+  // const toggleVideoFeed = () => {
+  //   setIsVideoVisible(prev => !prev); // Toggle visibility
+  // };
 
 
   const initChatWebSocket = useCallback(() => {
@@ -269,7 +269,7 @@ export function InterceptorChat() {
       </div>
       <div className="w-1/2 p-4 flex flex-col h-full">
         <AdminArtifactComponent username={username} />
-        <div className="fixed left-4 top-4 w-[15vw] h-[calc(15vw * 4 / 3)] max-w-[256px] max-h-[calc(256px * 4 / 3)]">
+        {/* <div className="fixed left-4 top-4 w-[15vw] h-[calc(15vw * 4 / 3)] max-w-[256px] max-h-[calc(256px * 4 / 3)]">
           <AdminVideo 
             username={username} 
             style={{ 
@@ -283,7 +283,7 @@ export function InterceptorChat() {
           >
             {isVideoVisible ? <PanelLeftCloseIcon className="h-4 w-4" /> : <PanelRightCloseIcon className="h-4 w-4" />}
           </button>
-        </div>
+        </div> */}
       </div>
     </div>
   );
