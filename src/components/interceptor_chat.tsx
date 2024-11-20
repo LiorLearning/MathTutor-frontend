@@ -48,7 +48,7 @@ export function InterceptorChat() {
   const initChatWebSocket = useCallback(() => {
     if (!chatWebsocketRef.current) {
       chatWebsocketRef.current = new WebSocket(
-        `${process.env.NEXT_PUBLIC_WS_BASE_URL}/chat/interceptor/${username}`
+        `${process.env.NEXT_PUBLIC_WS_BASE_URL}/chat/interceptor/${username}/0`
       );
 
       chatWebsocketRef.current.onopen = () => {
@@ -99,7 +99,7 @@ export function InterceptorChat() {
     const initializeChat = async () => {
       try {
         const historyResponse = await axios.get<GetChatHistoryResponse>(
-        `${API_BASE_URL}/chat_history?user_id=${username}`,
+        `${API_BASE_URL}/chat_history?user_id=${username}&session_id=0`,
         { headers: { 'Content-Type': 'application/json' } }
         );
 
@@ -137,7 +137,7 @@ export function InterceptorChat() {
 
   const handleDeleteChat = async () => {
     try {
-      await axios.delete(`${API_BASE_URL}/delete_chat?user_id=${username}`, {
+      await axios.delete(`${API_BASE_URL}/delete_chat?user_id=${username}&session_id=0`, {
         headers: {
           'Content-Type': 'application/json',
         }

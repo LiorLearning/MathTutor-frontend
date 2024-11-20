@@ -148,7 +148,7 @@ export function UserChat({ messages, setMessages, username }: UserChatProps) {
   const initChatWebSocket = useCallback(async (username: string, speak: boolean = false) => {
     if (!chatWebsocketRef.current) {
       chatWebsocketRef.current = new WebSocket(
-        `${process.env.NEXT_PUBLIC_WS_BASE_URL}/chat/handle_chat/${username}`
+        `${process.env.NEXT_PUBLIC_WS_BASE_URL}/chat/handle_chat/${username}/0`
       );
       chatWebsocketRef.current.onopen = () => {
         setIsChatConnected(true);
@@ -352,7 +352,7 @@ export function UserChat({ messages, setMessages, username }: UserChatProps) {
       try {
         if (chatId === "") {
           const response = await axios.post<StartChatResponse>(
-            `${API_BASE_URL}/start_chat?user_id=${username}`,
+            `${API_BASE_URL}/start_chat?user_id=${username}&session_id=0`,
             {},
             { headers: { 'Content-Type': 'application/json' } }
           );
@@ -360,7 +360,7 @@ export function UserChat({ messages, setMessages, username }: UserChatProps) {
           setChatId(response.data.chat_id);
           
           const historyResponse = await axios.get<GetChatHistoryResponse>(
-            `${API_BASE_URL}/chat_history?user_id=${username}`,
+            `${API_BASE_URL}/chat_history?user_id=${username}&session_id=0`,
             { headers: { 'Content-Type': 'application/json' } }
           );
 
