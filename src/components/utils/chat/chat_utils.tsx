@@ -47,6 +47,7 @@ const MarkdownImage: React.FC<{ src?: string; alt?: string }> = ({ src, alt }) =
                 className="rounded-lg"
                 style={{ objectFit: 'contain', width: '100%', height: 'auto' }}
                 onLoad={handleLoad}
+                loading="eager"
             />
         </div>
     );
