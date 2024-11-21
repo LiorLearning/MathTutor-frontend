@@ -20,7 +20,7 @@ export const AdminArtifactComponent: React.FC<{ username: string }> = ({ usernam
 
   const initHtmlWebSocket = useCallback((username: string) => {
     if (!htmlWebsocketRef.current) {
-      htmlWebsocketRef.current = new WebSocket(`${process.env.NEXT_PUBLIC_WS_BASE_URL}/chat/interceptor/html/${username}/0`);
+      htmlWebsocketRef.current = new WebSocket(`${process.env.NEXT_PUBLIC_WS_BASE_URL}/chat/${username}/0/interceptor/html`);
 
       htmlWebsocketRef.current.onopen = () => {
         console.log('WebSocket connection established');

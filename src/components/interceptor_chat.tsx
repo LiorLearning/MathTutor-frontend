@@ -48,7 +48,7 @@ export function InterceptorChat() {
   const initChatWebSocket = useCallback(() => {
     if (!chatWebsocketRef.current) {
       chatWebsocketRef.current = new WebSocket(
-        `${process.env.NEXT_PUBLIC_WS_BASE_URL}/chat/interceptor/${username}/0`
+        `${process.env.NEXT_PUBLIC_WS_BASE_URL}/chat/${username}/0/interceptor`
       );
 
       chatWebsocketRef.current.onopen = () => {

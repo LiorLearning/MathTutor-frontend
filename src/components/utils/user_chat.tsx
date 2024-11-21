@@ -148,7 +148,7 @@ export function UserChat({ messages, setMessages, username }: UserChatProps) {
   const initChatWebSocket = useCallback(async (username: string, speak: boolean = false) => {
     if (!chatWebsocketRef.current) {
       chatWebsocketRef.current = new WebSocket(
-        `${process.env.NEXT_PUBLIC_WS_BASE_URL}/chat/handle_chat/${username}/0`
+        `${process.env.NEXT_PUBLIC_WS_BASE_URL}/chat/${username}/0/handle_chat`
       );
       chatWebsocketRef.current.onopen = () => {
         setIsChatConnected(true);

@@ -21,7 +21,7 @@ export const UserArtifactComponent: React.FC<UserArtifactProps> = ({
 
   const initHtmlWebSocket = useCallback((username: string) => {
     if (!htmlWebsocketRef.current) {
-      htmlWebsocketRef.current = new WebSocket(`${process.env.NEXT_PUBLIC_WS_BASE_URL}/chat/user/html/${username}/0`);
+      htmlWebsocketRef.current = new WebSocket(`${process.env.NEXT_PUBLIC_WS_BASE_URL}/chat/${username}/0/user/html`);
 
       htmlWebsocketRef.current.onopen = () => {
         console.log('WebSocket connection established');
