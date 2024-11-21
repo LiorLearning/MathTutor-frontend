@@ -3,6 +3,8 @@ import React, { useState, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
+import { Button } from '@/components/ui/button';
+import { X } from 'lucide-react';
 
 declare global {
     interface Window {
@@ -29,29 +31,53 @@ export type GetChatHistoryResponse = Message[];
 // Create a separate component for markdown images
 const MarkdownImage: React.FC<{ src?: string; alt?: string }> = ({ src, alt }) => {
     const [isLoading, setIsLoading] = useState(true);
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     const handleLoad = () => setIsLoading(false);
+    const toggleModal = () => setIsModalOpen(!isModalOpen);
 
     return (
-        <div className="relative flex justify-start" style={{ width: '50%', height: 'auto' }}>
-            {isLoading && (
-                <div className="absolute inset-0 flex items-center justify-center bg-gray-200 dark:bg-gray-700">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-gray-100"></div>
+        <>
+            <div className="relative flex justify-start" style={{ 
+                width: '100%', 
+                height: 'auto',
+            }}>
+                {isLoading && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-gray-200 dark:bg-gray-700">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-gray-100"></div>
+                    </div>
+                )}
+                <Image
+                    src={src || ''}
+                    alt={alt || ''}
+                    layout="responsive"
+                    width={60}
+                    height={60}
+                    className="rounded-lg cursor-pointer"
+                    style={{ objectFit: 'contain', maxWidth: '30%', height: 'auto' }}
+                    onLoad={handleLoad}
+                    onClick={toggleModal}
+                    loading="eager"
+                />
+            </div>
+
+            {isModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75" onClick={toggleModal}>
+                    <div className="relative w-[90%] h-[90%] max-w-4xl max-h-full p-4 rounded-lg">
+                        <Image
+                            src={src || ''}
+                            alt={alt || ''}
+                            layout="fill"
+                            className="rounded-lg"
+                            style={{ objectFit: 'contain' }}
+                        />
+                    </div>
                 </div>
             )}
-            <Image
-                src={src || ''}
-                alt={alt || ''}
-                width={300}
-                height={300}
-                className="rounded-lg"
-                style={{ objectFit: 'contain', width: '100%', height: 'auto' }}
-                onLoad={handleLoad}
-                loading="eager"
-            />
-        </div>
+        </>
     );
 };
+
 
 export const isWebSocketClosed = (webSocket: WebSocket): boolean => {
     return webSocket.readyState !== WebSocket.OPEN;
