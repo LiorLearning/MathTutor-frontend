@@ -68,7 +68,7 @@ export function SessionProvider({ userId, sessionId, children }: SessionProvider
           </Alert>
         </CardContent>
         <CardFooter className="flex justify-center">
-          <Button onClick={() => window.location.href = '/'}>Start New Session</Button>
+          <Button onClick={() => window.location.href = `/chat/session?username=${userId}`}>Start New Session</Button>
         </CardFooter>
       </Card>
     )

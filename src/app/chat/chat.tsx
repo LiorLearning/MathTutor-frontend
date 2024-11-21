@@ -5,7 +5,7 @@ import React, { useState } from 'react';
 import { useSearchParams } from 'next/navigation'
 import { AudioProvider } from '../../components/utils/chat/eleven_labs_audio_stream';
 import { Message } from "../../components/utils/chat/chat_utils";
-import { SessionProvider } from '../../components/utils/session-provider';
+import { SessionProvider } from '../../components/session-provider';
 
 export default function Chat () {
   const searchParams = useSearchParams();

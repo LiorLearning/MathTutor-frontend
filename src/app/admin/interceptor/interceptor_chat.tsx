@@ -19,7 +19,7 @@ import { AdminArtifactComponent } from '../../../components/artifact/admin';
 import AdminInputBar from '../../../components/utils/admin/admin_input';
 import { DarkModeToggle } from '../../../components/themeContext';
 import ImageLoader from '@/components/ui/loaders/image_loader';
-import { SessionProvider } from '../../../components/utils/session-provider';
+import { SessionProvider } from '../../../components/session-provider';
 
 const USER = 'user';
 const ASSISTANT = 'assistant';
