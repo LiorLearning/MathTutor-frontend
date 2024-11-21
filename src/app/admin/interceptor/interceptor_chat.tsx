@@ -1,8 +1,8 @@
 'use client'
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { ScrollArea } from "./ui/scroll-area"
-import { Button } from "./ui/button"
+import { ScrollArea } from "../../../components/ui/scroll-area"
+import { Button } from "../../../components/ui/button"
 import { useSearchParams } from 'next/navigation'
 import axios from 'axios'
 import { Wifi, WifiOff, User } from "lucide-react"
@@ -11,15 +11,15 @@ import {
   Message, 
   GetChatHistoryResponse,
   API_BASE_URL,
-} from './utils/chat/chat_utils'
-import MessageComponents from './utils/admin/messages';
+} from '../../../components/utils/chat/chat_utils'
+import MessageComponents from '../../../components/utils/admin/messages';
 
 // import AdminVideo from './webrtc/admin';
-import { AdminArtifactComponent } from './artifact/admin';
-import AdminInputBar from './utils/admin/admin_input';
-import { DarkModeToggle } from './themeContext';
+import { AdminArtifactComponent } from '../../../components/artifact/admin';
+import AdminInputBar from '../../../components/utils/admin/admin_input';
+import { DarkModeToggle } from '../../../components/themeContext';
 import ImageLoader from '@/components/ui/loaders/image_loader';
-import { SessionProvider } from './utils/session-provider';
+import { SessionProvider } from '../../../components/utils/session-provider';
 
 const USER = 'user';
 const ASSISTANT = 'assistant';

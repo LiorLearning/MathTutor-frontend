@@ -63,7 +63,7 @@ export function SessionProvider({ userId, sessionId, children }: SessionProvider
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>Error</AlertTitle>
             <AlertDescription>
-              We couldn't find your session. Please start a new one.
+              We couldn&apos;t find your session. Please start a new one.
             </AlertDescription>
           </Alert>
         </CardContent>
