@@ -30,6 +30,7 @@ const GENERATING_IMAGE = 'generating_image';
 export function InterceptorChat() {
   const searchParams = useSearchParams();
   const username = searchParams.get('username') || 'testuser';
+  const sessionId = searchParams.get('session') || '0';
   
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -48,7 +49,7 @@ export function InterceptorChat() {
   const initChatWebSocket = useCallback(() => {
     if (!chatWebsocketRef.current) {
       chatWebsocketRef.current = new WebSocket(
-        `${process.env.NEXT_PUBLIC_WS_BASE_URL}/chat/${username}/0/interceptor`
+        `${process.env.NEXT_PUBLIC_WS_BASE_URL}/chat/${username}/${sessionId}/interceptor`
       );
 
       chatWebsocketRef.current.onopen = () => {
@@ -268,7 +269,7 @@ export function InterceptorChat() {
 
       </div>
       <div className="w-1/2 p-4 flex flex-col h-full">
-        <AdminArtifactComponent username={username} />
+        <AdminArtifactComponent username={username} sessionId={sessionId} />
         {/* <div className="fixed left-4 top-4 w-[15vw] h-[calc(15vw * 4 / 3)] max-w-[256px] max-h-[calc(256px * 4 / 3)]">
           <AdminVideo 
             username={username} 

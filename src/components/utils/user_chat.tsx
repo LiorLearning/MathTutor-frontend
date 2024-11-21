@@ -46,9 +46,10 @@ interface UserChatProps {
   messages: Message[];
   setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
   username: string;
+  sessionId: string;
 }
 
-export function UserChat({ messages, setMessages, username }: UserChatProps) {
+export function UserChat({ messages, setMessages, username, sessionId }: UserChatProps) {
   const audioContext = useContext(AudioContext);
   if (!audioContext) {
     throw new Error('MessageCard must be used within an AudioProvider');
@@ -148,7 +149,7 @@ export function UserChat({ messages, setMessages, username }: UserChatProps) {
   const initChatWebSocket = useCallback(async (username: string, speak: boolean = false) => {
     if (!chatWebsocketRef.current) {
       chatWebsocketRef.current = new WebSocket(
-        `${process.env.NEXT_PUBLIC_WS_BASE_URL}/chat/${username}/0/handle_chat`
+        `${process.env.NEXT_PUBLIC_WS_BASE_URL}/chat/${username}/${sessionId}/handle_chat`
       );
       chatWebsocketRef.current.onopen = () => {
         setIsChatConnected(true);
@@ -472,6 +473,7 @@ export function UserChat({ messages, setMessages, username }: UserChatProps) {
               username={username} 
               isRightColumnCollapsed={isRightColumnCollapsedRef}
               toggleRightColumn={toggleRightColumn} 
+              sessionId={sessionId}
             />
           </motion.div>
 

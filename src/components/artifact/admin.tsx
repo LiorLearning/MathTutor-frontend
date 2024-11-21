@@ -8,7 +8,12 @@ import { Button } from "@/components/ui/button"
 import { X } from 'lucide-react'
 import InputBar from '@/components/utils/admin/inputbar';
 
-export const AdminArtifactComponent: React.FC<{ username: string }> = ({ username }) => {
+export interface AdminArtifactProps {
+  username: string;
+  sessionId: string;
+}
+
+export const AdminArtifactComponent: React.FC<AdminArtifactProps> = ({ username, sessionId }) => {
   const [htmlContent, setHtmlContent] = useState("");
   const [userHtmlContent, setUserHtmlContent] = useState("");
   
@@ -20,7 +25,7 @@ export const AdminArtifactComponent: React.FC<{ username: string }> = ({ usernam
 
   const initHtmlWebSocket = useCallback((username: string) => {
     if (!htmlWebsocketRef.current) {
-      htmlWebsocketRef.current = new WebSocket(`${process.env.NEXT_PUBLIC_WS_BASE_URL}/chat/${username}/0/interceptor/html`);
+      htmlWebsocketRef.current = new WebSocket(`${process.env.NEXT_PUBLIC_WS_BASE_URL}/chat/${username}/${sessionId}/interceptor/html`);
 
       htmlWebsocketRef.current.onopen = () => {
         console.log('WebSocket connection established');

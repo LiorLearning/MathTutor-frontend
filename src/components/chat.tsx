@@ -1,7 +1,7 @@
 "use client"
 
 import { UserChat } from "./utils/user_chat";
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation'
 import { AudioProvider } from './utils/chat/eleven_labs_audio_stream';
 import { Message } from "./utils/chat/chat_utils";
@@ -9,6 +9,7 @@ import { Message } from "./utils/chat/chat_utils";
 export default function Chat () {
   const searchParams = useSearchParams();
   const username = searchParams.get('username') || 'testuser';
+  const sessionId = searchParams.get('session') || '0';
 
   const [messages, setMessages] = useState<Message[]>([]);
 
@@ -19,10 +20,10 @@ export default function Chat () {
       )
     );
   }
-  
+
   return (
     <AudioProvider clientId={username} setIsPlaying={setIsPlaying}>
-      <UserChat username={username} messages={messages} setMessages={setMessages}/>
+      <UserChat username={username} messages={messages} setMessages={setMessages} sessionId={sessionId} />
     </AudioProvider>
   );
 }
