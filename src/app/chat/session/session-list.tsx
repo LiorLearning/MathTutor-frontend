@@ -7,6 +7,7 @@ import { MODEL_API_BASE_URL } from '@/components/utils/admin/admin_utils';
 import { useSearchParams } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import axios from 'axios';
+import { useState } from 'react';
 
 interface ChatSession {
   session_id: number;
@@ -19,19 +20,30 @@ interface UpdateSessionResponse {
 }
 
 const fetchSessions = async (username: string) => {
-  const response = await axios.get<ChatSession[]>(`${MODEL_API_BASE_URL}/sessions/${username}`);
-  return response.data;
+  try {
+    const response = await axios.get<ChatSession[]>(`${MODEL_API_BASE_URL}/sessions/${username}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching sessions:', error);
+    throw new Error('Error fetching sessions');
+  }
 };
 
 const updateSessionSummary = async ({ username, sessionId }: { username: string, sessionId: number }) => {
-  const response = await axios.put<UpdateSessionResponse>(`${MODEL_API_BASE_URL}/sessions/${username}/${sessionId}/summary`);
-  return response.data.updated_summary;
+  try {
+    const response = await axios.put<UpdateSessionResponse>(`${MODEL_API_BASE_URL}/sessions/${username}/${sessionId}/summary`);
+    return response.data.updated_summary;
+  } catch (error) {
+    console.error('Error updating session summary:', error);
+    throw new Error('Error updating session summary');
+  }
 };
 
 export default function SessionList() {
   const searchParams = useSearchParams();
   const username = searchParams.get('username') || 'testuser';
   const queryClient = useQueryClient();
+  const [updatingSessionId, setUpdatingSessionId] = useState<number | null>(null);
 
   const { data: sessions = [], isLoading, error } = useQuery(['sessions', username], () => fetchSessions(username), {
     suspense: true,
@@ -46,9 +58,11 @@ export default function SessionList() {
           session.session_id === sessionId ? { ...session, summary: updatedSummary } : session
         );
       });
+      setUpdatingSessionId(null);
     },
     onError: (error) => {
       console.error('Mutation failed:', error);
+      setUpdatingSessionId(null);
     },
   });
 
@@ -63,6 +77,7 @@ export default function SessionList() {
   };
 
   const handleUpdateSummary = (sessionId: number) => {
+    setUpdatingSessionId(sessionId);
     mutation.mutate({ username, sessionId });
   };
 
@@ -103,9 +118,15 @@ export default function SessionList() {
             <CardHeader>
               <CardTitle className="flex justify-between items-center">
                 <span>Session {session.session_id}</span>
-                <Button onClick={(e) => { e.stopPropagation(); handleUpdateSummary(session.session_id); }} className="ml-2">
-                  Update Summary
-                </Button>
+                {updatingSessionId === session.session_id ? (
+                  <div className="flex items-center">
+                    <span className="ml-2">Updating summary...</span>
+                  </div>
+                ) : (
+                  <Button onClick={(e) => { e.stopPropagation(); handleUpdateSummary(session.session_id); }} className="ml-2">
+                    Update Summary
+                  </Button>
+                )}
               </CardTitle>
               <CardDescription>
                 Last updated: {new Date(session.last_update_time).toLocaleString()}

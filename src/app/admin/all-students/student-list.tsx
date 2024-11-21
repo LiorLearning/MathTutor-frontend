@@ -11,8 +11,12 @@ import { Student, MODEL_API_BASE_URL } from '@/components/utils/admin/admin_util
 import { useQuery } from 'react-query'
 
 const fetchStudents = async () => {
-  const response = await axios.get<Student[]>(`${MODEL_API_BASE_URL}/users/`);
-  return response.data;
+  try {
+    const response = await axios.get<Student[]>(`${MODEL_API_BASE_URL}/users/`);
+    return response.data;
+  } catch (error) {
+    throw new Error('Error fetching students');
+  }
 };
 
 export function StudentList() {
@@ -20,7 +24,8 @@ export function StudentList() {
   const [expandedCards, setExpandedCards] = useState<{ [key: string]: boolean }>({})
 
   const { data: students = [], isLoading, error } = useQuery('students', fetchStudents, {
-    suspense: true,
+    suspense: false, // Changed from true to false
+    staleTime: 30000, // Add a staleTime to prevent unnecessary refetches
   });
 
   const filteredStudents = students.filter(student => 
@@ -102,7 +107,6 @@ export function StudentList() {
               </div>
               {expandedCards[student.userid] && (
                 <div className="mt-4">
-                  
                   <div className="flex items-center gap-2 text-sm mt-2">
                     <span className="font-semibold">Country:</span>
                     <span>{student.country}</span>
