@@ -5,6 +5,7 @@ import React, { useState } from 'react';
 import { useSearchParams } from 'next/navigation'
 import { AudioProvider } from './utils/chat/eleven_labs_audio_stream';
 import { Message } from "./utils/chat/chat_utils";
+import { SessionProvider } from './utils/session-provider';
 
 export default function Chat () {
   const searchParams = useSearchParams();
@@ -22,8 +23,10 @@ export default function Chat () {
   }
 
   return (
-    <AudioProvider clientId={username} setIsPlaying={setIsPlaying}>
-      <UserChat username={username} messages={messages} setMessages={setMessages} sessionId={sessionId} />
-    </AudioProvider>
+    <SessionProvider userId={username} sessionId={sessionId}>
+      <AudioProvider clientId={username} setIsPlaying={setIsPlaying}>
+        <UserChat username={username} messages={messages} setMessages={setMessages} sessionId={sessionId} />
+      </AudioProvider>
+    </SessionProvider>
   );
 }

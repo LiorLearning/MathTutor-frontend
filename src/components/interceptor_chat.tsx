@@ -19,6 +19,7 @@ import { AdminArtifactComponent } from './artifact/admin';
 import AdminInputBar from './utils/admin/admin_input';
 import { DarkModeToggle } from './themeContext';
 import ImageLoader from '@/components/ui/loaders/image_loader';
+import { SessionProvider } from './utils/session-provider';
 
 const USER = 'user';
 const ASSISTANT = 'assistant';
@@ -138,7 +139,7 @@ export function InterceptorChat() {
 
   const handleDeleteChat = async () => {
     try {
-      await axios.delete(`${API_BASE_URL}/delete_chat?user_id=${username}&session_id=0`, {
+      await axios.delete(`${API_BASE_URL}/delete_chat?user_id=${username}&session_id=${sessionId}`, {
         headers: {
           'Content-Type': 'application/json',
         }
@@ -222,70 +223,72 @@ export function InterceptorChat() {
   }
 
   return (
-    <div className="flex h-screen bg-background text-foreground dark:bg-background dark:text-foreground">
-      {/* <UserSidebar username={username} /> */}
-      
-      <div className="flex flex-col flex-grow w-1/2">
-        <header className="p-4 border-b border-border dark:border-border">
-          <div className="flex justify-between items-center">
-            <h1 className="text-xl font-bold text-primary-foreground dark:text-primary-foreground">MathTutor</h1>
-            <div className="flex items-center gap-2">
-              <User className="h-5 w-5 text-muted-foreground dark:text-muted-foreground" />
-              <h3 className="text-lg text-muted-foreground dark:text-muted-foreground">{username}</h3>
-              {(isChatConnected) ? (
-                <Wifi className="text-green-500" size={20} />
-              ) : (
-                <WifiOff className="text-red-500" size={20} />
-              )}
-              <DarkModeToggle />
-              <Button 
-                className="bg-destructive text-destructive-foreground dark:bg-destructive dark:text-destructive-foreground" 
-                onClick={handleDeleteChat}
-              >
-                Delete Chat
-              </Button>
+    <SessionProvider userId={username} sessionId={sessionId}>
+      <div className="flex h-screen bg-background text-foreground dark:bg-background dark:text-foreground">
+        {/* <UserSidebar username={username} /> */}
+        
+        <div className="flex flex-col flex-grow w-1/2">
+          <header className="p-4 border-b border-border dark:border-border">
+            <div className="flex justify-between items-center">
+              <h1 className="text-xl font-bold text-primary-foreground dark:text-primary-foreground">MathTutor</h1>
+              <div className="flex items-center gap-2">
+                <User className="h-5 w-5 text-muted-foreground dark:text-muted-foreground" />
+                <h3 className="text-lg text-muted-foreground dark:text-muted-foreground">{username}</h3>
+                {(isChatConnected) ? (
+                  <Wifi className="text-green-500" size={20} />
+                ) : (
+                  <WifiOff className="text-red-500" size={20} />
+                )}
+                <DarkModeToggle />
+                <Button 
+                  className="bg-destructive text-destructive-foreground dark:bg-destructive dark:text-destructive-foreground" 
+                  onClick={handleDeleteChat}
+                >
+                  Delete Chat
+                </Button>
+              </div>
             </div>
-          </div>
-        </header>
+          </header>
 
-        <ScrollArea className="flex-grow p-4" ref={scrollAreaRef}>
-          <div className="space-y-6">
-            <MessageComponents messages={messages} />
-          </div>
-        </ScrollArea>
+          <ScrollArea className="flex-grow p-4" ref={scrollAreaRef}>
+            <div className="space-y-6">
+              <MessageComponents messages={messages} />
+            </div>
+          </ScrollArea>
 
-        {isGeneratingImage ? (
-          <div className="p-8">
-            <ImageLoader />
-          </div>
-        ) : (
-          <AdminInputBar 
-            onSendMessage={handleSendMessage}
-            onSendCorrection={handleCorrectionMessage}
-            pausedMessage={pausedMessage}
-            handlePauseMessage={handlePauseMessage}
-          />
-        )}
+          {isGeneratingImage ? (
+            <div className="p-8">
+              <ImageLoader />
+            </div>
+          ) : (
+            <AdminInputBar 
+              onSendMessage={handleSendMessage}
+              onSendCorrection={handleCorrectionMessage}
+              pausedMessage={pausedMessage}
+              handlePauseMessage={handlePauseMessage}
+            />
+          )}
 
+        </div>
+        <div className="w-1/2 p-4 flex flex-col h-full">
+          <AdminArtifactComponent username={username} sessionId={sessionId} />
+          {/* <div className="fixed left-4 top-4 w-[15vw] h-[calc(15vw * 4 / 3)] max-w-[256px] max-h-[calc(256px * 4 / 3)]">
+            <AdminVideo 
+              username={username} 
+              style={{ 
+                visibility: isVideoVisible ? 'visible' : 'hidden', // Hide the video feed
+                position: isVideoVisible ? 'static' : 'absolute', // Keep it in the flow or move it off-screen
+              }} 
+            />
+            <button 
+              onClick={toggleVideoFeed} 
+              className="absolute left-0 top-0 bg-muted text-muted-foreground dark:bg-muted dark:text-muted-foreground p-2 rounded"
+            >
+              {isVideoVisible ? <PanelLeftCloseIcon className="h-4 w-4" /> : <PanelRightCloseIcon className="h-4 w-4" />}
+            </button>
+          </div> */}
+        </div>
       </div>
-      <div className="w-1/2 p-4 flex flex-col h-full">
-        <AdminArtifactComponent username={username} sessionId={sessionId} />
-        {/* <div className="fixed left-4 top-4 w-[15vw] h-[calc(15vw * 4 / 3)] max-w-[256px] max-h-[calc(256px * 4 / 3)]">
-          <AdminVideo 
-            username={username} 
-            style={{ 
-              visibility: isVideoVisible ? 'visible' : 'hidden', // Hide the video feed
-              position: isVideoVisible ? 'static' : 'absolute', // Keep it in the flow or move it off-screen
-            }} 
-          />
-          <button 
-            onClick={toggleVideoFeed} 
-            className="absolute left-0 top-0 bg-muted text-muted-foreground dark:bg-muted dark:text-muted-foreground p-2 rounded"
-          >
-            {isVideoVisible ? <PanelLeftCloseIcon className="h-4 w-4" /> : <PanelRightCloseIcon className="h-4 w-4" />}
-          </button>
-        </div> */}
-      </div>
-    </div>
+    </SessionProvider>
   );
 }
