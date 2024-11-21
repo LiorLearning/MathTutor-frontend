@@ -100,7 +100,7 @@ export function InterceptorChat() {
     const initializeChat = async () => {
       try {
         const historyResponse = await axios.get<GetChatHistoryResponse>(
-        `${API_BASE_URL}/chat_history?user_id=${username}&session_id=0`,
+        `${API_BASE_URL}/chat_history?user_id=${username}&session_id=${sessionId}`,
         { headers: { 'Content-Type': 'application/json' } }
         );
 

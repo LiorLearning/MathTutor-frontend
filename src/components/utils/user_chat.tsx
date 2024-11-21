@@ -353,7 +353,7 @@ export function UserChat({ messages, setMessages, username, sessionId }: UserCha
       try {
         if (chatId === "") {
           const response = await axios.post<StartChatResponse>(
-            `${API_BASE_URL}/start_chat?user_id=${username}&session_id=0`,
+            `${API_BASE_URL}/start_chat?user_id=${username}&session_id=${sessionId}`,
             {},
             { headers: { 'Content-Type': 'application/json' } }
           );
@@ -361,7 +361,7 @@ export function UserChat({ messages, setMessages, username, sessionId }: UserCha
           setChatId(response.data.chat_id);
           
           const historyResponse = await axios.get<GetChatHistoryResponse>(
-            `${API_BASE_URL}/chat_history?user_id=${username}&session_id=0`,
+            `${API_BASE_URL}/chat_history?user_id=${username}&session_id=${sessionId}`,
             { headers: { 'Content-Type': 'application/json' } }
           );
 
