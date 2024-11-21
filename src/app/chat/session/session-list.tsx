@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { MODEL_API_BASE_URL } from '@/components/utils/admin/admin_utils';
 import { useSearchParams } from 'next/navigation';
-import { useQuery } from 'react-query';
+import { useQuery, useMutation, useQueryClient } from 'react-query';
 import axios from 'axios';
 
 interface ChatSession {
@@ -14,17 +14,42 @@ interface ChatSession {
   summary: string;
 }
 
+interface UpdateSessionResponse {
+  updated_summary: string;
+}
+
 const fetchSessions = async (username: string) => {
   const response = await axios.get<ChatSession[]>(`${MODEL_API_BASE_URL}/sessions/${username}`);
   return response.data;
 };
 
+const updateSessionSummary = async ({ username, sessionId }: { username: string, sessionId: number }) => {
+  const response = await axios.put<UpdateSessionResponse>(`${MODEL_API_BASE_URL}/sessions/${username}/${sessionId}/summary`);
+  return response.data.updated_summary;
+};
+
 export default function SessionList() {
   const searchParams = useSearchParams();
   const username = searchParams.get('username') || 'testuser';
+  const queryClient = useQueryClient();
 
   const { data: sessions = [], isLoading, error } = useQuery(['sessions', username], () => fetchSessions(username), {
     suspense: true,
+  });
+
+  const mutation = useMutation(updateSessionSummary, {
+    onSuccess: (updatedSummary, { sessionId }) => {
+      console.log('Mutation successful, updated summary:', updatedSummary);
+      queryClient.setQueryData(['sessions', username], (oldData: ChatSession[] | undefined) => {
+        if (!oldData) return [];
+        return oldData.map(session => 
+          session.session_id === sessionId ? { ...session, summary: updatedSummary } : session
+        );
+      });
+    },
+    onError: (error) => {
+      console.error('Mutation failed:', error);
+    },
   });
 
   const createNewSession = async () => {
@@ -35,6 +60,10 @@ export default function SessionList() {
     } catch (error) {
       console.error('Error creating new session:', error);
     }
+  };
+
+  const handleUpdateSummary = (sessionId: number) => {
+    mutation.mutate({ username, sessionId });
   };
 
   if (isLoading) {
@@ -74,6 +103,9 @@ export default function SessionList() {
             <CardHeader>
               <CardTitle className="flex justify-between items-center">
                 <span>Session {session.session_id}</span>
+                <Button onClick={(e) => { e.stopPropagation(); handleUpdateSummary(session.session_id); }} className="ml-2">
+                  Update Summary
+                </Button>
               </CardTitle>
               <CardDescription>
                 Last updated: {new Date(session.last_update_time).toLocaleString()}
