@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { User, Cake, Search, ArrowLeft, ChevronDown, ChevronUp } from "lucide-react"
@@ -8,25 +8,20 @@ import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import axios from 'axios'
 import { Student, MODEL_API_BASE_URL } from '@/components/utils/admin/admin_utils'
+import { useQuery } from 'react-query'
 
+const fetchStudents = async () => {
+  const response = await axios.get<Student[]>(`${MODEL_API_BASE_URL}/users/`);
+  return response.data;
+};
 
 export function StudentList() {
   const [searchTerm, setSearchTerm] = useState('')
-  const [students, setStudents] = useState<Student[]>([])
   const [expandedCards, setExpandedCards] = useState<{ [key: string]: boolean }>({})
 
-  useEffect(() => {
-    const fetchStudents = async () => {
-      try {
-        const response = await axios.get<Student[]>(`${MODEL_API_BASE_URL}/users/`);
-        setStudents(response.data);
-      } catch (error) {
-        console.error('Error fetching students:', error);
-      }
-    };
-
-    fetchStudents();
-  }, []);
+  const { data: students = [], isLoading, error } = useQuery('students', fetchStudents, {
+    suspense: true,
+  });
 
   const filteredStudents = students.filter(student => 
     student.first_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -37,6 +32,23 @@ export function StudentList() {
   const toggleExpand = (userid: string, event: React.MouseEvent) => {
     event.stopPropagation();
     setExpandedCards(prev => ({ ...prev, [userid]: !prev[userid] }));
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-full">
+        <div className="loader"></div>
+        <span className="ml-2">Loading students...</span>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex justify-center items-center h-full text-red-500">
+        <span>Error loading students. Please try again later.</span>
+      </div>
+    );
   }
 
   return (
