@@ -1,137 +1,90 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { User, Cake, Search, ArrowLeft, ChevronDown, ChevronUp } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import Link from "next/link"
-import axios from 'axios'
-import { Student, MODEL_API_BASE_URL } from '@/components/utils/admin/admin_utils'
+import { useState } from 'react';
+import { Plus } from 'lucide-react';
+import { Button } from "@/components/ui/button";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { MODEL_API_BASE_URL } from '@/components/utils/admin/admin_utils';
+import { useSearchParams } from 'next/navigation';
+import { useQuery } from 'react-query';
+import axios from 'axios';
 
+interface ChatSession {
+  session_id: number;
+  last_update_time: Date;
+  summary: string;
+}
 
-export function SessionList() {
-  const [searchTerm, setSearchTerm] = useState('')
-  const [students, setStudents] = useState<Student[]>([])
-  const [expandedCards, setExpandedCards] = useState<{ [key: string]: boolean }>({})
+const fetchSessions = async (username: string) => {
+  const response = await axios.get<ChatSession[]>(`${MODEL_API_BASE_URL}/sessions/${username}`);
+  return response.data;
+};
 
-  useEffect(() => {
-    const fetchStudents = async () => {
-      try {
-        const response = await axios.get<Student[]>(`${MODEL_API_BASE_URL}/users/`);
-        setStudents(response.data);
-      } catch (error) {
-        console.error('Error fetching students:', error);
-      }
-    };
+export default function SessionList() {
+  const searchParams = useSearchParams();
+  const username = searchParams.get('username') || 'testuser';
 
-    fetchStudents();
-  }, []);
+  const { data: sessions = [], isLoading, error } = useQuery(['sessions', username], () => fetchSessions(username), {
+    suspense: true,
+  });
 
-  const filteredStudents = students.filter(student => 
-    student.first_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    student.last_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    student.userid.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+  const createNewSession = async () => {
+    try {
+      const response = await axios.post<number>(`${MODEL_API_BASE_URL}/sessions/${username}`);
+      const newSessionId = response.data;
+      window.location.assign(`/chat?username=${username}&session=${newSessionId}`);
+    } catch (error) {
+      console.error('Error creating new session:', error);
+    }
+  };
 
-  const toggleExpand = (userid: string, event: React.MouseEvent) => {
-    event.stopPropagation();
-    setExpandedCards(prev => ({ ...prev, [userid]: !prev[userid] }));
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-full">
+        <div className="loader"></div>
+        <span className="ml-2">Loading sessions...</span>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex justify-center items-center h-full text-red-500">
+        <span>Error loading sessions. Please try again later.</span>
+      </div>
+    );
   }
 
   return (
-    <div className="container mx-auto py-10 px-4 bg-background text-foreground">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold mb-5">Student List</h1>
-        <Link href="/admin">
-          <Button variant="outline" className="flex items-center">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Dashboard
-          </Button>
-        </Link>
+    <div className="container mx-auto p-4 max-w-2xl">
+      <div className="mb-4 p-4">
+        <h2 className="text-xl">User ID: {username}</h2>
       </div>
-
-      <div className="mb-6 relative">
-        <Input
-          type="text"
-          placeholder="Search students..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="pl-10 bg-input text-foreground"
-        />
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-      </div>
+      <Button onClick={createNewSession} className="w-full mb-4">
+        <Plus className="mr-2 h-4 w-4" /> Create New Session
+      </Button>
       <div className="space-y-4">
-        {filteredStudents.map((student, index) => (
+        {sessions.map((session) => (
           <Card 
-            key={`${student.userid}-${index}`} 
-            className="w-full cursor-pointer hover:shadow-lg transition-shadow bg-card text-card-foreground"
-            onClick={() => window.location.assign(`/admin/student?username=${student.userid}`)}
+            key={session.session_id} 
+            onClick={() => window.location.assign(
+              `/chat?username=${username}&session=${session.session_id}`
+            )} 
+            className="cursor-pointer shadow-md"
           >
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <User className="h-5 w-5" />
-                {student.first_name} {student.last_name}
+              <CardTitle className="flex justify-between items-center">
+                <span>Session {session.session_id}</span>
               </CardTitle>
+              <CardDescription>
+                Last updated: {new Date(session.last_update_time).toLocaleString()}
+              </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="flex justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground mb-2">@{student.userid}</p>
-                  <div className="flex items-center gap-2 text-sm">
-                    <Cake className="h-4 w-4" />
-                    <span>{student.age} years old</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm mt-2">
-                    <span className="font-semibold">Guardian:</span>
-                    <span>{student.parent_guardian}</span>
-                  </div>
-                </div>
-              </div>
-              {expandedCards[student.userid] && (
-                <div className="mt-4">
-                  
-                  <div className="flex items-center gap-2 text-sm mt-2">
-                    <span className="font-semibold">Country:</span>
-                    <span>{student.country}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm mt-2">
-                    <span className="font-semibold">Grade:</span>
-                    <span>{student.grade}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm mt-2">
-                    <span className="font-semibold">Email:</span>
-                    <span>{student.email}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm mt-2">
-                    <span className="font-semibold">Phone:</span>
-                    <span>{student.phone}</span>
-                  </div>
-                  <div className="mt-2">
-                    <span className="font-semibold">Context:</span>
-                    <p className="text-sm mt-1">{student.user_context}</p>
-                  </div>
-                </div>
-              )}
-              <div className='flex justify-end'>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={(e) => toggleExpand(student.userid, e)}
-                >
-                  {expandedCards[student.userid] ? (
-                    <ChevronUp className="h-4 w-4" />
-                  ) : (
-                    <ChevronDown className="h-4 w-4" />
-                  )}
-                </Button>
-              </div>
+              <p>{session.summary}</p>
             </CardContent>
           </Card>
         ))}
-        {filteredStudents.length === 0 && (
-          <p className="text-center text-muted-foreground">No students found matching your search.</p>
-        )}
       </div>
     </div>
   );

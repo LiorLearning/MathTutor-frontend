@@ -1,16 +1,20 @@
-import React, { Suspense, lazy } from 'react';
-import { FallbackComponent } from "@/components/fallback";
+'use client'
 
-const SessionList = lazy(() =>
-  import("@/app/chat/session/session-list").then(module => ({
-    default: module.SessionList
-  }))
-);
+import React from 'react';
+import { QueryClient, QueryClientProvider } from 'react-query';
+import { FallbackComponent } from "@/components/fallback";
+import { Header } from "@/components/header";
+import SessionList from "@/app/chat/session/session-list";
+
+const queryClient = new QueryClient();
 
 export default function ChatPage() {
   return (
-    <Suspense fallback={<FallbackComponent />}>
-      <SessionList />
-    </Suspense>
+    <QueryClientProvider client={queryClient}>
+      <React.Suspense fallback={<FallbackComponent />}>
+        <Header />
+        <SessionList />
+      </React.Suspense>
+    </QueryClientProvider>
   );
 }

@@ -80,10 +80,10 @@ export function ManageStudentsComponent() {
                     Go to Interceptor Page
                   </Button>
                 </Link>
-                <Link href={`/chat?username=${username}`}>
+                <Link href={`/chat/session?username=${username}`}>
                   <Button className="bg-primary text-primary-foreground dark:bg-primary dark:text-primary-foreground flex items-center justify-center w-full">
                     <MessageCircle className="mr-2 h-4 w-4" />
-                    Go to Chat Page
+                    Go to Sessions Page
                   </Button>
                 </Link>
               </div>
