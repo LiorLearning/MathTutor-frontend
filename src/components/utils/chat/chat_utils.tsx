@@ -3,8 +3,6 @@ import React, { useState, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
-import { Button } from '@/components/ui/button';
-import { X } from 'lucide-react';
 
 declare global {
     interface Window {
