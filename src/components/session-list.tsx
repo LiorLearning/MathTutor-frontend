@@ -39,7 +39,7 @@ const updateSessionSummary = async ({ username, sessionId }: { username: string,
   }
 };
 
-export default function SessionList() {
+export default function SessionList({ redirectUrl }: { redirectUrl: string }) {
   const searchParams = useSearchParams();
   const username = searchParams.get('username') || 'testuser';
   const queryClient = useQueryClient();
@@ -111,7 +111,7 @@ export default function SessionList() {
           <Card 
             key={session.session_id} 
             onClick={() => window.location.assign(
-              `/chat?username=${username}&session=${session.session_id}`
+              `${redirectUrl}?username=${username}&session=${session.session_id}`
             )} 
             className="cursor-pointer shadow-md"
           >

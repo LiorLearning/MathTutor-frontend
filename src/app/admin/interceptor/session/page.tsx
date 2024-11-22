@@ -13,7 +13,7 @@ export default function ChatPage() {
     <QueryClientProvider client={queryClient}>
       <React.Suspense fallback={<FallbackComponent />}>
         <Header />
-        <SessionList redirectUrl='/chat' />
+        <SessionList redirectUrl='/admin/interceptor' />
       </React.Suspense>
     </QueryClientProvider>
   );
