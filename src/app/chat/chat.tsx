@@ -23,7 +23,7 @@ export default function Chat () {
   }
 
   return (
-    <SessionProvider userId={username} sessionId={sessionId}>
+    <SessionProvider userId={username} sessionId={sessionId} route='/chat'>
       <AudioProvider clientId={username} setIsPlaying={setIsPlaying}>
         <UserChat username={username} messages={messages} setMessages={setMessages} sessionId={sessionId} />
       </AudioProvider>

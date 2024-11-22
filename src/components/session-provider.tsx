@@ -11,10 +11,11 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 interface SessionProviderProps {
   userId: string
   sessionId: string
+  route: string
   children: React.ReactNode
 }
 
-export function SessionProvider({ userId, sessionId, children }: SessionProviderProps) {
+export function SessionProvider({ userId, sessionId, route, children }: SessionProviderProps) {
   const [sessionState, setSessionState] = useState<'loading' | 'exists' | 'not-found' | 'error'>('loading')
 
   useEffect(() => {
@@ -68,7 +69,7 @@ export function SessionProvider({ userId, sessionId, children }: SessionProvider
           </Alert>
         </CardContent>
         <CardFooter className="flex justify-center">
-          <Button onClick={() => window.location.href = `/chat/session?username=${userId}`}>Start New Session</Button>
+          <Button onClick={() => window.location.href = `${route}/session?username=${userId}`}>Start New Session</Button>
         </CardFooter>
       </Card>
     )

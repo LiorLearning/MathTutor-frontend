@@ -223,7 +223,7 @@ export function InterceptorChat() {
   }
 
   return (
-    <SessionProvider userId={username} sessionId={sessionId}>
+    <SessionProvider userId={username} sessionId={sessionId} route='/admin/interceptor'>
       <div className="flex h-screen bg-background text-foreground dark:bg-background dark:text-foreground">
         {/* <UserSidebar username={username} /> */}
         
