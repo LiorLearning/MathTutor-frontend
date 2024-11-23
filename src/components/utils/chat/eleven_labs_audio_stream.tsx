@@ -27,88 +27,58 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children, clientId
   const currentSourceRef = useRef<AudioBufferSourceNode | null>(null);
   const streamCloseTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Initialize AudioContext once
+  // Function to unlock AudioContext on user interaction
+  const unlockAudioContext = () => {
+    if (audioContextRef.current && audioContextRef.current.state === 'suspended') {
+      audioContextRef.current.resume().then(() => {
+        console.log('AudioContext resumed on user interaction:', audioContextRef.current?.state);
+      });
+    }
+  };
+
+  // Add event listeners for user interaction to unlock AudioContext
   useEffect(() => {
-    audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
-    return () => {
-      audioContextRef.current?.close();
-    };
-  }, []);
-
-  // Initialize AudioContext on component mount
-  useEffect(() => {
-    const initAudioContext = async () => {
-      try {
-        // Force sample rate to 48000 for Safari compatibility
-        const options = {
-          sampleRate: 48000,
-          latencyHint: 'interactive' as AudioContextLatencyCategory
-        };
-        
-        audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)(options);
-        
-        // Create and connect a dummy oscillator to initialize audio chain
-        const oscillator = audioContextRef.current.createOscillator();
-        const gainNode = audioContextRef.current.createGain();
-        gainNode.gain.value = 0; // Mute it
-        oscillator.connect(gainNode);
-        gainNode.connect(audioContextRef.current.destination);
-        oscillator.start();
-        oscillator.stop(audioContextRef.current.currentTime + 0.001);
-        
-        // setAudioContextInitialized(true);
-        console.log('AudioContext initialized:', audioContextRef.current.state);
-      } catch (error) {
-        console.error('Failed to initialize AudioContext:', error);
-      }
-    };
-
-    initAudioContext();
-
-    // Cleanup
-    return () => {
-      if (audioContextRef.current) {
-        audioContextRef.current.close();
-      }
-    };
-  }, []);
-
-  // Initialize AudioContext once
-  useEffect(() => {
-    const unlockAudio = async () => {
-      if (!audioContextRef.current) return;
-
-      try {
-        if (audioContextRef.current.state === 'suspended') {
-          await audioContextRef.current.resume();
-          console.log('AudioContext resumed:', audioContextRef.current.state);
-        }
-      } catch (error) {
-        console.error('Failed to resume AudioContext:', error);
-      }
-    };
-
-    const handleInteraction = () => {
-      unlockAudio();
-    };
-
-    ['touchstart', 'touchend', 'click', 'keydown'].forEach(event => {
-      document.addEventListener(event, handleInteraction, { once: true });
+    ['touchstart', 'touchend', 'mousedown', 'keydown'].forEach((event) => {
+      window.addEventListener(event, unlockAudioContext, false);
     });
 
     return () => {
-      ['touchstart', 'touchend', 'click', 'keydown'].forEach(event => {
-        document.removeEventListener(event, handleInteraction);
+      ['touchstart', 'touchend', 'mousedown', 'keydown'].forEach((event) => {
+        window.removeEventListener(event, unlockAudioContext, false);
       });
     };
   }, []);
+
   /**
    * Initiates audio playback by connecting to the WebSocket.
    * @param messageId Unique identifier for the message.
    * @param text Text to be converted to speech.
    */
-  const playAudio = (messageId: string, text: string) => {
+  const playAudio = async (messageId: string, text: string) => {
     currentMessageIdRef.current = messageId;
+
+    if (!audioContextRef.current) {
+      try {
+        const options = {
+          sampleRate: 24000,
+          latencyHint: 'interactive' as AudioContextLatencyCategory,
+        };
+
+        audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)(options);
+      } catch (error) {
+        console.error('Failed to create AudioContext:', error);
+      }
+    }
+
+    if (audioContextRef.current && audioContextRef.current.state === 'suspended') {
+      try {
+        await audioContextRef.current.resume();
+        console.log('AudioContext resumed:', audioContextRef.current.state);
+      } catch (error) {
+        console.error('Failed to resume AudioContext:', error);
+      }
+    }
+
     connectWebSocket(messageId, text);
   };
 
@@ -249,6 +219,14 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children, clientId
       return; // Already playing
     }
 
+    if (!audioContextRef.current) {
+      return;
+    }
+
+    if (audioContextRef.current.state === 'suspended') {
+      audioContextRef.current.resume();
+    }
+
     if (audioBufferQueueRef.current.length < BUFFER_QUEUE_THRESHOLD && !is_end) {
       // Schedule stream close if no more chunks are received
       if (streamCloseTimeoutRef.current) {
@@ -268,7 +246,9 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children, clientId
     }
 
     // Combine all chunks into a single buffer
-    const combinedData = new Float32Array(audioBufferQueueRef.current.reduce((total, chunk) => total + chunk.length, 0));
+    const combinedData = new Float32Array(
+      audioBufferQueueRef.current.reduce((total, chunk) => total + chunk.length, 0)
+    );
 
     let offset = 0;
     while (audioBufferQueueRef.current.length > 0) {
@@ -277,10 +257,6 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children, clientId
         combinedData.set(chunk, offset);
         offset += chunk.length;
       }
-    }
-
-    if (!audioContextRef.current) {
-      return;
     }
 
     const audioCtx = audioContextRef.current;
