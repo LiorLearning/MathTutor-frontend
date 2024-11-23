@@ -26,10 +26,11 @@ import InputBar from './chat/input_bar';
 import MessageLoader from '@/components/ui/loaders/message_loader';
 import PageLoader from '../ui/loaders/page_loader';
 import ImageLoader from '@/components/ui/loaders/image_loader';
+import { getDeviceType } from './common_utils';
 
 
-// const SPEAKOUT = true;
-const SPEED = 20;
+const deviceType = getDeviceType();
+const SPEED = deviceType === "iOS" ? 0 : deviceType === "Mac" ? 30 : 15;
 
 const CORRECTION = 'correction';
 const INTERRUPT = 'interrupt';

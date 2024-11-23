@@ -9,7 +9,7 @@ import { Message, MarkdownComponent } from './chat_utils'
 const USER = 'user'
 const ASSISTANT = 'assistant'
 const RETHINKING_MESSAGE = 'rethinking'
-const MESSAGES_PER_PAGE = 15
+const MESSAGES_PER_PAGE = 10
 
 interface MessageComponentsProps {
   messages: Message[]
