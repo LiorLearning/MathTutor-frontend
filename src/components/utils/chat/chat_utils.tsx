@@ -100,6 +100,7 @@ export const MarkdownComponent: React.FC<{ content: string }> = ({ content }) =>
                         displayMath: [['$$', '$$'], ['\\[', '\\]']],
                         processEscapes: true,
                     },
+                    messageStyle: 'none'
                 });
                 window.MathJax.Hub.Queue(['Typeset', window.MathJax.Hub]);
             }
