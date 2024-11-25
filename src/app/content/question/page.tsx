@@ -3,8 +3,9 @@
 import { Header } from '@/components/header';
 import { QuestionDisplay } from './question';
 import { useSearchParams } from 'next/navigation';
+import { Suspense } from 'react';
 
-export default function QuestionPage() {
+function QuestionContent() {
   const searchParams = useSearchParams();
   const questionId = searchParams.get('id');
   
@@ -22,5 +23,13 @@ export default function QuestionPage() {
       <Header />
       <QuestionDisplay questionId={questionId} />
     </>
+  );
+}
+
+export default function QuestionPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <QuestionContent />
+    </Suspense>
   );
 }

@@ -1,5 +1,3 @@
-'use server'
-
 import axios from 'axios'
 import { QuestionBankContent } from "@/types/question-bank"
 import { MODEL_API_BASE_URL } from '@/components/utils/admin/admin_utils'
