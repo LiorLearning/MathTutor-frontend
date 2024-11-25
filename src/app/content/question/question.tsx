@@ -1,9 +1,9 @@
 'use client'
 
 import React, { useEffect } from 'react'
-import ReactMarkdown from 'react-markdown'
 import { Question } from '@/types/question-bank'
 import { fetchQuestionById } from '../actions/fetchQuestion';
+import { MarkdownComponent } from './markdown';
 
 export function QuestionDisplay({ questionId }: { questionId: string }) {
   const [question, setQuestion] = React.useState<Question | null>(null);
@@ -25,7 +25,7 @@ export function QuestionDisplay({ questionId }: { questionId: string }) {
           <div>
             <h3 className="text-lg font-semibold text-foreground">Question Text:</h3>
             <div className="mt-2 p-4 bg-muted rounded-md">
-              <ReactMarkdown>{question?.question_text}</ReactMarkdown>
+              <MarkdownComponent content={question?.question_text || ''} />
             </div>
           </div>
           {question?.question_desc && (

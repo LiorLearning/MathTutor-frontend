@@ -96,7 +96,7 @@ export const MarkdownComponent: React.FC<{ content: string }> = ({ content }) =>
             if (window.MathJax) {
                 window.MathJax.Hub.Config({
                     tex2jax: {
-                        inlineMath: [['$', '$'], ['\\$$', '\\$$']],
+                        inlineMath: [['$', '$'], ['\\$$', '\\$$'], ['\\(', '\\)']],
                         displayMath: [['$$', '$$'], ['\\[', '\\]']],
                         processEscapes: true,
                     },
@@ -105,7 +105,6 @@ export const MarkdownComponent: React.FC<{ content: string }> = ({ content }) =>
                 window.MathJax.Hub.Queue(['Typeset', window.MathJax.Hub]);
             }
         };
-    
         return () => {
             document.body.removeChild(script);
         };
