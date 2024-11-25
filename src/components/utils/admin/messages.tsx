@@ -4,6 +4,7 @@ import { Message, MarkdownComponent } from '../chat/chat_utils';
 const USER = 'user';
 const ASSISTANT = 'assistant';
 const CORRECTION = 'correction';
+const CORRECTED = 'corrected';
 const ADMIN = 'admin';
 
 interface MessageComponentsProps {
@@ -15,9 +16,9 @@ const MessageComponents: React.FC<MessageComponentsProps> = ({ messages }) => {
     Array.isArray(messages) ? messages.map((message, index) => (
       <div 
         key={message.message_id} 
-        className="flex flex-col items-center justify-center h-full"
+        className={`flex flex-col items-center justify-center h-full`}
       >
-        <div className={`max-w-[90%] ${message.role === ASSISTANT ? 'self-start' : 'self-end'}`}>
+        <div className={`max-w-[90%] ${message.role === ASSISTANT || message.role === CORRECTED ? 'self-start' : 'self-end'}`}>
           <div
             className={`rounded-3xl p-4 ${
               message.role === USER
@@ -27,8 +28,7 @@ const MessageComponents: React.FC<MessageComponentsProps> = ({ messages }) => {
                 : message.role === ADMIN
                 ? 'bg-green-200 text-gray-800 dark:bg-green-700 dark:text-gray-200'
                 : 'bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200'
-            } ${(message.role === ADMIN || message.role === CORRECTION) && index < messages.length - 1 ? 'opacity-50' : ''} 
-            ${message.role !== USER && index === messages.length - 1 ? 'opacity-100' : ''}`}
+            } ${message.role === CORRECTED ? 'opacity-50 line-through' : ''}`}
           >
             <MarkdownComponent content={message.content} />
           </div>

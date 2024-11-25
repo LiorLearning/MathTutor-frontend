@@ -24,6 +24,7 @@ import { SessionProvider } from '../../../components/session-provider';
 const USER = 'user';
 const ASSISTANT = 'assistant';
 const CORRECTION = 'correction';
+const CORRECTED = 'corrected';
 const INPUT = 'input';
 const ADMIN = 'admin';
 const GENERATING_IMAGE = 'generating_image';
@@ -175,7 +176,14 @@ export function InterceptorChat() {
   // Correction message
   const handleCorrectionMessage = useCallback(async (correction: string, images: string[]) => {
     setMessages(prevMessages => {
-      let updatedMessages = prevMessages.slice(0, -1);
+      let updatedMessages = prevMessages;
+      const lastMessageIndex = updatedMessages.length - 1;
+      if (lastMessageIndex >= 0) {
+        updatedMessages[lastMessageIndex] = {
+          ...updatedMessages[lastMessageIndex],
+          role: CORRECTED
+        };
+      }
       // const lastMessage = updatedMessages[updatedMessages.length - 1];
 
       setPausedMessage(false);
