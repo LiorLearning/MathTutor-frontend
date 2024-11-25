@@ -41,7 +41,7 @@ const MarkdownImage: React.FC<{ src?: string; alt?: string }> = ({ src, alt }) =
                 height: 'auto',
             }}>
                 {isLoading && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-gray-200 dark:bg-gray-700 rounded-lg" style={{ maxWidth: '30%' }}>
+                    <div className="absolute inset-0 flex items-center justify-center bg-gray-200 dark:bg-gray-700 rounded-lg" style={{ maxWidth: window.innerWidth < 600 ? '100%' : window.innerWidth < 1000 ? '60%' : '30%' }}>
                         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-gray-100"></div>
                     </div>
                 )}
@@ -52,7 +52,7 @@ const MarkdownImage: React.FC<{ src?: string; alt?: string }> = ({ src, alt }) =
                     width={60}
                     height={60}
                     className="rounded-lg cursor-pointer"
-                    style={{ objectFit: 'contain', maxWidth: '30%', height: 'auto' }}
+                    style={{ objectFit: 'contain', maxWidth: window.innerWidth < 600 ? '100%' : window.innerWidth < 1000 ? '60%' : '30%', height: 'auto' }}
                     onLoad={handleLoad}
                     onClick={toggleModal}
                     loading="eager"
