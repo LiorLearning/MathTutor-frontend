@@ -10,4 +10,9 @@ export interface QuestionBankContent {
   created_at: string;
 }
 
-  
+export interface Question {
+  question_id: string
+  content_id: string
+  question_text: string
+  question_desc: string
+}

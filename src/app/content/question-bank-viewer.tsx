@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { ExternalLink } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -11,7 +12,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
-import { fetchQuestionBankContent, fetchAllGrades } from '@/actions/fetchContent'
+import { fetchQuestionBankContent, fetchAllGrades, fetchQuestionsByContentId } from '@/app/content/actions/fetchContent'
 import { QuestionBankContent } from '@/types/question-bank'
 import {
   Pagination,
@@ -28,6 +29,7 @@ export function QuestionBankViewer() {
   const [selectedGrade, setSelectedGrade] = useState<string | null>(null)
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(20)
+  const [questions, setQuestions] = useState<{ [key: string]: any[] }>({})
 
   useEffect(() => {
     const loadGrades = async () => {
@@ -75,6 +77,17 @@ export function QuestionBankViewer() {
     }
   }
 
+  const loadQuestions = async (contentId: string) => {
+    if (!questions[contentId]) {
+      try {
+        const data = await fetchQuestionsByContentId(contentId)
+        setQuestions(prev => ({ ...prev, [contentId]: data }))
+      } catch (error) {
+        console.error("Failed to fetch questions for the content", error)
+      }
+    }
+  }
+
   return (
     <div className="container mx-auto py-10 px-4 bg-background text-foreground">
       <div className="flex justify-center mb-6">
@@ -113,7 +126,7 @@ export function QuestionBankViewer() {
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {content.map((item) => (
-              <Dialog key={item.content_id}>
+              <Dialog key={item.content_id} onOpenChange={() => loadQuestions(item.content_id)}>
                 <DialogTrigger asChild>
                   <Card className="w-full cursor-pointer hover:shadow-lg transition-shadow bg-card text-card-foreground">
                     <CardHeader>
@@ -125,7 +138,7 @@ export function QuestionBankViewer() {
                     </CardContent>
                   </Card>
                 </DialogTrigger>
-                <DialogContent className="max-w-4xl">
+                <DialogContent className="max-w-4xl sm:max-w-3xl">
                   <DialogHeader>
                     <DialogTitle>{item.content_title}</DialogTitle>
                     <DialogDescription>
@@ -137,6 +150,21 @@ export function QuestionBankViewer() {
                       <p><strong>Content URL:</strong> <a href={item.content_url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">{item.content_url}</a></p>
                       <p><strong>Grade:</strong> {item.grade}</p>
                       <p><strong>Created At:</strong> {new Date(item.created_at).toLocaleString()}</p>
+                      <div>
+                        <h2 className="text-xl font-bold mt-4">Questions</h2>
+                        {questions[item.content_id] ? (
+                          questions[item.content_id].map((question, index) => (
+                            <div key={index} className="mt-2 flex items-center">
+                              <p className="flex-grow"><strong>Description:</strong> {question.question_desc}</p>
+                              <a href={`/content/question?id=${question.question_id}`} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline flex items-center">
+                                <ExternalLink className="ml-1" size={16} />
+                              </a>
+                            </div>
+                          ))
+                        ) : (
+                          <p>Loading questions...</p>
+                        )}
+                      </div>
                     </DialogDescription>
                   </DialogHeader>
                 </DialogContent>

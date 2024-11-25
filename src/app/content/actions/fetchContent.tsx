@@ -28,3 +28,17 @@ export async function fetchAllGrades(): Promise<string[]> {
     throw new Error("Failed to fetch grades")
   }
 }
+
+export async function fetchQuestionsByContentId(contentId: string): Promise<any[]> {
+  try {
+    const response = await axios.get<any[]>(`${MODEL_API_BASE_URL}/question/content/${contentId}`, {
+      headers: {
+        'accept': 'application/json'
+      }
+    })
+    return response.data
+  } catch (error) {
+    console.error("Failed to fetch questions for the content", error)
+    throw new Error("Failed to fetch questions for the content")
+  }
+}
