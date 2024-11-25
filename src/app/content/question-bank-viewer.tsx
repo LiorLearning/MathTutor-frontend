@@ -128,7 +128,7 @@ export function QuestionBankViewer() {
             {content.map((item) => (
               <Dialog key={item.content_id} onOpenChange={() => loadQuestions(item.content_id)}>
                 <DialogTrigger asChild>
-                  <Card className="w-full cursor-pointer hover:shadow-lg transition-shadow bg-card text-card-foreground">
+                  <Card className={`w-full cursor-pointer hover:shadow-lg transition-shadow ${item.content_kind === 'Video' ? 'bg-card' : 'bg-muted'} text-card-foreground`}>
                     <CardHeader>
                       <CardTitle>{item.content_title}</CardTitle>
                     </CardHeader>
