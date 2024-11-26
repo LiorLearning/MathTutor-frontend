@@ -29,7 +29,11 @@ export function AdminPageComponent() {
                 </Button>
                 <Button className="bg-primary hover:bg-primary-600 text-primary-foreground" onClick={() => window.location.assign('/admin/artifacts')}>
                   <Users className="mr-2 h-4 w-4" />
-                  Manage Artifacts
+                  Artifacts
+                </Button>
+                <Button className="bg-primary hover:bg-primary-600 text-primary-foreground" onClick={() => window.location.assign('/content')}>
+                  <Users className="mr-2 h-4 w-4" />
+                  Question Bank
                 </Button>
               </div>
             </CardContent>
