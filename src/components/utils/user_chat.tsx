@@ -447,7 +447,7 @@ export function UserChat({ messages, setMessages, username, sessionId }: UserCha
               
               {isGeneratingImage ? (
                 <ImageLoader />
-              ) : isSendingMessage ? (
+              ) : isSendingMessage || isLastMessagePauseRef.current ? (
                 <MessageLoader />
               ) : (
                 <div className="pt-4 border-t border-border dark:border-dark-border flex items-center justify-center">
