@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Square, Mic } from "lucide-react";
+import { Square, Mic, X, Send } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 
 interface SpeechToTextProps {
@@ -15,8 +15,6 @@ const SpeechToText: React.FC<SpeechToTextProps> = ({ onRecordingStart, onRecordi
 
   const startRecording = async () => {
     try {
-      // Request both audio and video but only use audio
-      // This is a workaround for iOS Safari
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
           echoCancellation: true,
@@ -26,7 +24,6 @@ const SpeechToText: React.FC<SpeechToTextProps> = ({ onRecordingStart, onRecordi
         video: false
       });
 
-      // Determine supported MIME types
       const mimeType = [
         'audio/webm',
         'audio/mp4',
@@ -35,7 +32,6 @@ const SpeechToText: React.FC<SpeechToTextProps> = ({ onRecordingStart, onRecordi
         'audio/wav'
       ].find(type => MediaRecorder.isTypeSupported(type)) || '';
 
-      // Create MediaRecorder with supported type and proper settings
       mediaRecorderRef.current = new MediaRecorder(stream, {
         mimeType: mimeType,
         audioBitsPerSecond: 128000
@@ -47,32 +43,29 @@ const SpeechToText: React.FC<SpeechToTextProps> = ({ onRecordingStart, onRecordi
         }
       };
 
-      // Start recording with smaller time slices for better compatibility
       mediaRecorderRef.current.start(100);
       setIsRecording(true);
       onRecordingStart();
     } catch (err) {
       console.error('Error accessing microphone:', err);
-      // Handle the error gracefully - you might want to show a user-friendly error message
       alert('Unable to access the microphone. Please ensure you have granted the necessary permissions and are using a supported browser.');
     }
   };
 
-  const stopRecording = () => {
+  const stopRecording = (shouldSave: boolean) => {
     if (isRecording && mediaRecorderRef.current) {
       mediaRecorderRef.current.stop();
       setIsRecording(false);
 
       mediaRecorderRef.current.onstop = () => {
-        // Determine the correct MIME type for the Blob
-        const mimeType = mediaRecorderRef.current?.mimeType || 'audio/webm';
+        if (shouldSave) {
+          const mimeType = mediaRecorderRef.current?.mimeType || 'audio/webm';
+          const audioBlob = new Blob(audioChunksRef.current, { type: mimeType });
+          onRecordingStop(audioBlob);
+        }
         
-        // Create blob with the detected MIME type
-        const audioBlob = new Blob(audioChunksRef.current, { type: mimeType });
         audioChunksRef.current = [];
-        onRecordingStop(audioBlob);
 
-        // Properly clean up all tracks
         if (mediaRecorderRef.current?.stream) {
           mediaRecorderRef.current.stream.getTracks().forEach(track => {
             track.stop();
@@ -135,34 +128,66 @@ const SpeechToText: React.FC<SpeechToTextProps> = ({ onRecordingStart, onRecordi
           </motion.div>
         )}
       </AnimatePresence>
-
-      <div className="flex justify-center w-full">
-        <Button
-          onClick={isRecording ? stopRecording : startRecording}
-          className={`w-full h-12 rounded-full flex items-center justify-center transition-colors ${
-            isRecording ? "bg-destructive hover:bg-destructive/90 dark:bg-destructive dark:hover:bg-destructive/90" : "bg-primary hover:bg-primary/90 dark:bg-primary dark:hover:bg-primary/90"
-          }`}
-          aria-label={isRecording ? "Stop recording" : "Start recording"}
-        >
-          <AnimatePresence mode="wait">
+      <div className="flex justify-center w-full space-x-2">
+        <AnimatePresence mode="wait">
+          {isRecording ? (
+            <>
+              <motion.div
+                key="cancel-recording"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 10 }}
+                transition={{ duration: 0.3 }}
+                className="w-1/2"
+              >
+                <Button
+                  onClick={() => stopRecording(false)}
+                  className="w-full h-12 rounded-full flex items-center justify-center bg-destructive hover:bg-destructive/90 dark:bg-destructive dark:hover:bg-destructive/90"
+                  aria-label="Cancel recording"
+                >
+                  <X className="w-6 h-6 text-destructive-foreground dark:text-destructive-foreground" />
+                </Button>
+              </motion.div>
+              <motion.div
+                key="stop-recording"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 10 }}
+                transition={{ duration: 0.3 }}
+                className="w-1/2"
+              >
+                <Button
+                  onClick={() => stopRecording(true)}
+                  className="w-full h-12 rounded-full flex items-center justify-center bg-primary hover:bg-primary/90 dark:bg-primary dark:hover:bg-primary/90"
+                  aria-label="Stop recording"
+                >
+                  <Send className="w-6 h-6 text-primary-foreground dark:text-primary-foreground" />
+                </Button>
+              </motion.div>
+            </>
+          ) : (
             <motion.div
-              key={isRecording ? "stop" : "start"}
-              initial={{ opacity: 0, scale: 0.5 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.5 }}
-              transition={{ duration: 0.2 }}
+              key="start-recording"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 10 }}
+              transition={{ duration: 0.3 }}
+              className="w-full"
             >
-              {isRecording ? (
-                <Square className="w-8 h-8 text-destructive-foreground dark:text-destructive-foreground" />
-              ) : (
-                <Mic className="w-8 h-8 text-primary-foreground dark:text-primary-foreground" />
-              )}
+              <Button
+                onClick={startRecording}
+                className="w-full h-12 rounded-full flex items-center justify-center bg-primary hover:bg-primary/90 dark:bg-primary dark:hover:bg-primary/90"
+                aria-label="Start recording"
+              >
+                <Mic className="w-6 h-6 text-primary-foreground dark:text-primary-foreground" />
+              </Button>
             </motion.div>
-          </AnimatePresence>
-        </Button>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );
 };
 
 export default SpeechToText;
+
