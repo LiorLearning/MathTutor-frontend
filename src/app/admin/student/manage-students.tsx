@@ -68,12 +68,6 @@ export function ManageStudentsComponent() {
             </CardHeader>
             <CardContent>
               <div className="flex flex-col space-y-4 w-3/5 mx-auto">
-                <Link href={`/admin/schedule?username=${username}`}>
-                  <Button className="bg-primary text-primary-foreground dark:bg-primary dark:text-primary-foreground flex items-center justify-center w-full">
-                    <CalendarPlus className="mr-2 h-4 w-4" />
-                    Schedule New Class
-                  </Button>
-                </Link>
                 <Link href={`/admin/interceptor/session?username=${username}`}>
                   <Button className="bg-primary text-primary-foreground dark:bg-primary dark:text-primary-foreground flex items-center justify-center w-full">
                     <MessageCircle className="mr-2 h-4 w-4" />
