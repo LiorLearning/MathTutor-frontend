@@ -16,7 +16,7 @@ const MessageComponents: React.FC<MessageComponentsProps> = ({ messages }) => {
   const messageComponents = useMemo(() => (
     Array.isArray(messages) ? messages
       .filter(message => message.role !== ASSISTANT_HIDE)
-      .map((message, index) => (
+      .map((message) => (
         <div 
           key={message.message_id} 
           className={`flex flex-col items-center justify-center h-full`}
