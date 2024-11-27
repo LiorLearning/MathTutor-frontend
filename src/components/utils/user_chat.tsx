@@ -175,12 +175,12 @@ export function UserChat({ messages, setMessages, username, sessionId }: UserCha
 
         switch (role) {
           case NOTEXT:
-            // console.log("No text received, setting isSendingMessage to false.");
             setIsSendingMessage(false);
             return;
           
           case STOP:
-            sendStopMessage();
+            setIsGeneratingImage(false);
+            setIsSendingMessage(false);
             return;
 
           case PAUSE:

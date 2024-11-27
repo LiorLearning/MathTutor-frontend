@@ -232,7 +232,7 @@ export function InterceptorChat() {
   const sendStopMessage = useCallback(async () => {
     if (chatWebsocketRef.current?.readyState === WebSocket.OPEN) {
       chatWebsocketRef.current.send(JSON.stringify({
-        'role': 'stop',
+        'role': STOP,
         'content': '',
         'images': [],
       }));
