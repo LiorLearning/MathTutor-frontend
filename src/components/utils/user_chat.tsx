@@ -5,7 +5,7 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Button } from "@/components/ui/button"
 import axios from 'axios'
 import { motion } from 'framer-motion'
-import { ChevronLeft, ChevronRight } from "lucide-react"
+import { ChevronLeft, ChevronRight, Square } from "lucide-react"
 
 import { 
   Message,
@@ -39,9 +39,10 @@ const USER = 'user';
 const PAUSE = 'pause';
 const NOTEXT = 'notext';
 const GENERATING_IMAGE = "generating_image"
+const STOP = "101e0198-ab6e-41f7-bd30-0649c2132bc1"
 
 const RETHINKING_MESSAGE = "rethinking"
-const SLEEP_TIME_AFTER_MESSAGE = 2000
+const SLEEP_TIME_AFTER_MESSAGE = 1000
 
 interface UserChatProps {
   messages: Message[];
@@ -177,6 +178,10 @@ export function UserChat({ messages, setMessages, username, sessionId }: UserCha
             // console.log("No text received, setting isSendingMessage to false.");
             setIsSendingMessage(false);
             return;
+          
+          case STOP:
+            sendStopMessage();
+            return;
 
           case PAUSE:
             // console.log("Received PAUSE signal, setting rethinking state to true.");
@@ -298,6 +303,16 @@ export function UserChat({ messages, setMessages, username, sessionId }: UserCha
       }
     }
   }, [speakout, audioContext, setMessages]);
+
+  // Function to send STOP message
+  const sendStopMessage = () => {
+    if (chatWebsocketRef.current?.readyState === WebSocket.OPEN) {
+      chatWebsocketRef.current.send(STOP);
+      chatWebsocketRef.current.send(STOP);
+      setIsGeneratingImage(false);
+      setIsSendingMessage(false);
+    }
+  };
 
   // Speech to Text functions
   const handleRecordingStart = () => {
@@ -445,10 +460,16 @@ export function UserChat({ messages, setMessages, username, sessionId }: UserCha
                 </div>
               </ScrollArea>
               
-              {isGeneratingImage ? (
-                <ImageLoader />
-              ) : isSendingMessage || isLastMessagePauseRef.current ? (
-                <MessageLoader />
+              {isGeneratingImage || isSendingMessage || isLastMessagePauseRef.current ? (
+                <div className="relative flex flex-col items-center justify-center">
+                  <div className="flex-grow flex items-center justify-center">
+                    {isGeneratingImage ? <ImageLoader /> : <MessageLoader />}
+                  </div>
+                  <Button size="sm" onClick={sendStopMessage}>
+                    <Square className="mr-2 text-sm" />
+                    Stop
+                  </Button>
+                </div>
               ) : (
                 <div className="pt-4 border-t border-border dark:border-dark-border flex items-center justify-center">
                   <div className="relative flex flex-row items-center gap-4 max-w-xs mx-auto">

@@ -5,13 +5,13 @@ import React from 'react';
 
 const MessageLoader: React.FC = () => {
   return (
-    <div className="flex items-center justify-center h-12 w-full">
-      <div className="bg-white/80 dark:bg-card/80 p-6 rounded-lg shadow-sm">
-        <div className="flex space-x-2">
+    <div className="flex items-center justify-center h-8 w-full">
+      <div className="bg-white/80 dark:bg-card/80 p-4 rounded-lg shadow-sm">
+        <div className="flex space-x-1">
           {[0, 1, 2].map((index) => (
             <motion.div
               key={index}
-              className="w-3 h-3 bg-primary dark:bg-primary rounded-full"
+              className="w-2 h-2 bg-primary dark:bg-primary rounded-full"
               initial={{ opacity: 0.2 }}
               animate={{ opacity: 1 }}
               transition={{

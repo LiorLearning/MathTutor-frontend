@@ -5,7 +5,7 @@ import { ScrollArea } from "../../../components/ui/scroll-area"
 import { Button } from "../../../components/ui/button"
 import { useSearchParams } from 'next/navigation'
 import axios from 'axios'
-import { Wifi, WifiOff, User } from "lucide-react"
+import { Wifi, WifiOff, User, Square } from "lucide-react"
 
 import { 
   Message, 
@@ -28,6 +28,7 @@ const CORRECTED = 'corrected';
 const INPUT = 'input';
 const ADMIN = 'admin';
 const GENERATING_IMAGE = 'generating_image';
+const STOP = "101e0198-ab6e-41f7-bd30-0649c2132bc1"
 
 export function InterceptorChat() {
   const searchParams = useSearchParams();
@@ -72,6 +73,11 @@ export function InterceptorChat() {
         const data = JSON.parse(event.data);
         const message = data.content;
         const role = data.role;
+
+        if (message === STOP) {
+          setIsGeneratingImage(false);
+          return;
+        }
 
         if (role === GENERATING_IMAGE) {
           if (message === "start") {
@@ -223,6 +229,17 @@ export function InterceptorChat() {
     }
   }, [])
 
+  const sendStopMessage = useCallback(async () => {
+    if (chatWebsocketRef.current?.readyState === WebSocket.OPEN) {
+      chatWebsocketRef.current.send(JSON.stringify({
+        'role': 'stop',
+        'content': '',
+        'images': [],
+      }));
+      setIsGeneratingImage(false);
+    }
+  }, []);
+
 
   if (isLoading) {
     return <div className="flex items-center justify-center h-screen bg-background text-foreground dark:bg-background dark:text-foreground">
@@ -265,8 +282,14 @@ export function InterceptorChat() {
           </ScrollArea>
 
           {isGeneratingImage ? (
-            <div className="p-8">
-              <ImageLoader />
+            <div className="relative flex flex-col items-center justify-center">
+              <div className="flex-grow flex items-center justify-center">
+                <ImageLoader />
+              </div>
+              <Button size="sm" onClick={sendStopMessage}>
+                <Square className="mr-2 text-sm" />
+                Stop
+              </Button>
             </div>
           ) : (
             <AdminInputBar 

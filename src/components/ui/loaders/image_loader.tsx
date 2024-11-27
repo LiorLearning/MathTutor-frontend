@@ -7,14 +7,14 @@ export default function Component() {
   const text = "Generating image..."
   
   return (
-    <div className="flex items-center justify-center h-12 w-full">
-      <div className="bg-card dark:bg-card p-6 rounded-lg shadow-sm">
-        <div className="flex items-center space-x-3">
+    <div className="flex items-center justify-center h-8 w-full">
+      <div className="bg-card dark:bg-card p-4 rounded-lg shadow-sm">
+        <div className="flex items-center space-x-2">
           <div className="flex">
             {text.split("").map((char, index) => (
               <motion.span
                 key={index}
-                className="text-lg font-semibold text-card-foreground dark:text-card-foreground"
+                className="text-sm font-semibold text-card-foreground dark:text-card-foreground"
                 initial={{ opacity: 0.2 }}
                 animate={{ opacity: 1 }}
                 transition={{
@@ -32,7 +32,7 @@ export default function Component() {
             {[0, 1, 2].map((index) => (
               <motion.div
                 key={index}
-                className="w-2 h-2 bg-primary dark:bg-primary rounded-full"
+                className="w-1.5 h-1.5 bg-primary dark:bg-primary rounded-full"
                 initial={{ opacity: 0.2 }}
                 animate={{ opacity: 1 }}
                 transition={{
