@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Square, Mic, X, Send } from 'lucide-react';
+import { Mic, X, Send } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 
 interface SpeechToTextProps {
