@@ -63,7 +63,6 @@ export function UserChat({ messages, setMessages, username, sessionId }: UserCha
   };
   
   const [chatId, setChatId] = useState("");
-  const [textInput, setTextInput] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isSendingMessage, setIsSendingMessage] = useState(false);
   const [isChatConnected, setIsChatConnected] = useState(false);
@@ -493,7 +492,7 @@ export function UserChat({ messages, setMessages, username, sessionId }: UserCha
                 <div className="pt-4 border-t border-border dark:border-dark-border flex items-center justify-center">
                   <div className="relative flex flex-row items-center gap-4 max-w-xs mx-auto">
                     <div className='relative'>
-                      <InputBar onSendMessage={onSendTextMessage} textInput={textInput} setTextInput={setTextInput} />
+                      <InputBar onSendMessage={onSendTextMessage} />
                     </div>
                     <div className='relative w-1/2'>
                       <SpeechToText onRecordingStart={handleRecordingStart} onRecordingStop={handleRecordingStop} />

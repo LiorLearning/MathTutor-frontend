@@ -4,11 +4,10 @@ import { Send } from 'lucide-react';
 
 interface InputBarProps {
   onSendMessage: (message: string) => void;
-  textInput: string;
-  setTextInput: (text: string) => void;
 }
 
-const InputBar: React.FC<InputBarProps> = ({ onSendMessage, textInput, setTextInput }) => {
+const InputBar: React.FC<InputBarProps> = ({ onSendMessage }) => {
+  const [textInput, setTextInput] = React.useState("");
 
   const handleTextSend = () => {
     if (textInput.trim() === "") return; // Prevent sending empty messages
