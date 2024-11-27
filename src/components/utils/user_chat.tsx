@@ -323,13 +323,13 @@ export function UserChat({ messages, setMessages, username, sessionId }: UserCha
   }
 
   // Function to send STOP message
-  // const sendStopMessage = () => {
-  //   if (chatWebsocketRef.current?.readyState === WebSocket.OPEN) {
-  //     chatWebsocketRef.current.send(STOP);
-  //     chatWebsocketRef.current.send(STOP);
-  //     handleStopMessage();
-  //   }
-  // };
+  const sendStopMessage = () => {
+    if (chatWebsocketRef.current?.readyState === WebSocket.OPEN) {
+      chatWebsocketRef.current.send(STOP);
+      chatWebsocketRef.current.send(STOP);
+      handleStopMessage();
+    }
+  };
 
   // Speech to Text functions
   const handleRecordingStart = () => {
@@ -482,12 +482,12 @@ export function UserChat({ messages, setMessages, username, sessionId }: UserCha
                   <div className="flex-grow flex items-center justify-center">
                     {isGeneratingImage ? <ImageLoader /> : <MessageLoader />}
                   </div>
-                  {/* {(isGeneratingImage || isSendingMessage) && (
+                  {(isGeneratingImage || isSendingMessage) && (
                     <Button size="sm" onClick={sendStopMessage}>
                       <Square className="mr-2 text-sm" />
                       Stop
                     </Button>
-                  )} */}
+                  )}
                 </div>
               ) : (
                 <div className="pt-4 border-t border-border dark:border-dark-border flex items-center justify-center">
