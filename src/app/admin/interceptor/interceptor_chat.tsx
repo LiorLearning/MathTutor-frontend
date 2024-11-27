@@ -217,6 +217,10 @@ export function InterceptorChat() {
 
   // Pause message
   const handlePauseMessage = useCallback(async () => {
+    const latestMessageRole = messages[messages.length - 1]?.role;
+    if (latestMessageRole !== ASSISTANT) {
+      return;
+    }
     setPausedMessage(true);
     console.log("Message paused by the user.")
     if (chatWebsocketRef.current) {
@@ -226,7 +230,7 @@ export function InterceptorChat() {
         'images': [],
       }))
     }
-  }, [])
+  }, [messages])
 
   const handleStopMessage = () => {
     setIsGeneratingImage(false);

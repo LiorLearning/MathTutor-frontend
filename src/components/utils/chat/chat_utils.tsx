@@ -55,7 +55,7 @@ const MarkdownImage: React.FC<{ src?: string; alt?: string }> = ({ src, alt }) =
                     style={{ objectFit: 'contain', maxWidth: window.innerWidth < 600 ? '100%' : window.innerWidth < 1000 ? '60%' : '30%', height: 'auto' }}
                     onLoad={handleLoad}
                     onClick={toggleModal}
-                    loading="eager"
+                    loading="lazy"
                 />
             </div>
 
