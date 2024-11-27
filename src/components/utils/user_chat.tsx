@@ -323,13 +323,13 @@ export function UserChat({ messages, setMessages, username, sessionId }: UserCha
   }
 
   // Function to send STOP message
-  const sendStopMessage = () => {
-    if (chatWebsocketRef.current?.readyState === WebSocket.OPEN) {
-      chatWebsocketRef.current.send(STOP);
-      chatWebsocketRef.current.send(STOP);
-      handleStopMessage();
-    }
-  };
+  // const sendStopMessage = () => {
+  //   if (chatWebsocketRef.current?.readyState === WebSocket.OPEN) {
+  //     chatWebsocketRef.current.send(STOP);
+  //     chatWebsocketRef.current.send(STOP);
+  //     handleStopMessage();
+  //   }
+  // };
 
   // Speech to Text functions
   const handleRecordingStart = () => {
