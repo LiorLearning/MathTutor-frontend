@@ -184,13 +184,12 @@ export function InterceptorChat() {
     setMessages(prevMessages => {
       let updatedMessages = prevMessages;
       const lastMessageIndex = updatedMessages.length - 1;
-      if (lastMessageIndex >= 0) {
+      if (lastMessageIndex >= 0 && updatedMessages[lastMessageIndex].role === ASSISTANT) {
         updatedMessages[lastMessageIndex] = {
           ...updatedMessages[lastMessageIndex],
           role: CORRECTED
         };
       }
-      // const lastMessage = updatedMessages[updatedMessages.length - 1];
 
       setPausedMessage(false);
 
@@ -229,6 +228,11 @@ export function InterceptorChat() {
     }
   }, [])
 
+  const handleStopMessage = () => {
+    setIsGeneratingImage(false);
+  }
+
+
   const sendStopMessage = useCallback(async () => {
     if (chatWebsocketRef.current?.readyState === WebSocket.OPEN) {
       chatWebsocketRef.current.send(JSON.stringify({
@@ -236,7 +240,7 @@ export function InterceptorChat() {
         'content': '',
         'images': [],
       }));
-      setIsGeneratingImage(false);
+      handleStopMessage();
     }
   }, []);
 

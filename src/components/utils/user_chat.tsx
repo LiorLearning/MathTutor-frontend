@@ -63,6 +63,7 @@ export function UserChat({ messages, setMessages, username, sessionId }: UserCha
   };
   
   const [chatId, setChatId] = useState("");
+  const [textInput, setTextInput] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isSendingMessage, setIsSendingMessage] = useState(false);
   const [isChatConnected, setIsChatConnected] = useState(false);
@@ -76,6 +77,7 @@ export function UserChat({ messages, setMessages, username, sessionId }: UserCha
   const messageStreamIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const isLastMessagePauseRef = useRef<boolean>(false);
+  const lastAssistantMessageRef = useRef<Message | null>(null);
 
   // const [isVideoVisible, setIsVideoVisible] = useState(true);
 
@@ -179,8 +181,7 @@ export function UserChat({ messages, setMessages, username, sessionId }: UserCha
             return;
           
           case STOP:
-            setIsGeneratingImage(false);
-            setIsSendingMessage(false);
+            handleStopMessage();
             return;
 
           case PAUSE:
@@ -188,6 +189,7 @@ export function UserChat({ messages, setMessages, username, sessionId }: UserCha
             isLastMessagePauseRef.current = true;
             setMessages(prevMessages => {
                 if (prevMessages[prevMessages.length - 1]?.role === ASSISTANT) {
+                    lastAssistantMessageRef.current = prevMessages[prevMessages.length - 1];
                     return prevMessages.slice(0, -1);
                 }
                 return prevMessages;
@@ -304,13 +306,28 @@ export function UserChat({ messages, setMessages, username, sessionId }: UserCha
     }
   }, [speakout, audioContext, setMessages]);
 
+  const handleStopMessage = () => {
+    setIsGeneratingImage(false);
+    setIsSendingMessage(false);
+
+    setMessages(prevMessages => {
+      const updatedMessages = [...prevMessages];
+      if (isLastMessagePauseRef.current && lastAssistantMessageRef.current) {
+        updatedMessages.pop(); // Remove the rethinking message
+        updatedMessages.push(lastAssistantMessageRef.current); // Add the older message back
+        isLastMessagePauseRef.current = false;
+        lastAssistantMessageRef.current = null;
+      }
+      return updatedMessages;
+    });
+  }
+
   // Function to send STOP message
   const sendStopMessage = () => {
     if (chatWebsocketRef.current?.readyState === WebSocket.OPEN) {
       chatWebsocketRef.current.send(STOP);
       chatWebsocketRef.current.send(STOP);
-      setIsGeneratingImage(false);
-      setIsSendingMessage(false);
+      handleStopMessage();
     }
   };
 
@@ -465,16 +482,18 @@ export function UserChat({ messages, setMessages, username, sessionId }: UserCha
                   <div className="flex-grow flex items-center justify-center">
                     {isGeneratingImage ? <ImageLoader /> : <MessageLoader />}
                   </div>
-                  <Button size="sm" onClick={sendStopMessage}>
-                    <Square className="mr-2 text-sm" />
-                    Stop
-                  </Button>
+                  {(isGeneratingImage || isSendingMessage) && (
+                    <Button size="sm" onClick={sendStopMessage}>
+                      <Square className="mr-2 text-sm" />
+                      Stop
+                    </Button>
+                  )}
                 </div>
               ) : (
                 <div className="pt-4 border-t border-border dark:border-dark-border flex items-center justify-center">
                   <div className="relative flex flex-row items-center gap-4 max-w-xs mx-auto">
                     <div className='relative'>
-                      <InputBar onSendMessage={onSendTextMessage} />
+                      <InputBar onSendMessage={onSendTextMessage} textInput={textInput} setTextInput={setTextInput} />
                     </div>
                     <div className='relative w-1/2'>
                       <SpeechToText onRecordingStart={handleRecordingStart} onRecordingStop={handleRecordingStop} />
