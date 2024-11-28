@@ -6,6 +6,9 @@ import { Suspense } from 'react';
 import ChatSummary from './components/ChatSummary';
 import ChatHistory from './components/ChatHistory';
 import { FallbackComponent } from '@/components/fallback';
+import { QueryClient, QueryClientProvider } from 'react-query';
+
+const queryClient = new QueryClient();
 
 function SummaryContent() {
   const searchParams = useSearchParams();
@@ -29,8 +32,10 @@ function SummaryContent() {
 
 export default function SummaryPage() {
   return (
-    <Suspense fallback={<FallbackComponent />}>
-      <SummaryContent />
-    </Suspense>
+    <QueryClientProvider client={queryClient}>
+      <Suspense fallback={<FallbackComponent />}>
+        <SummaryContent />
+      </Suspense>
+    </QueryClientProvider>
   );
 }
