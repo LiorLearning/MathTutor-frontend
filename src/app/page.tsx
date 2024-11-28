@@ -2,8 +2,6 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { Button } from "@/components/ui/button"
 import { Brain, Target, Clock } from 'lucide-react'
-import { Header } from '@/components/header'
-import Image from 'next/image'
 
 export default function Home() {
   return (
