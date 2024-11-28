@@ -1,5 +1,9 @@
 "use client"
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 7c63710 (homepage)
 import { DarkModeToggle } from "./themeContext"
 
 export function Header() {
