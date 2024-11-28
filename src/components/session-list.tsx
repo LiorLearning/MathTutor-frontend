@@ -103,9 +103,12 @@ export default function SessionList({ is_admin }: { is_admin: boolean }) {
                     </div>
                   ) : (
                     <div className="flex items-center">
-                      {/* <Button onClick={(e) => { e.stopPropagation(); handleFetchSummary(session.session_id); }} className="ml-2">
-                        Fetch Summary
-                      </Button> */}
+                      <Button onClick={(e) => { 
+                        e.stopPropagation(); 
+                        window.location.assign(`/admin/summary?username=${username}&session=${session.session_id}`); 
+                      }} className="ml-2">
+                        Detailed Summary
+                      </Button>
                     </div>
                   )
                 )}

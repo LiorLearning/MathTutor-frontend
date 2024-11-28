@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, useLayoutEffect } from 'react'
 import axios from 'axios'
 import { Message, GetChatHistoryResponse, API_BASE_URL } from '@/components/utils/chat/chat_utils'
 import MessageComponents from '@/components/utils/admin/messages'
@@ -42,7 +42,6 @@ export default function ChatHistory({ username, sessionId }: ChatHistoryProps) {
 
   return (
     <div className="p-4 space-y-4">
-      <h2 className="text-2xl font-bold">Chat History</h2>
       <ScrollArea className="flex-grow p-4" ref={scrollAreaRef}>
         <div className="space-y-6">
           <MessageComponents messages={messages} />
