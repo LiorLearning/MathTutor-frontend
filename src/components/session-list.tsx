@@ -5,65 +5,43 @@ import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { MODEL_API_BASE_URL } from '@/components/utils/admin/admin_utils';
 import { useSearchParams } from 'next/navigation';
-import { useQuery, useMutation, useQueryClient } from 'react-query';
+import { useQuery } from 'react-query';
 import axios from 'axios';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface ChatSession {
   session_id: number;
   last_update_time: Date;
-  summary: string;
+  summary?: string;
 }
 
-interface UpdateSessionResponse {
-  updated_summary: string;
-}
-
-const fetchSessions = async (username: string) => {
+const fetchSessionsWithSummaries = async (username: string) => {
   try {
-    const response = await axios.get<ChatSession[]>(`${MODEL_API_BASE_URL}/sessions/${username}`);
-    return response.data;
+    const sessionsResponse = await axios.get<ChatSession[]>(`${MODEL_API_BASE_URL}/sessions/${username}`);
+    const sessions = sessionsResponse.data;
+
+    const summariesResponse = await axios.get<{ session_id: number, summary: string }[]>(`${MODEL_API_BASE_URL}/session_summary/${username}`);
+    const summaries = summariesResponse.data;
+
+    const sessionsWithSummaries = sessions.map((session) => {
+      const summary = summaries.find((s) => s.session_id === session.session_id)?.summary || '';
+      return { ...session, summary };
+    });
+
+    return sessionsWithSummaries;
   } catch (error) {
-    console.error('Error fetching sessions:', error);
-    throw new Error('Error fetching sessions');
+    console.error('Error fetching sessions or summaries:', error);
+    throw new Error('Error fetching sessions or summaries');
   }
 };
 
-const updateSessionSummary = async ({ username, sessionId }: { username: string, sessionId: number }) => {
-  try {
-    const response = await axios.put<UpdateSessionResponse>(`${MODEL_API_BASE_URL}/sessions/${username}/${sessionId}/summary`);
-    return response.data.updated_summary;
-  } catch (error) {
-    console.error('Error updating session summary:', error);
-    throw new Error('Error updating session summary');
-  }
-};
-
-export default function SessionList({ redirectUrl }: { redirectUrl: string }) {
+export default function SessionList({ is_admin }: { is_admin: boolean }) {
   const searchParams = useSearchParams();
   const username = searchParams.get('username') || 'testuser';
-  const queryClient = useQueryClient();
   const [updatingSessionId, setUpdatingSessionId] = useState<number | null>(null);
 
-  const { data: sessions = [], isLoading, error } = useQuery(['sessions', username], () => fetchSessions(username), {
+  const { data: sessions = [], isLoading, error } = useQuery(['sessions', username], () => fetchSessionsWithSummaries(username), {
     suspense: true,
-  });
-
-  const mutation = useMutation(updateSessionSummary, {
-    onSuccess: (updatedSummary, { sessionId }) => {
-      console.log('Mutation successful, updated summary:', updatedSummary);
-      queryClient.setQueryData(['sessions', username], (oldData: ChatSession[] | undefined) => {
-        if (!oldData) return [];
-        return oldData.map(session => 
-          session.session_id === sessionId ? { ...session, summary: updatedSummary } : session
-        );
-      });
-      setUpdatingSessionId(null);
-    },
-    onError: (error) => {
-      console.error('Mutation failed:', error);
-      setUpdatingSessionId(null);
-    },
   });
 
   const createNewSession = async () => {
@@ -74,11 +52,6 @@ export default function SessionList({ redirectUrl }: { redirectUrl: string }) {
     } catch (error) {
       console.error('Error creating new session:', error);
     }
-  };
-
-  const handleUpdateSummary = (sessionId: number) => {
-    setUpdatingSessionId(sessionId);
-    mutation.mutate({ username, sessionId });
   };
 
   if (isLoading) {
@@ -103,29 +76,38 @@ export default function SessionList({ redirectUrl }: { redirectUrl: string }) {
       <div className="mb-4 p-4">
         <h2 className="text-xl">User ID: {username}</h2>
       </div>
-      <Button onClick={createNewSession} className="w-full mb-4">
-        <Plus className="mr-2 h-4 w-4" /> Create New Session
-      </Button>
+      {is_admin && (
+        <Button onClick={createNewSession} className="w-full mb-4">
+          <Plus className="mr-2 h-4 w-4" /> Create New Session
+        </Button>
+      )}
       <div className="space-y-4">
         {sessions.map((session) => (
           <Card 
             key={session.session_id} 
-            onClick={() => window.location.assign(
-              `${redirectUrl}?username=${username}&session=${session.session_id}`
-            )} 
+            onClick={() => {
+              const redirectUrl = is_admin 
+                ? `/admin/interceptor?username=${username}&session=${session.session_id}`
+                : `/chat?username=${username}&session=${session.session_id}`;
+              window.location.assign(redirectUrl);
+            }} 
             className="cursor-pointer shadow-md"
           >
             <CardHeader>
               <CardTitle className="flex justify-between items-center">
                 <span>Session {session.session_id}</span>
-                {updatingSessionId === session.session_id ? (
-                  <div className="flex items-center">
-                    <span className="ml-2">Updating summary...</span>
-                  </div>
-                ) : (
-                  <Button onClick={(e) => { e.stopPropagation(); handleUpdateSummary(session.session_id); }} className="ml-2">
-                    Update Summary
-                  </Button>
+                {is_admin && (
+                  updatingSessionId === session.session_id ? (
+                    <div className="flex items-center">
+                      <span className="ml-2">Updating summary...</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center">
+                      {/* <Button onClick={(e) => { e.stopPropagation(); handleFetchSummary(session.session_id); }} className="ml-2">
+                        Fetch Summary
+                      </Button> */}
+                    </div>
+                  )
                 )}
               </CardTitle>
               <CardDescription>
