@@ -40,7 +40,6 @@ export function AddStudentForm({ isOpen, onClose, onSuccess }: AddStudentFormPro
       onSuccess()
       onClose()
     } catch (error) {
-      console.error('Error adding student:', error)
       alert(`There was an error adding the student: ${(error as any).message}. Please try again.`)
     }
   }

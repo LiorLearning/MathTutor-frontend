@@ -24,10 +24,8 @@ import {
       try {
         await axios.delete(`${MODEL_API_BASE_URL}/users/${student.userid}`)
         onClose()
-        // Optionally, you can add a callback to refresh the student list
-      } catch (error) {
-        console.error('Error deleting student:', error)
-        // Handle error (e.g., show error message to user)
+      } catch (error: any) {
+        alert(`There was an error deleting the student: ${error}. Please try again.`)
       }
     }
   
