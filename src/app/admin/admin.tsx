@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { CalendarPlus, Users } from "lucide-react"
+import { Users } from "lucide-react"
 
 export function AdminPageComponent() {
   return (
@@ -15,10 +15,6 @@ export function AdminPageComponent() {
             </CardHeader>
             <CardContent>
               <div className="flex flex-wrap gap-4">
-                <Button className="bg-primary hover:bg-primary-600 text-primary-foreground">
-                  <CalendarPlus className="mr-2 h-4 w-4" />
-                  Schedule Class
-                </Button>
                 <Button className="bg-primary hover:bg-primary-600 text-primary-foreground" onClick={() => window.location.assign('/admin/all-students')}>
                   <Users className="mr-2 h-4 w-4" />
                   Manage Students
