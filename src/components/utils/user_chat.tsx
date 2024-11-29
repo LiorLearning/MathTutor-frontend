@@ -459,7 +459,7 @@ export function UserChat({ messages, setMessages, username, sessionId }: UserCha
               marginRight: isRightColumnCollapsed ? "0%" : "50%",
             }}
           >
-            <div className="h-full flex flex-col border-r border-border dark:border-dark-border">
+            <div className="h-full flex flex-col border-border dark:border-dark-border">
               <Header 
                 username={username} 
                 isChatConnected={isChatConnected}
