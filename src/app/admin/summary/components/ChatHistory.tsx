@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef, useLayoutEffect } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import axios from 'axios'
 import { Message, GetChatHistoryResponse, API_BASE_URL } from '@/components/utils/chat/chat_utils'
 import MessageComponents from '@/components/utils/admin/messages'

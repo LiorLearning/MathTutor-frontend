@@ -7,7 +7,6 @@ import { MODEL_API_BASE_URL } from '@/components/utils/admin/admin_utils';
 import { useSearchParams } from 'next/navigation';
 import { useQuery } from 'react-query';
 import axios from 'axios';
-import { useState, useEffect } from 'react';
 
 interface ChatSession {
   session_id: number;
@@ -38,7 +37,6 @@ const fetchSessionsWithSummaries = async (username: string) => {
 export default function SessionList({ is_admin }: { is_admin: boolean }) {
   const searchParams = useSearchParams();
   const username = searchParams.get('username') || 'testuser';
-  const [updatingSessionId, setUpdatingSessionId] = useState<number | null>(null);
 
   const { data: sessions = [], isLoading, error } = useQuery(['sessions', username], () => fetchSessionsWithSummaries(username), {
     suspense: true,
@@ -97,20 +95,14 @@ export default function SessionList({ is_admin }: { is_admin: boolean }) {
               <CardTitle className="flex justify-between items-center">
                 <span>Session {session.session_id}</span>
                 {is_admin && (
-                  updatingSessionId === session.session_id ? (
-                    <div className="flex items-center">
-                      <span className="ml-2">Updating summary...</span>
-                    </div>
-                  ) : (
-                    <div className="flex items-center">
-                      <Button onClick={(e) => { 
-                        e.stopPropagation(); 
-                        window.location.assign(`/admin/summary?username=${username}&session=${session.session_id}`); 
-                      }} className="ml-2">
-                        Detailed Summary
-                      </Button>
-                    </div>
-                  )
+                  <div className="flex items-center">
+                    <Button onClick={(e) => { 
+                      e.stopPropagation(); 
+                      window.location.assign(`/admin/summary?username=${username}&session=${session.session_id}`); 
+                    }} className="ml-2">
+                      Detailed Summary
+                    </Button>
+                  </div>
                 )}
               </CardTitle>
               <CardDescription>
