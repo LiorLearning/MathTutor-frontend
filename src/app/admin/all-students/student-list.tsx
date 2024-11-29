@@ -3,12 +3,13 @@
 import { useState } from 'react'
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { User, Cake, Search, ArrowLeft, ChevronDown, ChevronUp } from "lucide-react"
+import { User, Cake, Search, ArrowLeft, Expand } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import axios from 'axios'
 import { Student, MODEL_API_BASE_URL } from '@/components/utils/admin/admin_utils'
 import { useQuery } from 'react-query'
+import { StudentDialog } from './student-dialog'
 
 const fetchStudents = async () => {
   try {
@@ -21,11 +22,11 @@ const fetchStudents = async () => {
 
 export function StudentList() {
   const [searchTerm, setSearchTerm] = useState('')
-  const [expandedCards, setExpandedCards] = useState<{ [key: string]: boolean }>({})
+  const [selectedStudent, setSelectedStudent] = useState<Student | null>(null)
 
   const { data: students = [], isLoading, error } = useQuery('students', fetchStudents, {
-    suspense: false, // Changed from true to false
-    staleTime: 30000, // Add a staleTime to prevent unnecessary refetches
+    suspense: false,
+    staleTime: 30000,
   });
 
   const filteredStudents = students.filter(student => 
@@ -33,11 +34,6 @@ export function StudentList() {
     student.last_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     student.userid.toLowerCase().includes(searchTerm.toLowerCase())
   )
-
-  const toggleExpand = (userid: string, event: React.MouseEvent) => {
-    event.stopPropagation();
-    setExpandedCards(prev => ({ ...prev, [userid]: !prev[userid] }));
-  }
 
   if (isLoading) {
     return (
@@ -78,77 +74,54 @@ export function StudentList() {
         />
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
       </div>
-      <div className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filteredStudents.map((student, index) => (
           <Card 
             key={`${student.userid}-${index}`} 
             className="w-full cursor-pointer hover:shadow-lg transition-shadow bg-card text-card-foreground"
             onClick={() => window.location.assign(`/admin/student?username=${student.userid}`)}
           >
-            <CardHeader>
+            <CardHeader className="flex justify-between items-center">
               <CardTitle className="flex items-center gap-2">
                 <User className="h-5 w-5" />
                 {student.first_name} {student.last_name}
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="flex justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground mb-2">@{student.userid}</p>
-                  <div className="flex items-center gap-2 text-sm">
-                    <Cake className="h-4 w-4" />
-                    <span>{student.age} years old</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm mt-2">
-                    <span className="font-semibold">Guardian:</span>
-                    <span>{student.parent_guardian}</span>
-                  </div>
+            <CardContent className="relative">
+              <div>
+                <p className="text-sm text-muted-foreground mb-2">@{student.userid}</p>
+                <div className="flex items-center gap-2 text-sm">
+                  <Cake className="h-4 w-4" />
+                  <span>{student.age} years old</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm mt-2">
+                  <span className="font-semibold">Guardian:</span>
+                  <span>{student.parent_guardian}</span>
                 </div>
               </div>
-              {expandedCards[student.userid] && (
-                <div className="mt-4">
-                  <div className="flex items-center gap-2 text-sm mt-2">
-                    <span className="font-semibold">Country:</span>
-                    <span>{student.country}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm mt-2">
-                    <span className="font-semibold">Grade:</span>
-                    <span>{student.grade}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm mt-2">
-                    <span className="font-semibold">Email:</span>
-                    <span>{student.email}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm mt-2">
-                    <span className="font-semibold">Phone:</span>
-                    <span>{student.phone}</span>
-                  </div>
-                  <div className="mt-2">
-                    <span className="font-semibold">Context:</span>
-                    <p className="text-sm mt-1">{student.user_context}</p>
-                  </div>
-                </div>
-              )}
-              <div className='flex justify-end'>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={(e) => toggleExpand(student.userid, e)}
-                >
-                  {expandedCards[student.userid] ? (
-                    <ChevronUp className="h-4 w-4" />
-                  ) : (
-                    <ChevronDown className="h-4 w-4" />
-                  )}
-                </Button>
-              </div>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="absolute bottom-2 right-2"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedStudent(student);
+                }}
+              >
+                <Expand className="h-5 w-5" />
+              </Button>
             </CardContent>
           </Card>
         ))}
-        {filteredStudents.length === 0 && (
-          <p className="text-center text-muted-foreground">No students found matching your search.</p>
-        )}
       </div>
+      {filteredStudents.length === 0 && (
+        <p className="text-center text-muted-foreground">No students found matching your search.</p>
+      )}
+      <StudentDialog 
+        student={selectedStudent} 
+        isOpen={!!selectedStudent} 
+        onClose={() => setSelectedStudent(null)} 
+      />
     </div>
   );
 }

@@ -3,8 +3,8 @@
 import { Header } from '@/components/header';
 import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
-import ChatSummary from './components/ChatSummary';
-import ChatHistory from './components/ChatHistory';
+import ChatSummary from './components/chat-summary';
+import ChatHistory from './components/chat-history';
 import { FallbackComponent } from '@/components/fallback';
 import { QueryClient, QueryClientProvider } from 'react-query';
 
