@@ -3,13 +3,14 @@
 import { useState } from 'react'
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { User, Cake, Search, ArrowLeft, Expand } from 'lucide-react'
+import { User, Cake, Search, ArrowLeft, Expand, UserPlus } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import axios from 'axios'
 import { Student, MODEL_API_BASE_URL } from '@/components/utils/admin/admin_utils'
 import { useQuery } from 'react-query'
 import { StudentDialog } from './student-dialog'
+import { AddStudentForm } from './add-student-form'
 
 const fetchStudents = async () => {
   try {
@@ -23,8 +24,9 @@ const fetchStudents = async () => {
 export function StudentList() {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null)
+  const [isAddStudentOpen, setIsAddStudentOpen] = useState(false)
 
-  const { data: students = [], isLoading, error } = useQuery('students', fetchStudents, {
+  const { data: students = [], isLoading, error, refetch } = useQuery('students', fetchStudents, {
     suspense: false,
     staleTime: 30000,
   });
@@ -56,12 +58,18 @@ export function StudentList() {
     <div className="container mx-auto py-10 px-4 bg-background text-foreground">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold mb-5">Student List</h1>
-        <Link href="/admin">
-          <Button variant="outline" className="flex items-center">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Dashboard
+        <div className="flex gap-2">
+          <Button onClick={() => setIsAddStudentOpen(true)} className="flex items-center">
+            <UserPlus className="mr-2 h-4 w-4" />
+            Add Student
           </Button>
-        </Link>
+          <Link href="/admin">
+            <Button variant="outline" className="flex items-center">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Dashboard
+            </Button>
+          </Link>
+        </div>
       </div>
 
       <div className="mb-6 relative">
@@ -120,8 +128,20 @@ export function StudentList() {
       <StudentDialog 
         student={selectedStudent} 
         isOpen={!!selectedStudent} 
-        onClose={() => setSelectedStudent(null)} 
+        onClose={() => {
+          refetch();
+          setSelectedStudent(null)
+        }} 
+      />
+      <AddStudentForm
+        isOpen={isAddStudentOpen}
+        onClose={() => setIsAddStudentOpen(false)}
+        onSuccess={() => {
+          refetch();
+          setIsAddStudentOpen(false);
+        }}
       />
     </div>
   );
 }
+

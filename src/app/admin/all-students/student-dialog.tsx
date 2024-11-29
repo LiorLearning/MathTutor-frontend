@@ -3,9 +3,13 @@ import {
     DialogContent,
     DialogHeader,
     DialogTitle,
+    DialogFooter,
   } from "@/components/ui/dialog"
   import { Student } from '@/components/utils/admin/admin_utils'
   import { Cake } from 'lucide-react'
+  import { Button } from "@/components/ui/button"
+  import axios from 'axios'
+  import { MODEL_API_BASE_URL } from '@/components/utils/admin/admin_utils'
   
   interface StudentDialogProps {
     student: Student | null
@@ -15,6 +19,17 @@ import {
   
   export function StudentDialog({ student, isOpen, onClose }: StudentDialogProps) {
     if (!student) return null
+
+    const handleDelete = async () => {
+      try {
+        await axios.delete(`${MODEL_API_BASE_URL}/users/${student.userid}`)
+        onClose()
+        // Optionally, you can add a callback to refresh the student list
+      } catch (error) {
+        console.error('Error deleting student:', error)
+        // Handle error (e.g., show error message to user)
+      }
+    }
   
     return (
       <Dialog open={isOpen} onOpenChange={onClose}>
@@ -56,9 +71,10 @@ import {
               <p className="mt-1 text-sm">{student.user_context}</p>
             </div>
           </div>
+          <DialogFooter>
+            <Button variant="destructive" onClick={handleDelete}>Delete Student</Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     )
   }
-  
-  
