@@ -137,10 +137,6 @@ export function AdminPageComponent() {
           </CardContent>
         </Card>
       </main>
-
-      <footer className="bg-muted text-muted-foreground py-4 px-6 text-center text-sm">
-        © 2023 MathMentor AI. All rights reserved.
-      </footer>
     </div>
   )
 }

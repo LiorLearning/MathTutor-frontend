@@ -290,8 +290,8 @@ export function InterceptorChat() {
           </ScrollArea>
 
           {isGeneratingImage ? (
-            <div className="relative flex flex-col items-center justify-center m-4">
-              <div className="flex-grow flex items-center justify-center m-2">
+            <div className="relative flex items-center justify-center m-4">
+              <div className="flex items-center justify-center m-2">
                 <ImageLoader />
               </div>
               <Button size="sm" onClick={sendStopMessage}>

@@ -477,12 +477,12 @@ export function UserChat({ messages, setMessages, username, sessionId }: UserCha
               </ScrollArea>
               
               {isGeneratingImage || isSendingMessage || isLastMessagePauseRef.current ? (
-                <div className="relative flex flex-col items-center justify-center">
-                  <div className="flex-grow flex items-center justify-center">
+                <div className="relative flex items-center justify-center">
+                  <div className="flex items-center justify-center">
                     {isGeneratingImage ? <ImageLoader /> : <MessageLoader />}
                   </div>
                   {(isGeneratingImage || isSendingMessage) && (
-                    <Button size="sm" onClick={sendStopMessage}>
+                    <Button size="sm" onClick={sendStopMessage} className="ml-4">
                       <Square className="mr-2 text-sm" />
                       Stop
                     </Button>
