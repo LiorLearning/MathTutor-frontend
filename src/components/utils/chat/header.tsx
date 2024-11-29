@@ -2,6 +2,7 @@ import React from 'react';
 import { Wifi, WifiOff, Volume2, VolumeX } from 'lucide-react';
 import { DarkModeToggle } from '@/components/themeContext';
 import { Button } from "@/components/ui/button";
+import AudioSelector from '@/components/audio-selector';
 
 interface HeaderProps {
   username: string;
@@ -17,6 +18,9 @@ const Header: React.FC<HeaderProps> = ({ username, isChatConnected, speakout, to
         <h1 className="text-lg font-bold">MathTutor</h1>
         <div className="flex items-center gap-2">
           <h3 className="text-base text-muted-foreground">{username}</h3>
+          <div className="mx-4">
+            <AudioSelector />
+          </div>
           {isChatConnected ? (
             <Wifi className="text-green-500" size={16} />
           ) : (

@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, createContext, ReactNode } from 'react';
+import { audioFiles, audioFileMap } from '@/components/audio-selector';
 
 const STREAM_CLOSE_DELAY = 2000; // Time in milliseconds to wait before closing the stream after the last chunk
 const BUFFER_QUEUE_THRESHOLD = 3; // Minimum number of chunks to queue before starting playback
@@ -131,12 +132,17 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children, clientId
     webSocketRef.current.onopen = () => {
       setIsConnected(true);
 
+      // Fetch voice id from local storage or use default
+      const savedAudioName = localStorage.getItem('selectedAudio');
+      const voiceId = savedAudioName ? audioFileMap[savedAudioName].voice_id : audioFiles[0].voice_id;
+
       // Send TTS request
       webSocketRef.current?.send(
         JSON.stringify({
           type: 'tts_request',
           text: text.trim(),
           id: messageId,
+          voice_id: voiceId
         })
       );
     };
