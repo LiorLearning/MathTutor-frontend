@@ -6,6 +6,7 @@ import { useSearchParams } from 'next/navigation'
 import { AudioProvider } from '../../components/utils/chat/audio/eleven_labs_audio_stream';
 import { Message } from "../../components/utils/chat/chat_utils";
 import { SessionProvider } from '../../components/session-provider';
+import { WebSocketProvider } from "@/components/utils/chat/websocket";
 
 export default function Chat () {
   const searchParams = useSearchParams();
@@ -25,7 +26,9 @@ export default function Chat () {
   return (
     <SessionProvider userId={username} sessionId={sessionId} route='/chat'>
       <AudioProvider clientId={username} setIsPlaying={setIsPlaying}>
-        <UserChat username={username} messages={messages} setMessages={setMessages} sessionId={sessionId} />
+        <WebSocketProvider sessionId={sessionId} setMessages={setMessages}>
+          <UserChat username={username} messages={messages} setMessages={setMessages} sessionId={sessionId} />
+        </WebSocketProvider>
       </AudioProvider>
     </SessionProvider>
   );

@@ -1,48 +1,29 @@
 'use client'
 
-import React, { useState, useRef, useEffect, useCallback, useContext } from 'react';
+import React, { useState, useRef, useEffect, useContext } from 'react';
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Button } from "@/components/ui/button"
-import axios from 'axios'
 import { motion } from 'framer-motion'
 import { ChevronLeft, ChevronRight, Square } from "lucide-react"
+import axios from 'axios';
 
-import { 
-  Message,
-  extractTextFromMessage,
-  StartChatResponse, 
-  GetChatHistoryResponse,
-  API_BASE_URL,
-} from './chat/chat_utils';
+import { Message, API_BASE_URL, GetChatHistoryResponse, StartChatResponse } from './chat/chat_utils';
 import MessageComponents from './chat/messages';
 import Popup from './chat/popup';
 import Header from './chat/header';
 import SpeechToText from './chat/audio/speech_to_text';
 
 import { AudioContext } from './chat/audio/eleven_labs_audio_stream';
-// import UserVideo from '@/components/webrtc/user';
 import { UserArtifactComponent } from '@/components/artifact/user';
 import InputBar from './chat/input_bar';
 import MessageLoader from '@/components/ui/loaders/message_loader';
 import PageLoader from '../ui/loaders/page_loader';
 import ImageLoader from '@/components/ui/loaders/image_loader';
-import { getDeviceType } from './common_utils';
+import { ASSISTANT, USER } from './common_utils';
 
 
-const deviceType = getDeviceType();
-const SPEED = deviceType === "iOS" ? 0 : deviceType === "Mac" ? 30 : 15;
+import { useWebSocket } from './chat/websocket';
 
-const CORRECTION = 'correction';
-const INTERRUPT = 'interrupt';
-const ASSISTANT = 'assistant';
-const USER = 'user';
-const PAUSE = 'pause';
-const NOTEXT = 'notext';
-const GENERATING_IMAGE = "generating_image"
-const STOP = "101e0198-ab6e-41f7-bd30-0649c2132bc1"
-
-const RETHINKING_MESSAGE = "rethinking"
-const SLEEP_TIME_AFTER_MESSAGE = 1000
 
 interface UserChatProps {
   messages: Message[];
@@ -64,21 +45,24 @@ export function UserChat({ messages, setMessages, username, sessionId }: UserCha
   
   const [chatId, setChatId] = useState("");
   const [isLoading, setIsLoading] = useState(true);
-  const [isSendingMessage, setIsSendingMessage] = useState(false);
-  const [isChatConnected, setIsChatConnected] = useState(false);
-  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
-
-  const [speakout, setSpeakout] = useState(true);
 
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
-  const chatWebsocketRef = useRef<WebSocket | null>(null);
-  const messageStreamIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const {
+    chatWebsocketRef,
+    isChatConnected,
+    isSendingMessage,
+    isGeneratingImage,
+    initChatWebSocket,
+    sendStopMessage,
+    handleSendMessage,
+    toggleAudio,
+    onSendTextMessage,
+    toggleSpeakout,
+    speakout,
+    isLastMessagePauseRef
+  } = useWebSocket();
 
-  const isLastMessagePauseRef = useRef<boolean>(false);
-  const lastAssistantMessageRef = useRef<Message | null>(null);
-
-  // const [isVideoVisible, setIsVideoVisible] = useState(true);
 
   const [isRightColumnCollapsed, setIsRightColumnCollapsed] = React.useState(true);
   const isRightColumnCollapsedRef = useRef<boolean>(isRightColumnCollapsed);
@@ -90,245 +74,6 @@ export function UserChat({ messages, setMessages, username, sessionId }: UserCha
       return newState;
     });
   };
-  
-  // const toggleVideoFeed = () => {
-  //   setIsVideoVisible(prev => !prev);
-  // };
-
-  const toggleSpeakout = () => {
-    setSpeakout(prev => !prev);
-  };
-
-  // Text to Speech functions
-  const handleStopAudio = (message: Message) => {
-    audioContext.stopAudio(message.message_id);
-  };
-
-  const handlePlayAudio = (messageId: string, messageText: string) => {
-    if (!messageText.trim()) {
-      return;
-    }
-
-    messageText = extractTextFromMessage(messageText);
-
-    // Update messages state immediately
-    setMessages(prevMessages => 
-      prevMessages.map(msg => 
-        msg.message_id === messageId
-          ? { ...msg, isPlaying: true }
-          : { ...msg, isPlaying: false }
-      )
-    );
-
-    audioContext.playAudio(messageId, messageText);
-
-  };
-
-  const toggleAudio = useCallback(async (message: Message) => {
-    // Handle audio for current message
-    if (message.audioUrl) {
-      console.error("Not implemented error")
-    } else {
-      const isPlaying = message.isPlaying;
-      // console.log(`${isPlaying ? 'Pausing' : 'Playing'} audio for message ID:`, message.message_id);
-
-      // Update messages state immediately
-      setMessages(prevMessages => 
-        prevMessages.map(msg => 
-          msg.message_id === message.message_id 
-            ? { ...msg, isPlaying: !isPlaying }
-            : msg
-        )
-      );
-
-      if (isPlaying) {
-        handleStopAudio(message);
-      } else {
-        handlePlayAudio(message.message_id, message.content);
-      }
-    }
-  }, []);
-
-  const initChatWebSocket = useCallback(async (username: string, speak: boolean = false) => {
-    if (!chatWebsocketRef.current) {
-      chatWebsocketRef.current = new WebSocket(
-        `${process.env.NEXT_PUBLIC_WS_BASE_URL}/chat/${username}/${sessionId}/handle_chat`
-      );
-      chatWebsocketRef.current.onopen = () => {
-        setIsChatConnected(true);
-        console.log("Chat WebSocket connection established");
-      }
-
-      chatWebsocketRef.current.onerror = (error) => {
-        console.error("Chat WebSocket error:", error);
-        setIsChatConnected(false);
-      };
-
-      chatWebsocketRef.current.onclose = () => {
-        console.log("Chat WebSocket connection closed");
-        setIsChatConnected(false);
-      };
-
-      chatWebsocketRef.current.onmessage = async (event) => {
-        const data = JSON.parse(event.data);
-        const message = data.content;
-        const role = data.role;
-
-        switch (role) {
-          case NOTEXT:
-            setIsSendingMessage(false);
-            return;
-          
-          case STOP:
-            handleStopMessage();
-            return;
-
-          case PAUSE:
-            // console.log("Received PAUSE signal, setting rethinking state to true.");
-            isLastMessagePauseRef.current = true;
-            setMessages(prevMessages => {
-                if (prevMessages[prevMessages.length - 1]?.role === ASSISTANT) {
-                    lastAssistantMessageRef.current = prevMessages[prevMessages.length - 1];
-                    return prevMessages.slice(0, -1);
-                }
-                return prevMessages;
-            });
-            setMessages(prevMessages => [
-              ...prevMessages,
-              { 
-                role: ASSISTANT, 
-                content: RETHINKING_MESSAGE,
-                message_id: `bot-${Date.now()}`, 
-                timestamp: new Date().toISOString(),
-                audioUrl: '' 
-              }
-            ]);
-            return;
-
-          case USER:
-            // console.log("User message received:", message);
-            const userMessage: Message = {
-              role: USER,
-              content: message,
-              audioUrl: '',
-              message_id: `temp-${Date.now()}`,
-              timestamp: new Date().toISOString()
-            };
-            setMessages(prevMessages => [...prevMessages, userMessage]);
-            return;
-
-          case INTERRUPT:
-            // console.log("Received INTERRUPT signal, pausing audio.");
-            audioContext.stopAudio()
-            return;
-            
-          case GENERATING_IMAGE:
-            if (message === "start") {
-              // console.log("Image generation started");
-              setIsGeneratingImage(true);
-            } else if (message === "done") {
-              // console.log("Image generation done");
-              setIsGeneratingImage(false);
-            }
-            return;
-
-          case CORRECTION:
-            setMessages(prevMessages => prevMessages.slice(0, -1));
-            isLastMessagePauseRef.current = false;
-            break;
-
-          default:
-            console.error("Unknown role received:", role);
-            break;
-        }
-
-        const isImage = message.includes('![Generated');
-
-        setIsSendingMessage(false);
-
-        await new Promise(resolve => setTimeout(resolve, SLEEP_TIME_AFTER_MESSAGE));
-
-        const finalMessage: Message = {
-          role: ASSISTANT,
-          content: '',
-          audioUrl: '',
-          message_id: `bot-${Date.now()}`,
-          timestamp: new Date().toISOString(),
-          isPlaying: speak,
-          isImage: isImage
-        };
-        // const finalMessage = JSON.parse(JSON.stringify(tempMessage));
-
-        if (speak && !isLastMessagePauseRef.current) {
-          handlePlayAudio(finalMessage.message_id, message);
-        }
-
-        if (isImage) {
-          finalMessage.content = message; 
-          if (isLastMessagePauseRef.current) {
-            return;
-          }
-          setMessages(prevMessages => {
-            const updatedMessages = prevMessages.filter(msg => msg.message_id !== finalMessage.message_id);
-            return [...updatedMessages, finalMessage];
-          });
-        } else {
-          if (messageStreamIntervalRef.current) {
-            clearInterval(messageStreamIntervalRef.current);
-          }
-
-          const streamMessage = (fullMessage: string) => {
-            const messageChunks = fullMessage.split(' ');
-            let index = 0;
-            messageStreamIntervalRef.current = setInterval(() => {
-              if (isLastMessagePauseRef.current) {
-                clearInterval(messageStreamIntervalRef.current!);
-                messageStreamIntervalRef.current = null; 
-                return;
-              }
-
-              if (index < messageChunks.length) {
-                finalMessage.content += messageChunks[index++] + ' ';
-                setMessages(prevMessages => {
-                  const updatedMessages = prevMessages.filter(msg => msg.message_id !== finalMessage.message_id);
-                  return [...updatedMessages, finalMessage];
-                });
-              } else {
-                clearInterval(messageStreamIntervalRef.current!);
-                messageStreamIntervalRef.current = null; 
-              }
-            }, SPEED);
-          };
-          streamMessage(message);
-        }
-      }
-    }
-  }, [speakout, audioContext, setMessages]);
-
-  const handleStopMessage = () => {
-    setIsGeneratingImage(false);
-    setIsSendingMessage(false);
-
-    setMessages(prevMessages => {
-      const updatedMessages = [...prevMessages];
-      if (isLastMessagePauseRef.current && lastAssistantMessageRef.current) {
-        updatedMessages.pop(); // Remove the rethinking message
-        updatedMessages.push(lastAssistantMessageRef.current); // Add the older message back
-        isLastMessagePauseRef.current = false;
-        lastAssistantMessageRef.current = null;
-      }
-      return updatedMessages;
-    });
-  }
-
-  // Function to send STOP message
-  const sendStopMessage = () => {
-    if (chatWebsocketRef.current?.readyState === WebSocket.OPEN) {
-      chatWebsocketRef.current.send(STOP);
-      chatWebsocketRef.current.send(STOP);
-      handleStopMessage();
-    }
-  };
 
   // Speech to Text functions
   const handleRecordingStart = () => {
@@ -336,36 +81,11 @@ export function UserChat({ messages, setMessages, username, sessionId }: UserCha
   };
 
   const handleRecordingStop = (blob: Blob) => {
-    handleSendMessage(blob);
-  };
-
-  const handleSendMessage = useCallback(async (message: Blob | string) => {
-    if (chatWebsocketRef.current?.readyState == WebSocket.OPEN) {
-      chatWebsocketRef.current.send(message);
+    if (chatWebsocketRef.current?.readyState === WebSocket.OPEN) {
+      handleSendMessage(blob);
+    } else {
+      console.warn("Attempted to send message on closed WebSocket");
     }
-
-    audioContext.stopAudio();
-
-    setIsSendingMessage(true);
-  }, []);
-
-  const onSendTextMessage = async (message: string) => {
-    // Dummy message
-    if (chatWebsocketRef.current?.readyState == WebSocket.OPEN) {
-      chatWebsocketRef.current.send(message);
-    }
-
-    handleSendMessage(message);
-
-    const userMessage: Message = {
-      role: USER,
-      content: message,
-      audioUrl: '',
-      message_id: `temp-${Date.now()}`,
-      timestamp: new Date().toISOString()
-    };
-
-    setMessages(prevMessages => [...prevMessages, userMessage]);
   };
 
   useEffect(() => {
@@ -389,26 +109,28 @@ export function UserChat({ messages, setMessages, username, sessionId }: UserCha
             {},
             { headers: { 'Content-Type': 'application/json' } }
           );
-
+  
           setChatId(response.data.chat_id);
           
           const historyResponse = await axios.get<GetChatHistoryResponse>(
             `${API_BASE_URL}/chat_history?user_id=${username}&session_id=${sessionId}`,
             { headers: { 'Content-Type': 'application/json' } }
           );
-
+  
           const filteredMessages = historyResponse.data.filter(
             message => message.role === USER || message.role === ASSISTANT
           );
-
+  
           setMessages(filteredMessages);
         }
 
-        initChatWebSocket(username);
+        await initChatWebSocket(username);
         
         return () => {
-          chatWebsocketRef.current?.close();
-          chatWebsocketRef.current = null;
+          if (chatWebsocketRef.current) {
+            chatWebsocketRef.current.close();
+            chatWebsocketRef.current = null;
+          }
         };
         
       } catch (error) {
@@ -421,7 +143,7 @@ export function UserChat({ messages, setMessages, username, sessionId }: UserCha
     if (typeof window !== 'undefined') {
       initializeChat();
     }
-  }, [username, chatId, initChatWebSocket]);
+  }, [username, initChatWebSocket]);
 
   useEffect(() => {
     const scrollElement = scrollAreaRef.current?.querySelector('[data-radix-scroll-area-viewport]');
