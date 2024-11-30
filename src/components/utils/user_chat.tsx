@@ -17,9 +17,9 @@ import {
 import MessageComponents from './chat/messages';
 import Popup from './chat/popup';
 import Header from './chat/header';
-import SpeechToText from './chat/speech_to_text';
+import SpeechToText from './chat/audio/speech_to_text';
 
-import { AudioContext } from './chat/eleven_labs_audio_stream';
+import { AudioContext } from './chat/audio/eleven_labs_audio_stream';
 // import UserVideo from '@/components/webrtc/user';
 import { UserArtifactComponent } from '@/components/artifact/user';
 import InputBar from './chat/input_bar';
