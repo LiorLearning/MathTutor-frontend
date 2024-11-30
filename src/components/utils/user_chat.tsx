@@ -1,29 +1,21 @@
 'use client'
 
 import React, { useState, useRef, useEffect, useContext } from 'react';
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { Button } from "@/components/ui/button"
-import { motion } from 'framer-motion'
-import { ChevronLeft, ChevronRight, Square } from "lucide-react"
 import axios from 'axios';
 
 import { Message, API_BASE_URL, GetChatHistoryResponse, StartChatResponse } from './user/chat_utils';
-import MessageComponents from './user/messages';
 import Popup from './user/popup';
-import Header from './user/header';
-import SpeechToText from './user/audio/speech_to_text';
 
 import { AudioContext } from './user/audio/eleven_labs_audio_stream';
-import { UserArtifactComponent } from '@/components/artifact/user';
-import InputBar from './user/input_bar';
-import MessageLoader from '@/components/ui/loaders/message_loader';
 import PageLoader from '../ui/loaders/page_loader';
-import ImageLoader from '@/components/ui/loaders/image_loader';
 import { ASSISTANT, USER } from './common_utils';
 import DesktopChat from './user/ui/desktop';
+import MobileChat from './user/ui/mobile';
 
 import { useWebSocket } from './user/websocket';
+import { getDeviceType, ANDROID_PHONE, IPHONE } from './common_utils';
 
+const deviceType = getDeviceType();
 
 interface UserChatProps {
   messages: Message[];
@@ -165,25 +157,44 @@ export function UserChat({ messages, setMessages, username, sessionId }: UserCha
       {showPopup ? (
         <Popup handleEnterClass={handleEnterClass} />
       ) : (
-        <DesktopChat
-          username={username}
-          isChatConnected={isChatConnected}
-          speakout={speakout}
-          toggleSpeakout={toggleSpeakout}
-          scrollAreaRef={scrollAreaRef}
-          messages={messages}
-          toggleAudio={toggleAudio}
-          isGeneratingImage={isGeneratingImage}
-          isSendingMessage={isSendingMessage}
-          isLastMessagePauseRef={isLastMessagePauseRef}
-          sendStopMessage={sendStopMessage}
-          onSendTextMessage={onSendTextMessage}
-          handleRecordingStart={handleRecordingStart}
-          handleRecordingStop={handleRecordingStop}
-          isRightColumnCollapsedRef={isRightColumnCollapsedRef}
-          toggleRightColumn={toggleRightColumn}
-          sessionId={sessionId}
-        />
+        (deviceType === IPHONE || deviceType === ANDROID_PHONE) ? (
+          <MobileChat
+            username={username}
+            isChatConnected={isChatConnected}
+            speakout={speakout}
+            toggleSpeakout={toggleSpeakout}
+            messages={messages}
+            toggleAudio={toggleAudio}
+            isGeneratingImage={isGeneratingImage}
+            isSendingMessage={isSendingMessage}
+            isLastMessagePauseRef={isLastMessagePauseRef}
+            sendStopMessage={sendStopMessage}
+            onSendTextMessage={onSendTextMessage}
+            handleRecordingStart={handleRecordingStart}
+            handleRecordingStop={handleRecordingStop}
+            sessionId={sessionId}
+          />
+        ) : (
+          <DesktopChat
+            username={username}
+            isChatConnected={isChatConnected}
+            speakout={speakout}
+            toggleSpeakout={toggleSpeakout}
+            scrollAreaRef={scrollAreaRef}
+            messages={messages}
+            toggleAudio={toggleAudio}
+            isGeneratingImage={isGeneratingImage}
+            isSendingMessage={isSendingMessage}
+            isLastMessagePauseRef={isLastMessagePauseRef}
+            sendStopMessage={sendStopMessage}
+            onSendTextMessage={onSendTextMessage}
+            handleRecordingStart={handleRecordingStart}
+            handleRecordingStop={handleRecordingStop}
+            isRightColumnCollapsedRef={isRightColumnCollapsedRef}
+            toggleRightColumn={toggleRightColumn}
+            sessionId={sessionId}
+          />
+        )
       )}
     </div>
   )

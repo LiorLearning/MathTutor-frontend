@@ -12,7 +12,14 @@ import {
   NOTEXT, 
   GENERATING_IMAGE, 
   RETHINKING_MESSAGE,
-  getDeviceType
+  getDeviceType,
+  ANDROID_PHONE,
+  ANDROID_TABLET,
+  IPHONE,
+  IPAD,
+  MAC,
+  WINDOWS,
+  OTHER
 } from '../common_utils';
 
 const deviceType = getDeviceType();
@@ -33,7 +40,14 @@ interface WebSocketContextType {
 }
 
 const WebSocketContext = createContext<WebSocketContextType | undefined>(undefined);
-const SPEED = deviceType === "iOS" ? 0 : deviceType === "Mac" ? 30 : 15;
+
+const SPEED = 
+  deviceType === IPHONE || deviceType === ANDROID_PHONE || 
+  deviceType === IPAD || deviceType === ANDROID_TABLET 
+    ? 0 
+    : deviceType === MAC 
+    ? 30 : 15
+
 const SLEEP_TIME_AFTER_MESSAGE = 500;
 
 interface WebSocketProviderProps {
