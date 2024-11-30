@@ -2,7 +2,7 @@
 
 import React from 'react'
 import { Button } from '@/components/ui/button'
-import InputBar from './inputbar'
+import InputBar from './input-bar'
 
 interface AdminInputBarProps {
   onSendMessage: (message: string, images: string[]) => void;

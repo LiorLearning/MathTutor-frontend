@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import axios from 'axios'
-import { Message, GetChatHistoryResponse, API_BASE_URL } from '@/components/utils/chat/chat_utils'
+import { Message, GetChatHistoryResponse, API_BASE_URL } from '@/components/utils/user/chat_utils'
 import MessageComponents from '@/components/utils/admin/messages'
 import { ScrollArea } from '@/components/ui/scroll-area'
 

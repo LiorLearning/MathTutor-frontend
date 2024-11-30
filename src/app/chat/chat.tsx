@@ -3,10 +3,10 @@
 import { UserChat } from "../../components/utils/user_chat";
 import React, { useState } from 'react';
 import { useSearchParams } from 'next/navigation'
-import { AudioProvider } from '../../components/utils/chat/audio/eleven_labs_audio_stream';
-import { Message } from "../../components/utils/chat/chat_utils";
+import { AudioProvider } from '../../components/utils/user/audio/eleven_labs_audio_stream';
+import { Message } from "../../components/utils/user/chat_utils";
 import { SessionProvider } from '../../components/session-provider';
-import { WebSocketProvider } from "@/components/utils/chat/websocket";
+import { WebSocketProvider } from "@/components/utils/user/websocket";
 
 export default function Chat () {
   const searchParams = useSearchParams();

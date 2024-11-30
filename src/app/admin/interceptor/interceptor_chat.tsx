@@ -11,7 +11,7 @@ import {
   Message, 
   GetChatHistoryResponse,
   API_BASE_URL,
-} from '../../../components/utils/chat/chat_utils'
+} from '../../../components/utils/user/chat_utils'
 import MessageComponents from '../../../components/utils/admin/messages';
 
 // import AdminVideo from './webrtc/admin';

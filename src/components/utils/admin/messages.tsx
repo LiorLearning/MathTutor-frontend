@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Message, MarkdownComponent } from '../chat/chat_utils';
+import { Message, MarkdownComponent } from '../user/chat_utils';
 
 const USER = 'user';
 const ASSISTANT = 'assistant';
