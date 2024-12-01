@@ -9,10 +9,11 @@ interface AdminInputBarProps {
   onSendCorrection: (correction: string, images: string[]) => void;
   pausedMessage: boolean;
   handlePauseMessage: () => void;
+  onEndSession: () => void;
 }
 
 
-const AdminInputBar: React.FC<AdminInputBarProps> = ({ onSendMessage, onSendCorrection, pausedMessage, handlePauseMessage }) => {
+const AdminInputBar: React.FC<AdminInputBarProps> = ({ onSendMessage, onSendCorrection, pausedMessage, handlePauseMessage, onEndSession }) => {
   const handleTextSend = (text: string, images: string[]) => {
     onSendMessage(text, images);
   };
@@ -22,26 +23,36 @@ const AdminInputBar: React.FC<AdminInputBarProps> = ({ onSendMessage, onSendCorr
   };
 
   return (
-    <div>
-      <div className="p-6 border-t border-border flex items-center bg-muted dark:bg-muted-dark">
+    <div className="p-4 border-border bg-muted dark:bg-muted-dark">
+      <div className="pb-2 border-t flex items-center">
         {pausedMessage ? (
-          <InputBar onSendMessage={handleCorrectionSend} />
+          <>
+            <InputBar onSendMessage={handleCorrectionSend} />
+          </>
         ) : (
-          <Button 
-            className="flex-grow h-12 bg-primary dark:bg-primary-dark" 
-            onClick={() => {
-              handlePauseMessage();
-            }}
-          >
-            Update last assistant message...
-          </Button>
+          <>
+            <Button 
+              className="flex-grow h-12 bg-primary dark:bg-primary-dark" 
+              onClick={() => {
+                handlePauseMessage();
+              }}
+            >
+              Update last assistant message...
+            </Button>
+          </>
         )}
       </div>
       
-      <div className="p-6 border-t border-border flex items-center bg-muted dark:bg-muted-dark">
+      <div className="border-t border-border flex items-center bg-muted dark:bg-muted-dark">
         <InputBar 
           onSendMessage={handleTextSend}
         />
+        <Button 
+          className="ml-2 h-10 px-4 py-2 rounded-md hover:bg-red-700 transition-colors duration-300"
+          onClick={onEndSession}
+        >
+          End Session
+        </Button>
       </div>
     </div>
   );

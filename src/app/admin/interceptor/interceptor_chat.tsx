@@ -1,34 +1,38 @@
 'use client'
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { ScrollArea } from "../../../components/ui/scroll-area"
-import { Button } from "../../../components/ui/button"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { Button } from "@/components/ui/button"
 import { useSearchParams } from 'next/navigation'
 import axios from 'axios'
-import { Wifi, WifiOff, User, Square } from "lucide-react"
+import { Wifi, WifiOff, User, Square, Trash } from "lucide-react"
 
 import { 
   Message, 
   GetChatHistoryResponse,
   API_BASE_URL,
-} from '../../../components/utils/user/chat_utils'
-import MessageComponents from '../../../components/utils/admin/messages';
+} from '@/components/utils/user/chat_utils'
+import MessageComponents from '@/components/utils/admin/messages';
 
 // import AdminVideo from './webrtc/admin';
-import { AdminArtifactComponent } from '../../../components/artifact/admin';
-import AdminInputBar from '../../../components/utils/admin/admin_input';
-import { DarkModeToggle } from '../../../components/themeContext';
+import { AdminArtifactComponent } from '@/components/artifact/admin';
+import AdminInputBar from '@/components/utils/admin/admin_input';
+import { DarkModeToggle } from '@/components/themeContext';
 import ImageLoader from '@/components/ui/loaders/image_loader';
-import { SessionProvider } from '../../../components/session-provider';
+import { SessionProvider } from '@/components/session-provider';
+import { 
+  CORRECTION, 
+  CORRECTED, 
+  ASSISTANT, 
+  INPUT, 
+  USER, 
+  PAUSE, 
+  GENERATING_IMAGE, 
+  STOP, 
+  END,
+  ADMIN,
+} from '@/components/utils/common_utils';
 
-const USER = 'user';
-const ASSISTANT = 'assistant';
-const CORRECTION = 'correction';
-const CORRECTED = 'corrected';
-const INPUT = 'input';
-const ADMIN = 'admin';
-const GENERATING_IMAGE = 'generating_image';
-const STOP = "101e0198-ab6e-41f7-bd30-0649c2132bc1"
 
 export function InterceptorChat() {
   const searchParams = useSearchParams();
@@ -208,7 +212,7 @@ export function InterceptorChat() {
     
     if (chatWebsocketRef.current) {
       chatWebsocketRef.current.send(JSON.stringify({
-        'role': 'correction',
+        'role': CORRECTION,
         'content': correction,
         'images': images,
       }));
@@ -225,7 +229,7 @@ export function InterceptorChat() {
     console.log("Message paused by the user.")
     if (chatWebsocketRef.current) {
       chatWebsocketRef.current.send(JSON.stringify({
-        'role': 'pause',
+        'role': PAUSE,
         'content': '',
         'images': [],
       }))
@@ -248,6 +252,15 @@ export function InterceptorChat() {
     }
   }, []);
 
+  const handleEndSession = useCallback(() => {
+    if (chatWebsocketRef.current?.readyState === WebSocket.OPEN) {
+      chatWebsocketRef.current.send(JSON.stringify({
+        'role': END,
+        'content': '',
+        'images': [],
+      }));
+    }
+  }, []);
 
   if (isLoading) {
     return <div className="flex items-center justify-center h-screen bg-background text-foreground dark:bg-background dark:text-foreground">
@@ -277,7 +290,7 @@ export function InterceptorChat() {
                   className="bg-destructive text-destructive-foreground dark:bg-destructive dark:text-destructive-foreground" 
                   onClick={handleDeleteChat}
                 >
-                  Delete Chat
+                  <Trash className="h-5 w-5" />
                 </Button>
               </div>
             </div>
@@ -305,6 +318,7 @@ export function InterceptorChat() {
               onSendCorrection={handleCorrectionMessage}
               pausedMessage={pausedMessage}
               handlePauseMessage={handlePauseMessage}
+              onEndSession={handleEndSession}
             />
           )}
 

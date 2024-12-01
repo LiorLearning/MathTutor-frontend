@@ -1,12 +1,16 @@
 export const CORRECTION = 'correction';
+export const CORRECTED = 'corrected';
 export const INTERRUPT = 'interrupt';
 export const ASSISTANT = 'assistant';
+export const INPUT = 'input';
 export const USER = 'user';
 export const PAUSE = 'pause';
 export const NOTEXT = 'notext';
 export const GENERATING_IMAGE = "generating_image";
 export const STOP = "101e0198-ab6e-41f7-bd30-0649c2132bc1";
 export const RETHINKING_MESSAGE = "rethinking";
+export const END = 'end';
+export const ADMIN = 'admin';
 
 
 // Device types
