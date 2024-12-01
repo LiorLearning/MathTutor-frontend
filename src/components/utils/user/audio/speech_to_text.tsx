@@ -3,7 +3,6 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { Mic, X, Send } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import MicAnimation from './mic-animation';
-import { ANDROID_PHONE, IPHONE } from '../../common_utils';
 
 interface SpeechToTextProps {
   onRecordingStart: () => void;

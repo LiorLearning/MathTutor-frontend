@@ -47,8 +47,6 @@ const DesktopChat: React.FC<DesktopProps> = ({
   handleRecordingStart,
   handleRecordingStop,
   isRightColumnCollapsedRef,
-  toggleRightColumn,
-  sessionId,
   deviceType
 }) => {
   const [isRightColumnCollapsed, setIsRightColumnCollapsed] = useState(isRightColumnCollapsedRef.current);
