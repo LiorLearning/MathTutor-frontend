@@ -163,6 +163,7 @@ export function UserChat({ messages, setMessages, username, sessionId }: UserCha
             isChatConnected={isChatConnected}
             speakout={speakout}
             toggleSpeakout={toggleSpeakout}
+            scrollAreaRef={scrollAreaRef}
             messages={messages}
             toggleAudio={toggleAudio}
             isGeneratingImage={isGeneratingImage}
@@ -172,6 +173,8 @@ export function UserChat({ messages, setMessages, username, sessionId }: UserCha
             onSendTextMessage={onSendTextMessage}
             handleRecordingStart={handleRecordingStart}
             handleRecordingStop={handleRecordingStop}
+            isRightColumnCollapsedRef={isRightColumnCollapsedRef}
+            toggleRightColumn={toggleRightColumn}
             sessionId={sessionId}
           />
         ) : (

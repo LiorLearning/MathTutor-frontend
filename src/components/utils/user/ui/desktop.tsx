@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Square } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -51,15 +51,22 @@ const DesktopChat: React.FC<DesktopProps> = ({
   toggleRightColumn,
   sessionId
 }) => {
+  const [isRightColumnCollapsed, setIsRightColumnCollapsed] = useState(isRightColumnCollapsedRef.current);
+
+  // Sync state with ref
+  useEffect(() => {
+    isRightColumnCollapsedRef.current = isRightColumnCollapsed;
+  }, [isRightColumnCollapsed]);
+
   return (
     <React.Fragment>
       <motion.div
         className="flex-1 p-6 transition-all duration-200 ease-in-out"
         animate={{
-          width: isRightColumnCollapsedRef.current ? "100%" : "50%",
+          width: isRightColumnCollapsed ? "100%" : "50%",
         }}
         style={{
-          marginRight: isRightColumnCollapsedRef.current ? "0%" : "50%",
+          marginRight: isRightColumnCollapsed ? "0%" : "50%",
         }}
       >
         <div className="h-full flex flex-col border-border dark:border-dark-border">
@@ -109,7 +116,7 @@ const DesktopChat: React.FC<DesktopProps> = ({
       <motion.div
         className="fixed right-0 top-0 h-full w-[50%] bg-secondary dark:bg-dark-secondary p-6 shadow-lg transition-all duration-200 ease-in-out"
         animate={{
-          x: isRightColumnCollapsedRef.current ? "100%" : "0%",
+          x: isRightColumnCollapsed ? "100%" : "0%",
         }}
       >
         <UserArtifactComponent 
@@ -138,10 +145,10 @@ const DesktopChat: React.FC<DesktopProps> = ({
 
       <Button
         className="fixed bottom-4 right-4 z-10"
-        onClick={toggleRightColumn}
-        aria-label={isRightColumnCollapsedRef.current ? "Expand right column" : "Collapse right column"}
+        onClick={() => setIsRightColumnCollapsed(!isRightColumnCollapsed)}
+        aria-label={isRightColumnCollapsed ? "Expand right column" : "Collapse right column"}
       >
-        {isRightColumnCollapsedRef.current ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+        {isRightColumnCollapsed ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
       </Button>
     </React.Fragment>
   );
