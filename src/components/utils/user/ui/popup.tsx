@@ -4,13 +4,20 @@ import { Textarea } from '@/components/ui/textarea';
 import { Star } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
-import { useMutation, useQueryClient } from 'react-query';
-import { SuccessResponse } from '@/app/admin/summary/components/chat-summary';
+import { useMutation, useQuery, useQueryClient } from 'react-query';
+import { SuccessResponse, ChatSummaryData } from '@/app/admin/summary/components/chat-summary';
 
 interface PopupProps {
   setShowPopup: React.Dispatch<React.SetStateAction<boolean>>;
   username: string;
   sessionId: string;
+}
+
+const fetchSessionSummary = async (username: string, sessionId: string) => {
+  const response = await axios.get<ChatSummaryData>(
+    `${process.env.NEXT_PUBLIC_API_BASE_URL}api/v1/session_summary/${username}/${sessionId}`
+  );
+  return response.data;
 }
 
 const Popup: React.FC<PopupProps> = ({ setShowPopup, username, sessionId }) => {
@@ -19,6 +26,18 @@ const Popup: React.FC<PopupProps> = ({ setShowPopup, username, sessionId }) => {
   const [ratingFun, setRatingFun] = useState(0);
   const [ratingComments, setRatingComments] = useState('');
   const [isSaveEnabled, setIsSaveEnabled] = useState(false);
+
+  const { isLoading, error } = useQuery<ChatSummaryData>(
+    ['chatSummary', username, sessionId],
+    () => fetchSessionSummary(username, sessionId),
+    {
+      onSuccess: (data) => {
+        setRatingLearn(data.rating_learn);
+        setRatingFun(data.rating_fun);
+        setRatingComments(data.rating_comments);
+      }
+    }
+  );
 
   useEffect(() => {
     setIsSaveEnabled(ratingLearn > 0 || ratingFun > 0 || ratingComments !== '');
@@ -45,6 +64,14 @@ const Popup: React.FC<PopupProps> = ({ setShowPopup, username, sessionId }) => {
       }
     }
   );
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div>Error fetching chat summary</div>;
+  }
 
   return (
     <AnimatePresence>

@@ -15,7 +15,7 @@ interface ChatIntervention {
   desc: string
 }
 
-interface ChatSummaryData {
+export interface ChatSummaryData {
   user_id: string
   session_id: number
   summary: string
