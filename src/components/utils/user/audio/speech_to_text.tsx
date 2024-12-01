@@ -2,16 +2,20 @@ import React, { useState, useRef } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Mic, X, Send } from 'lucide-react';
 import { Button } from "@/components/ui/button";
+import MicAnimation from './mic-animation';
+import { ANDROID_PHONE, IPHONE } from '../../common_utils';
 
 interface SpeechToTextProps {
   onRecordingStart: () => void;
   onRecordingStop: (blob: Blob) => void;
+  deviceType: string;
 }
 
-const SpeechToText: React.FC<SpeechToTextProps> = ({ onRecordingStart, onRecordingStop }) => {
+const SpeechToText: React.FC<SpeechToTextProps> = ({ onRecordingStart, onRecordingStop, deviceType }) => {
   const [isRecording, setIsRecording] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
+  const isPhone = deviceType === ANDROID_PHONE || deviceType === IPHONE;
 
   const startRecording = async () => {
     try {
@@ -78,56 +82,7 @@ const SpeechToText: React.FC<SpeechToTextProps> = ({ onRecordingStart, onRecordi
 
   return (
     <div className="relative flex flex-col items-center">
-      <AnimatePresence>
-        {isRecording ? (
-          <motion.div
-            key="recording"
-            className="absolute -top-16"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 10 }}
-          >
-            <div className="flex space-x-1">
-              {[...Array(5)].map((_, i) => (
-                <motion.div
-                  key={i}
-                  className="w-1 bg-primary dark:bg-primary-foreground rounded-full"
-                  animate={{
-                    height: [8, 32, 16, 24, 8],
-                  }}
-                  transition={{
-                    duration: 1.5,
-                    repeat: Infinity,
-                    repeatType: "reverse",
-                    ease: "easeInOut",
-                    delay: i * 0.2,
-                  }}
-                />
-              ))}
-            </div>
-          </motion.div>
-        ) : (
-          <motion.div
-            key="not-recording"
-            className="absolute -top-12"
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.8 }}
-          >
-            <motion.div
-              className="w-4 h-4 bg-muted-foreground dark:bg-muted rounded-full"
-              animate={{
-                scale: [1, 1.2, 1],
-              }}
-              transition={{
-                duration: 2,
-                repeat: Infinity,
-                ease: "easeInOut",
-              }}
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <MicAnimation isRecording={isRecording}/>
       <div className="flex justify-center w-full space-x-2">
         <AnimatePresence mode="wait">
           {isRecording ? (

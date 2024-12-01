@@ -37,7 +37,7 @@ export default function MessageComponents({ messages, toggleAudio }: MessageComp
   const visibleMessages = messages.slice(-visibleCount)
 
   return (
-    <div className="flex flex-col h-[calc(100vh-200px)] overflow-hidden relative">
+    <div className="flex flex-col overflow-hidden relative">
       <div className="overflow-y-auto flex-grow">
         {visibleMessages.map((message) => (
           <MessageItem 

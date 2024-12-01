@@ -62,73 +62,56 @@ const DesktopChat: React.FC<DesktopProps> = ({
 
   return (
     <React.Fragment>
-      <motion.div
-        className="flex-1 transition-all duration-200 ease-in-out"
-        animate={{
-          width: isRightColumnCollapsed ? "100%" : "50%",
-        }}
-        style={{
-          marginRight: isRightColumnCollapsed ? "0%" : "50%",
-        }}
-      >
-        <div className="h-full flex flex-col border-border dark:border-dark-border">
-          <Header 
-            username={username} 
-            isChatConnected={isChatConnected}
-            speakout={speakout}
-            toggleSpeakout={toggleSpeakout}
-            deviceType={deviceType}
-          />
-
-          <ScrollArea ref={scrollAreaRef} className="flex-grow overflow-y-auto overflow-hidden px-4">
-            <MessageComponents 
-              messages={messages}
-              toggleAudio={toggleAudio}
-            />
-          </ScrollArea>
-          
-          <div className="sticky bottom-0 z-12">
-            {isGeneratingImage || isSendingMessage || isLastMessagePauseRef.current ? (
-              <div className="relative flex items-center justify-center">
-                <div className="flex items-center justify-center">
-                  {isGeneratingImage ? <ImageLoader /> : <MessageLoader />}
-                </div>
-                {(isGeneratingImage || isSendingMessage) && (
-                  <Button size="sm" onClick={sendStopMessage} className="ml-4">
-                    <Square className="mr-2 text-sm" />
-                    Stop
-                  </Button>
-                )}
-              </div>
-            ) : (
-              <div className="py-2 border-t border-border dark:border-dark-border flex items-center justify-center">
-                <div className="relative flex flex-row items-center gap-4 max-w-xs mx-auto">
-                  <div className='relative'>
-                    <InputBar onSendMessage={onSendTextMessage} />
-                  </div>
-                  <div className='relative w-1/2'>
-                    <SpeechToText onRecordingStart={handleRecordingStart} onRecordingStop={handleRecordingStop} />
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      </motion.div>
-
-      <motion.div
-        className="fixed right-0 top-0 h-full w-[50%] bg-secondary dark:bg-dark-secondary p-6 shadow-lg transition-all duration-200 ease-in-out"
-        animate={{
-          x: isRightColumnCollapsed ? "100%" : "0%",
-        }}
-      >
-        <UserArtifactComponent 
+      <div className="h-full flex flex-col border-border dark:border-dark-border">
+        <Header 
           username={username} 
-          isRightColumnCollapsed={isRightColumnCollapsedRef}
-          toggleRightColumn={toggleRightColumn} 
-          sessionId={sessionId}
+          isChatConnected={isChatConnected}
+          speakout={speakout}
+          toggleSpeakout={toggleSpeakout}
+          deviceType={deviceType}
         />
-      </motion.div>
+
+        <ScrollArea ref={scrollAreaRef} className="flex-grow overflow-y-auto overflow-hidden px-4 mb-16">
+          <MessageComponents 
+            messages={messages}
+            toggleAudio={toggleAudio}
+          />
+        </ScrollArea>
+        
+        <div className="fixed bottom-0 left-0 right-0 z-12">
+          {isGeneratingImage || isSendingMessage || isLastMessagePauseRef.current ? (
+            <div className="relative flex items-center justify-center">
+              <div className="flex items-center justify-center">
+                {isGeneratingImage ? <ImageLoader /> : <MessageLoader />}
+              </div>
+              {(isGeneratingImage || isSendingMessage) && (
+                <Button size="sm" onClick={sendStopMessage} className="ml-4">
+                  <Square className="mr-2 text-sm" />
+                  Stop
+                </Button>
+              )}
+            </div>
+          ) : (
+            <div className="py-2 border-t border-border dark:border-dark-border flex items-center justify-center">
+              <div className="relative flex flex-row items-center gap-4 max-w-xs mx-auto">
+                <div className='relative'>
+                  <InputBar onSendMessage={onSendTextMessage} />
+                </div>
+                <div className='relative w-1/2'>
+                  <SpeechToText onRecordingStart={handleRecordingStart} onRecordingStop={handleRecordingStop} deviceType={deviceType} />
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* <UserArtifactComponent 
+        username={username} 
+        isRightColumnCollapsed={isRightColumnCollapsedRef}
+        toggleRightColumn={toggleRightColumn} 
+        sessionId={sessionId}
+      /> */}
 
       {/* <div className="fixed right-8 top-20 w-[15vw] h-[calc(15vw * 4 / 3)] max-w-[256px] max-h-[calc(256px * 4 / 3)]">
             <UserVideo 
@@ -146,13 +129,13 @@ const DesktopChat: React.FC<DesktopProps> = ({
             </Button>
           </div> */}
 
-      <Button
+      {/* <Button
         className="fixed bottom-4 right-4 z-10"
         onClick={() => setIsRightColumnCollapsed(!isRightColumnCollapsed)}
         aria-label={isRightColumnCollapsed ? "Expand right column" : "Collapse right column"}
       >
         {isRightColumnCollapsed ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-      </Button>
+      </Button> */}
     </React.Fragment>
   );
 };
