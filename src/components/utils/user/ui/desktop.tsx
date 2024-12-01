@@ -30,6 +30,7 @@ interface DesktopProps {
   isRightColumnCollapsedRef: React.MutableRefObject<boolean>;
   toggleRightColumn: () => void;
   sessionId: string;
+  deviceType: string;
 }
 
 const DesktopChat: React.FC<DesktopProps> = ({
@@ -49,7 +50,8 @@ const DesktopChat: React.FC<DesktopProps> = ({
   handleRecordingStop,
   isRightColumnCollapsedRef,
   toggleRightColumn,
-  sessionId
+  sessionId,
+  deviceType
 }) => {
   const [isRightColumnCollapsed, setIsRightColumnCollapsed] = useState(isRightColumnCollapsedRef.current);
 
@@ -61,7 +63,7 @@ const DesktopChat: React.FC<DesktopProps> = ({
   return (
     <React.Fragment>
       <motion.div
-        className="flex-1 p-6 transition-all duration-200 ease-in-out"
+        className="flex-1 p-4 transition-all duration-200 ease-in-out"
         animate={{
           width: isRightColumnCollapsed ? "100%" : "50%",
         }}
@@ -75,9 +77,10 @@ const DesktopChat: React.FC<DesktopProps> = ({
             isChatConnected={isChatConnected}
             speakout={speakout}
             toggleSpeakout={toggleSpeakout}
+            deviceType={deviceType}
           />
 
-          <ScrollArea ref={scrollAreaRef} className="flex-grow p-4 overflow-y-auto">
+          <ScrollArea ref={scrollAreaRef} className="flex-grow p-4 overflow-y-auto, overflow-hidden">
             <div className="space-y-6">
               <MessageComponents 
                 messages={messages}

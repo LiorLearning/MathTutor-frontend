@@ -153,7 +153,7 @@ export function UserChat({ messages, setMessages, username, sessionId }: UserCha
     return <PageLoader />;
   }
   return (
-    <div className="flex h-screen overflow-hidden bg-background dark:bg-dark-background">
+    <div className="flex h-screen bg-background dark:bg-dark-background">
       {showPopup ? (
         <Popup handleEnterClass={handleEnterClass} />
       ) : (
@@ -176,6 +176,7 @@ export function UserChat({ messages, setMessages, username, sessionId }: UserCha
             isRightColumnCollapsedRef={isRightColumnCollapsedRef}
             toggleRightColumn={toggleRightColumn}
             sessionId={sessionId}
+            deviceType={deviceType}
           />
         ) : (
           <DesktopChat
@@ -196,6 +197,7 @@ export function UserChat({ messages, setMessages, username, sessionId }: UserCha
             isRightColumnCollapsedRef={isRightColumnCollapsedRef}
             toggleRightColumn={toggleRightColumn}
             sessionId={sessionId}
+            deviceType={deviceType}
           />
         )
       )}

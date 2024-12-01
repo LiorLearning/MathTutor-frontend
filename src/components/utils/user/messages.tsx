@@ -92,7 +92,7 @@ function MessageItem({ message, toggleAudio }: MessageItemProps) {
           </div>
           )}
         </div>
-        <div className="text-xs text-muted-foreground mt-1">{new Date(message.timestamp).toLocaleTimeString()}</div>
+        {/* <div className="text-xs text-muted-foreground mt-1">{new Date(message.timestamp).toLocaleTimeString()}</div> */}
       </div>
     </div>
   )

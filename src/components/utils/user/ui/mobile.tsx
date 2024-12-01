@@ -30,6 +30,7 @@ interface DesktopProps {
   isRightColumnCollapsedRef: React.MutableRefObject<boolean>;
   toggleRightColumn: () => void;
   sessionId: string;
+  deviceType: string;
 }
 
 const DesktopChat: React.FC<DesktopProps> = ({
@@ -49,7 +50,8 @@ const DesktopChat: React.FC<DesktopProps> = ({
   handleRecordingStop,
   isRightColumnCollapsedRef,
   toggleRightColumn,
-  sessionId
+  sessionId,
+  deviceType
 }) => {
   const [isRightColumnCollapsed, setIsRightColumnCollapsed] = useState(isRightColumnCollapsedRef.current);
 
@@ -61,7 +63,7 @@ const DesktopChat: React.FC<DesktopProps> = ({
   return (
     <React.Fragment>
       <motion.div
-        className="flex-1 p-6 transition-all duration-200 ease-in-out"
+        className="flex-1 transition-all duration-200 ease-in-out"
         animate={{
           width: isRightColumnCollapsed ? "100%" : "50%",
         }}
@@ -75,41 +77,42 @@ const DesktopChat: React.FC<DesktopProps> = ({
             isChatConnected={isChatConnected}
             speakout={speakout}
             toggleSpeakout={toggleSpeakout}
+            deviceType={deviceType}
           />
 
-          <ScrollArea ref={scrollAreaRef} className="flex-grow p-4 overflow-y-auto">
-            <div className="space-y-6">
-              <MessageComponents 
-                messages={messages}
-                toggleAudio={toggleAudio}
-              />
-            </div>
+          <ScrollArea ref={scrollAreaRef} className="flex-grow overflow-y-auto overflow-hidden px-4">
+            <MessageComponents 
+              messages={messages}
+              toggleAudio={toggleAudio}
+            />
           </ScrollArea>
           
-          {isGeneratingImage || isSendingMessage || isLastMessagePauseRef.current ? (
-            <div className="relative flex items-center justify-center">
-              <div className="flex items-center justify-center">
-                {isGeneratingImage ? <ImageLoader /> : <MessageLoader />}
-              </div>
-              {(isGeneratingImage || isSendingMessage) && (
-                <Button size="sm" onClick={sendStopMessage} className="ml-4">
-                  <Square className="mr-2 text-sm" />
-                  Stop
-                </Button>
-              )}
-            </div>
-          ) : (
-            <div className="pt-4 border-t border-border dark:border-dark-border flex items-center justify-center">
-              <div className="relative flex flex-row items-center gap-4 max-w-xs mx-auto">
-                <div className='relative'>
-                  <InputBar onSendMessage={onSendTextMessage} />
+          <div className="sticky bottom-0 z-12">
+            {isGeneratingImage || isSendingMessage || isLastMessagePauseRef.current ? (
+              <div className="relative flex items-center justify-center">
+                <div className="flex items-center justify-center">
+                  {isGeneratingImage ? <ImageLoader /> : <MessageLoader />}
                 </div>
-                <div className='relative w-1/2'>
-                  <SpeechToText onRecordingStart={handleRecordingStart} onRecordingStop={handleRecordingStop} />
+                {(isGeneratingImage || isSendingMessage) && (
+                  <Button size="sm" onClick={sendStopMessage} className="ml-4">
+                    <Square className="mr-2 text-sm" />
+                    Stop
+                  </Button>
+                )}
+              </div>
+            ) : (
+              <div className="py-2 border-t border-border dark:border-dark-border flex items-center justify-center">
+                <div className="relative flex flex-row items-center gap-4 max-w-xs mx-auto">
+                  <div className='relative'>
+                    <InputBar onSendMessage={onSendTextMessage} />
+                  </div>
+                  <div className='relative w-1/2'>
+                    <SpeechToText onRecordingStart={handleRecordingStart} onRecordingStop={handleRecordingStop} />
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </motion.div>
 
