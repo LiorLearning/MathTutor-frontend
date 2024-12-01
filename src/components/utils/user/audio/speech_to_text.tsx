@@ -7,10 +7,9 @@ import MicAnimation from './mic-animation';
 interface SpeechToTextProps {
   onRecordingStart: () => void;
   onRecordingStop: (blob: Blob) => void;
-  deviceType: string;
 }
 
-const SpeechToText: React.FC<SpeechToTextProps> = ({ onRecordingStart, onRecordingStop, deviceType }) => {
+const SpeechToText: React.FC<SpeechToTextProps> = ({ onRecordingStart, onRecordingStop }) => {
   const [isRecording, setIsRecording] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);

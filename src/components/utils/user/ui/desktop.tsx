@@ -108,7 +108,7 @@ const DesktopChat: React.FC<DesktopProps> = ({
                   <InputBar onSendMessage={onSendTextMessage} />
                 </div>
                 <div className='relative w-1/2'>
-                  <SpeechToText onRecordingStart={handleRecordingStart} onRecordingStop={handleRecordingStop} deviceType={deviceType} />
+                  <SpeechToText onRecordingStart={handleRecordingStart} onRecordingStop={handleRecordingStop} />
                 </div>
               </div>
             </div>
