@@ -3,7 +3,7 @@ import { Wifi, WifiOff, Volume2, VolumeX } from 'lucide-react';
 import { DarkModeToggle } from '@/components/themeContext';
 import { Button } from "@/components/ui/button";
 import AudioSelector from '@/components/audio-selector';
-import { ANDROID_PHONE, IPHONE } from '../common_utils';
+import { ANDROID_PHONE, IPHONE } from '@/components/utils/common_utils';
 
 interface HeaderProps {
   username: string;

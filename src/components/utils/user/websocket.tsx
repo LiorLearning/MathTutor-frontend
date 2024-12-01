@@ -4,6 +4,7 @@ import { Message, extractTextFromMessage } from './chat_utils';
 import { AudioContext } from './audio/eleven_labs_audio_stream';
 import { 
   STOP, 
+  END,
   CORRECTION, 
   INTERRUPT, 
   ASSISTANT, 
@@ -52,12 +53,14 @@ interface WebSocketProviderProps {
   children: React.ReactNode;
   sessionId: string;
   setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
+  setShowPopup: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ 
   children, 
   sessionId, 
-  setMessages 
+  setMessages,
+  setShowPopup 
 }) => {
   const chatWebsocketRef = useRef<WebSocket | null>(null);
   const [isChatConnected, setIsChatConnected] = useState(false);
@@ -155,6 +158,10 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
 
           case STOP:
             handleStopMessage();
+            return;
+
+          case END:
+            setShowPopup(true);
             return;
 
           case PAUSE:

@@ -4,7 +4,7 @@ import React, { useState, useRef, useEffect, useContext } from 'react';
 import axios from 'axios';
 
 import { Message, API_BASE_URL, GetChatHistoryResponse, StartChatResponse } from './user/chat_utils';
-import Popup from './user/popup';
+import Popup from './user/ui/popup';
 
 import { AudioContext } from './user/audio/eleven_labs_audio_stream';
 import PageLoader from '../ui/loaders/page_loader';
@@ -29,11 +29,6 @@ export function UserChat({ messages, setMessages, username, sessionId }: UserCha
   if (!audioContext) {
     throw new Error('MessageCard must be used within an AudioProvider');
   }
-  
-  const [showPopup, setShowPopup] = useState(false);
-  const handleEnterClass = () => {
-    setShowPopup(false);
-  };
   
   const [chatId, setChatId] = useState("");
   const [isLoading, setIsLoading] = useState(true);
@@ -154,52 +149,48 @@ export function UserChat({ messages, setMessages, username, sessionId }: UserCha
   }
   return (
     <div className="flex h-screen bg-background dark:bg-dark-background">
-      {showPopup ? (
-        <Popup handleEnterClass={handleEnterClass} />
+      { (deviceType === IPHONE || deviceType === ANDROID_PHONE) ? (
+        <MobileChat
+          username={username}
+          isChatConnected={isChatConnected}
+          speakout={speakout}
+          toggleSpeakout={toggleSpeakout}
+          scrollAreaRef={scrollAreaRef}
+          messages={messages}
+          toggleAudio={toggleAudio}
+          isGeneratingImage={isGeneratingImage}
+          isSendingMessage={isSendingMessage}
+          isLastMessagePauseRef={isLastMessagePauseRef}
+          sendStopMessage={sendStopMessage}
+          onSendTextMessage={onSendTextMessage}
+          handleRecordingStart={handleRecordingStart}
+          handleRecordingStop={handleRecordingStop}
+          isRightColumnCollapsedRef={isRightColumnCollapsedRef}
+          toggleRightColumn={toggleRightColumn}
+          sessionId={sessionId}
+          deviceType={deviceType}
+        />
       ) : (
-        (deviceType === IPHONE || deviceType === ANDROID_PHONE) ? (
-          <MobileChat
-            username={username}
-            isChatConnected={isChatConnected}
-            speakout={speakout}
-            toggleSpeakout={toggleSpeakout}
-            scrollAreaRef={scrollAreaRef}
-            messages={messages}
-            toggleAudio={toggleAudio}
-            isGeneratingImage={isGeneratingImage}
-            isSendingMessage={isSendingMessage}
-            isLastMessagePauseRef={isLastMessagePauseRef}
-            sendStopMessage={sendStopMessage}
-            onSendTextMessage={onSendTextMessage}
-            handleRecordingStart={handleRecordingStart}
-            handleRecordingStop={handleRecordingStop}
-            isRightColumnCollapsedRef={isRightColumnCollapsedRef}
-            toggleRightColumn={toggleRightColumn}
-            sessionId={sessionId}
-            deviceType={deviceType}
-          />
-        ) : (
-          <DesktopChat
-            username={username}
-            isChatConnected={isChatConnected}
-            speakout={speakout}
-            toggleSpeakout={toggleSpeakout}
-            scrollAreaRef={scrollAreaRef}
-            messages={messages}
-            toggleAudio={toggleAudio}
-            isGeneratingImage={isGeneratingImage}
-            isSendingMessage={isSendingMessage}
-            isLastMessagePauseRef={isLastMessagePauseRef}
-            sendStopMessage={sendStopMessage}
-            onSendTextMessage={onSendTextMessage}
-            handleRecordingStart={handleRecordingStart}
-            handleRecordingStop={handleRecordingStop}
-            isRightColumnCollapsedRef={isRightColumnCollapsedRef}
-            toggleRightColumn={toggleRightColumn}
-            sessionId={sessionId}
-            deviceType={deviceType}
-          />
-        )
+        <DesktopChat
+          username={username}
+          isChatConnected={isChatConnected}
+          speakout={speakout}
+          toggleSpeakout={toggleSpeakout}
+          scrollAreaRef={scrollAreaRef}
+          messages={messages}
+          toggleAudio={toggleAudio}
+          isGeneratingImage={isGeneratingImage}
+          isSendingMessage={isSendingMessage}
+          isLastMessagePauseRef={isLastMessagePauseRef}
+          sendStopMessage={sendStopMessage}
+          onSendTextMessage={onSendTextMessage}
+          handleRecordingStart={handleRecordingStart}
+          handleRecordingStop={handleRecordingStop}
+          isRightColumnCollapsedRef={isRightColumnCollapsedRef}
+          toggleRightColumn={toggleRightColumn}
+          sessionId={sessionId}
+          deviceType={deviceType}
+        />
       )}
     </div>
   )

@@ -30,7 +30,7 @@ interface ChatSummaryProps {
   sessionId: string;
 }
 
-interface SuccessResponse {
+export interface SuccessResponse {
   message: string;
   updated_summary: ChatSummaryData
 }

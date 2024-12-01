@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Square } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import Header from '../header';
+import Header from './header';
 import MessageComponents from '../messages';
 import ImageLoader from '@/components/ui/loaders/image_loader';
 import MessageLoader from '@/components/ui/loaders/message_loader';
