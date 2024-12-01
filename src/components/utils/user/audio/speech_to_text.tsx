@@ -15,7 +15,6 @@ const SpeechToText: React.FC<SpeechToTextProps> = ({ onRecordingStart, onRecordi
   const [isRecording, setIsRecording] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
-  const isPhone = deviceType === ANDROID_PHONE || deviceType === IPHONE;
 
   const startRecording = async () => {
     try {

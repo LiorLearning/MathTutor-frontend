@@ -18,8 +18,6 @@ import {
   IPHONE,
   IPAD,
   MAC,
-  WINDOWS,
-  OTHER
 } from '../common_utils';
 
 const deviceType = getDeviceType();

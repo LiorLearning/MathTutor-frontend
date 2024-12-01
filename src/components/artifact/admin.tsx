@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { X } from 'lucide-react'
-import InputBar from '@/components/utils/admin/inputbar';
+import InputBar from '@/components/utils/admin/input-bar';
 
 export interface AdminArtifactProps {
   username: string;

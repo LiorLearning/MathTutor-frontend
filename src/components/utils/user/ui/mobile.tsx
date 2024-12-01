@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { ChevronLeft, ChevronRight, Square } from "lucide-react";
+import { Square } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import Header from '../header';
@@ -9,7 +8,6 @@ import ImageLoader from '@/components/ui/loaders/image_loader';
 import MessageLoader from '@/components/ui/loaders/message_loader';
 import InputBar from '../input_bar';
 import SpeechToText from '../audio/speech_to_text';
-import { UserArtifactComponent } from '@/components/artifact/user';
 import { Message } from '../chat_utils';
 
 interface DesktopProps {
