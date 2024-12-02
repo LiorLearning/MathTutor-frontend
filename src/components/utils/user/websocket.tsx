@@ -43,7 +43,7 @@ const WebSocketContext = createContext<WebSocketContextType | undefined>(undefin
 const SPEED = 
   deviceType === IPHONE || deviceType === ANDROID_PHONE || 
   deviceType === IPAD || deviceType === ANDROID_TABLET 
-    ? 0 
+    ? 15
     : deviceType === MAC 
     ? 30 : 15
 
