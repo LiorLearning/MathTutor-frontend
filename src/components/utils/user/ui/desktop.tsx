@@ -69,10 +69,10 @@ const DesktopChat: React.FC<DesktopProps> = ({
       <motion.div
         className="flex-1 p-4 transition-all duration-200 ease-in-out"
         animate={{
-          width: isRightColumnCollapsed ? "100%" : "50%",
+          width: isRightColumnCollapsed ? "100%" : "70%",
         }}
         style={{
-          marginRight: isRightColumnCollapsed ? "0%" : "50%",
+          marginRight: isRightColumnCollapsed ? "0%" : "70%",
         }}
       >
         <div className="h-full flex flex-col border-border dark:border-dark-border">
@@ -121,7 +121,7 @@ const DesktopChat: React.FC<DesktopProps> = ({
       </motion.div>
 
       <motion.div
-        className="fixed right-0 top-0 h-full w-[50%] bg-secondary dark:bg-dark-secondary p-6 shadow-lg transition-all duration-200 ease-in-out"
+        className="fixed right-0 top-0 h-full w-[70%] bg-secondary dark:bg-dark-secondary p-6 shadow-lg transition-all duration-200 ease-in-out"
         animate={{
           x: isRightColumnCollapsed ? "100%" : "0%",
         }}
