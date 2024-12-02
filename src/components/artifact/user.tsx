@@ -34,15 +34,20 @@ export const UserArtifactComponent: React.FC<UserArtifactProps> = ({
         const message = data.content;
         const role = data.role;
 
+        console.log('Received message with role:', role);
         if (role === 'external') {
+          console.log('Role is external, updating htmlContentRef and setting isHtmlLoading to false');
           htmlContentRef.current = message; // Update to use htmlContentRef
           setIsHtmlLoading(false);
           
           if(isRightColumnCollapsed.current) {
-            toggleRightColumn();
+            console.log('Right column is collapsed, toggling right column');
+            toggleRightColumn(false);
           } else {
+            console.log('Right column is not collapsed');
             if (message === "") {
-              toggleRightColumn();
+              console.log('Message is empty, toggling right column');
+              toggleRightColumn(true);
             }
           }
 
@@ -51,7 +56,7 @@ export const UserArtifactComponent: React.FC<UserArtifactProps> = ({
 
         } else if (role == 'fetch') {
           if (htmlContentRef.current) {
-            sentHtmlContent(); // This will send the current htmlContent
+            sendHtmlContent(); // This will send the current htmlContent
           }
         }
       };
@@ -66,7 +71,7 @@ export const UserArtifactComponent: React.FC<UserArtifactProps> = ({
     }
   }, []);
 
-  const sentHtmlContent = useCallback(() => {
+  const sendHtmlContent = useCallback(() => {
     if (htmlWebsocketRef.current) {
       htmlWebsocketRef.current.send(JSON.stringify({ 
         role: "fetch", 

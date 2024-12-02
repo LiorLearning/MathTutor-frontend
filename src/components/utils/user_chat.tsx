@@ -50,9 +50,19 @@ export function UserChat({ messages, setMessages, username, sessionId }: UserCha
   } = useWebSocket();
 
   const isRightColumnCollapsedRef = useRef<boolean>(true);
+  const [isRightColumnCollapsed, setIsRightColumnCollapsed] = useState(isRightColumnCollapsedRef.current);
 
-  const toggleRightColumn = () => {
-    isRightColumnCollapsedRef.current = !isRightColumnCollapsedRef.current;
+  const toggleRightColumn = (override?: boolean) => {
+    if (typeof override === 'boolean') {
+      console.log(`Setting right column collapsed state to: ${override}`);
+      isRightColumnCollapsedRef.current = override;
+      setIsRightColumnCollapsed(override);
+    } else {
+      const newState = !isRightColumnCollapsedRef.current;
+      console.log(`Toggling right column collapsed state to: ${newState}`);
+      isRightColumnCollapsedRef.current = newState;
+      setIsRightColumnCollapsed(newState);
+    }
   };
 
   // Speech to Text functions
@@ -168,6 +178,8 @@ export function UserChat({ messages, setMessages, username, sessionId }: UserCha
           toggleRightColumn={toggleRightColumn}
           sessionId={sessionId}
           deviceType={deviceType}
+          isRightColumnCollapsed={isRightColumnCollapsed}
+          setIsRightColumnCollapsed={setIsRightColumnCollapsed}
         />
       ) : (
         <DesktopChat
@@ -189,6 +201,8 @@ export function UserChat({ messages, setMessages, username, sessionId }: UserCha
           toggleRightColumn={toggleRightColumn}
           sessionId={sessionId}
           deviceType={deviceType}
+          isRightColumnCollapsed={isRightColumnCollapsed}
+          setIsRightColumnCollapsed={setIsRightColumnCollapsed}
         />
       )}
     </div>

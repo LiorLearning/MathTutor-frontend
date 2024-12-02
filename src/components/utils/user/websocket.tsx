@@ -47,7 +47,7 @@ const SPEED =
     : deviceType === MAC 
     ? 30 : 15
 
-const SLEEP_TIME_AFTER_MESSAGE = 500;
+const SLEEP_TIME_AFTER_MESSAGE = 1000;
 
 interface WebSocketProviderProps {
   children: React.ReactNode;
@@ -221,7 +221,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
             break;
         }
 
-        const isImage = message.includes('![Generated');
+        const isImage = /!\[.*?\]\(.*?\)/.test(message);
         setIsSendingMessage(false);
         await new Promise(resolve => setTimeout(resolve, SLEEP_TIME_AFTER_MESSAGE));
 
@@ -239,44 +239,34 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
           handlePlayAudio(finalMessage.message_id, message);
         }
 
-        if (isImage) {
-          finalMessage.content = message; 
-          if (isLastMessagePauseRef.current) {
-            return;
-          }
-          setMessages(prevMessages => {
-            const updatedMessages = prevMessages.filter(msg => msg.message_id !== finalMessage.message_id);
-            return [...updatedMessages, finalMessage];
-          });
-        } else {
-          if (messageStreamIntervalRef.current) {
-            clearInterval(messageStreamIntervalRef.current);
-          }
-
-          const streamMessage = (fullMessage: string) => {
-            const messageChunks = fullMessage.split(' ');
-            let index = 0;
-            messageStreamIntervalRef.current = setInterval(() => {
-              if (isLastMessagePauseRef.current) {
-                clearInterval(messageStreamIntervalRef.current!);
-                messageStreamIntervalRef.current = null; 
-                return;
-              }
-
-              if (index < messageChunks.length) {
-                finalMessage.content += messageChunks[index++] + ' ';
-                setMessages(prevMessages => {
-                  const updatedMessages = prevMessages.filter(msg => msg.message_id !== finalMessage.message_id);
-                  return [...updatedMessages, finalMessage];
-                });
-              } else {
-                clearInterval(messageStreamIntervalRef.current!);
-                messageStreamIntervalRef.current = null; 
-              }
-            }, SPEED);
-          };
-          streamMessage(message);
+        
+        if (messageStreamIntervalRef.current) {
+          clearInterval(messageStreamIntervalRef.current);
         }
+
+        const streamMessage = (fullMessage: string) => {
+          const messageChunks = fullMessage.split(' ');
+          let index = 0;
+          messageStreamIntervalRef.current = setInterval(() => {
+            if (isLastMessagePauseRef.current) {
+              clearInterval(messageStreamIntervalRef.current!);
+              messageStreamIntervalRef.current = null; 
+              return;
+            }
+
+            if (index < messageChunks.length) {
+              finalMessage.content += messageChunks[index++] + ' ';
+              setMessages(prevMessages => {
+                const updatedMessages = prevMessages.filter(msg => msg.message_id !== finalMessage.message_id);
+                return [...updatedMessages, finalMessage];
+              });
+            } else {
+              clearInterval(messageStreamIntervalRef.current!);
+              messageStreamIntervalRef.current = null; 
+            }
+          }, SPEED);
+        };
+        streamMessage(message);
       };
     }
   }, [speakout, audioContext, setMessages]);

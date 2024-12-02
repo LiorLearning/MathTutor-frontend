@@ -29,6 +29,8 @@ interface DesktopProps {
   toggleRightColumn: () => void;
   sessionId: string;
   deviceType: string;
+  isRightColumnCollapsed: boolean;
+  setIsRightColumnCollapsed: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const DesktopChat: React.FC<DesktopProps> = ({
@@ -47,9 +49,10 @@ const DesktopChat: React.FC<DesktopProps> = ({
   handleRecordingStart,
   handleRecordingStop,
   isRightColumnCollapsedRef,
-  deviceType
+  deviceType,
+  isRightColumnCollapsed,
+  setIsRightColumnCollapsed
 }) => {
-  const [isRightColumnCollapsed, setIsRightColumnCollapsed] = useState(isRightColumnCollapsedRef.current);
 
   // Sync state with ref
   useEffect(() => {
