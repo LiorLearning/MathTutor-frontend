@@ -66,10 +66,35 @@ const SpeechToText: React.FC<SpeechToTextProps> = ({ onRecordingStart, onRecordi
 
       const mimeType = findSupportedMimeType();
 
+      // Try higher bitrate first, then fallback if issues are detected
+      const tryRecording = (bitrate: number): boolean => {
+        try {
+          mediaRecorderRef.current = new MediaRecorder(stream, {
+            mimeType: mimeType,
+            audioBitsPerSecond: bitrate
+          });
+          return true;
+        } catch (e) {
+          console.warn(`Failed to start recording with bitrate ${bitrate}:`, e);
+          return false;
+        }
+      };
+
+      // Attempt to start recording with higher bitrate first
+      const tryCount = 3;
+      let workingBitRate = 256000;
+      for (let i = 0; i < tryCount; i++) {
+        if (tryRecording(workingBitRate)) {
+          break;
+        }
+        workingBitRate /= 2;
+      }
+      console.log(`Working bitrate: ${workingBitRate}`);
+
       // More conservative MediaRecorder configuration
       mediaRecorderRef.current = new MediaRecorder(stream, {
         mimeType: mimeType,
-        audioBitsPerSecond: 96000 // Lower bitrate for compatibility
+        audioBitsPerSecond: workingBitRate // Lower bitrate for compatibility
       });
 
       audioChunksRef.current = [];
