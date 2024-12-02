@@ -80,16 +80,16 @@ const DesktopChat: React.FC<DesktopProps> = ({
         
         <div className="fixed bottom-0 left-0 right-0 z-12">
           {isGeneratingImage || isSendingMessage || isLastMessagePauseRef.current ? (
-            <div className="relative flex items-center justify-center">
-              <div className="flex items-center justify-center">
+            <div className="relative flex items-center justify-center pb-2">
+              <div className="flex items-center justify-center gap-4">
                 {isGeneratingImage ? <ImageLoader /> : <MessageLoader />}
+                {(isGeneratingImage || isSendingMessage) && (
+                  <Button size="sm" onClick={sendStopMessage} className="ml-4">
+                    <Square className="mr-2 text-sm" />
+                    Stop
+                  </Button>
+                )}
               </div>
-              {(isGeneratingImage || isSendingMessage) && (
-                <Button size="sm" onClick={sendStopMessage} className="ml-4">
-                  <Square className="mr-2 text-sm" />
-                  Stop
-                </Button>
-              )}
             </div>
           ) : (
             <div className="py-2 border-t border-border dark:border-dark-border flex items-center justify-center">

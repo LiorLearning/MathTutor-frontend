@@ -17,7 +17,7 @@ const Header: React.FC<HeaderProps> = ({ username, isChatConnected, speakout, to
   const isPhone = deviceType === ANDROID_PHONE || deviceType === IPHONE;
 
   return (
-    <header className={`pb-2 px-4 border-b border-border bg-background text-foreground sticky top-0 z-10`}>
+    <header className={`pb-2 px-4 border-b border-border bg-background text-foreground sticky top-0 z-10 ${isPhone ? 'pt-2' : ''}`}>
       <div className="flex justify-between items-center">
         <h1 className="text-lg font-bold">MathTutor</h1>
         <div className="flex items-center gap-2">
