@@ -82,7 +82,6 @@ const SpeechToText: React.FC<SpeechToTextProps> = ({ onRecordingStart, onRecordi
 
       mediaRecorderRef.current.onerror = (event) => {
         console.error('MediaRecorder error:', event);
-        alert('An error occurred during recording.');
       };
 
       // Start recording with longer timeslice
