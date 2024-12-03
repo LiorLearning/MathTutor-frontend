@@ -4,12 +4,11 @@ import { useState, useRef } from "react";
 import { Dialog, DialogBackdrop, DialogPanel } from "@headlessui/react";
 import Image from "next/image";
 import SecondaryIllustration from "@/public/images/secondary-illustration.svg";
+import thumb from '@/public/product/chat1.png';
 
 export default function ModalVideo() {
   const [modalOpen, setModalOpen] = useState<boolean>(false);
   const iframeRef = useRef<HTMLIFrameElement>(null);
-
-  const thumb = require('@/public/product/chat1.png');
   const thumbWidth = 1920;
   const thumbHeight = 1080;
   const thumbAlt = "Lior Learning: Math Tutor";

@@ -1,6 +1,5 @@
 import ModalVideo from "@/components/homepage/modal-video";
 import { Button } from "@/components/ui/button";
-import { useRouter } from "next/router";
 
 export default function HeroHome() {
   return (

@@ -1,4 +1,4 @@
-import Link from "next/link";
+// import Link from "next/link";
 import { DarkModeToggle } from "@/components/themeContext";
 
 export default function Header() {
@@ -14,7 +14,7 @@ export default function Header() {
 
           {/* Desktop sign in links */}
           <ul className="flex flex-1 items-center justify-end gap-3">
-            <li>
+            {/* <li>
               <Link
                 href=""
                 className="btn-sm"
@@ -29,7 +29,7 @@ export default function Header() {
               >
                 Get Started
               </Link>
-            </li>
+            </li> */}
             <li>
               <DarkModeToggle />
             </li>
