@@ -11,29 +11,7 @@ export default function Header() {
             {/* <Logo /> */}
             <span className="ml-3 text-xl font-bold text-foreground">Lior Learning</span>
           </div>
-
-          {/* Desktop sign in links */}
-          <ul className="flex flex-1 items-center justify-end gap-3">
-            {/* <li>
-              <Link
-                href=""
-                className="btn-sm"
-              >
-                Sign In
-              </Link>
-            </li>
-            <li>
-              <Link
-                href=""
-                className="btn-sm"
-              >
-                Get Started
-              </Link>
-            </li> */}
-            <li>
-              <DarkModeToggle />
-            </li>
-          </ul>
+          <DarkModeToggle />
         </div>
       </div>
     </header>

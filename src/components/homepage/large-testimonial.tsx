@@ -80,7 +80,7 @@ export default function LargeTestimonial() {
             <p className="text-2xl font-bold text-foreground">
               {testimonials[currentIndex].text}
             </p>
-            <div className="text-sm font-medium text-muted-foreground">
+            <div className="text-sm font-medium text-muted-foreground transition-opacity duration-500 ease-in-out opacity-0">
               <span className="text-foreground">{testimonials[currentIndex].name}</span>{" "}
               <span className="text-muted-foreground">/</span>{" "}
               <a className="text-accent-foreground" href="#0">
@@ -91,9 +91,10 @@ export default function LargeTestimonial() {
               {testimonials.map((_, index) => (
                 <div
                   key={index}
-                  className={`w-2.5 h-2.5 mx-1 rounded-full ${
+                  className={`w-2.5 h-2.5 mx-1 rounded-full cursor-pointer ${
                     index === currentIndex ? "bg-accent-foreground" : "bg-muted"
                   }`}
+                  onClick={() => setCurrentIndex(index)}
                 ></div>
               ))}
             </div>
