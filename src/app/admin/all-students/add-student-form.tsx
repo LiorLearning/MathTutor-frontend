@@ -14,6 +14,7 @@ interface AddStudentFormProps {
 
 export function AddStudentForm({ isOpen, onClose, onSuccess }: AddStudentFormProps) {
   const [formData, setFormData] = useState({
+    userid: '',
     first_name: '',
     last_name: '',
     grade: '',
@@ -31,8 +32,8 @@ export function AddStudentForm({ isOpen, onClose, onSuccess }: AddStudentFormPro
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!formData.first_name || !formData.last_name || !formData.age || !formData.email) {
-      alert('Please fill in all required fields: First Name, Last Name, Age, and Email.')
+    if (!formData.userid || !formData.first_name || !formData.last_name || !formData.age || !formData.email) {
+      alert('Please fill in all required fields: User ID, First Name, Last Name, Age, and Email.')
       return
     }
     try {
@@ -52,6 +53,20 @@ export function AddStudentForm({ isOpen, onClose, onSuccess }: AddStudentFormPro
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="userid" className="text-right">
+                User ID <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                id="userid"
+                name="userid"
+                value={formData.userid}
+                onChange={handleChange}
+                className="col-span-3"
+                placeholder="Enter user ID"
+                required
+              />
+            </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="first_name" className="text-right">
                 First Name <span className="text-red-500">*</span>
