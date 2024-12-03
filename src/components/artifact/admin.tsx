@@ -60,6 +60,7 @@ export const AdminArtifactComponent: React.FC<AdminArtifactProps> = ({ username,
       const wsMessage = { 
         action: "GENERATE", 
         content: sendLoadingMessage ? "loading" : "",
+        current_html: htmlContent,
         prompt: message,
         images: images
       };
