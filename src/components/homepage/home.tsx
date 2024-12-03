@@ -12,6 +12,8 @@ import Header from "@/components/homepage/header";
 import Footer from "@/components/homepage/footer";
 
 export default function Home() {
+  const color = "#c197db";
+
   useEffect(() => {
     AOS.init({
       once: true,
@@ -19,12 +21,12 @@ export default function Home() {
       duration: 700,
       easing: "ease-out-cubic",
     });
-  });
+  }, []);
 
   return (
     <>
-      <Header />
-      <Hero />
+      <Header color={color} />
+      <Hero color={color} />
       <FeaturesPlanet />
       <LargeTestimonial />
       <Footer />

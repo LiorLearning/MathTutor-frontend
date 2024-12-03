@@ -14,29 +14,35 @@ export default function LargeTestimonial() {
   const testimonials = [
     {
       image: Image1,
-      text: "“People don't understand that for this and next generation making learning interest-based isn't just a 'nice to have', it's actually the critical piece for their learning efficacy. Learning apps are enticing but they're not good enough to replace human teachers, at least not yet.”",
-      name: "Julieta Rakover",
+      text: "“These are the coolest progress reports ever. People don't understand that for this and next generation making learning interest-based isn't just a 'nice to have', it's actually the critical piece for their learning efficacy.”",
+      name: "Julietta",
       title: "Microschool founder",
     },
     {
       image: Image2,
-      text: "“That works great. And thanks! | asked him the other day what he liked about his week and you were right after his most favorite thing ever so, whatever you are doing it's working.”",
-      name: "Jessica Washer",
+      text: "”I asked him the other day what his favourite thing in the week was, and you were right after his favourite video game. Whatever you’re doing is working really well!”",
+      name: "Loren’s mom",
     },
     {
       image: Image3,
-      text: "“Haha good I am glad to hear of his progress. I am often doing housework nearby when he is working with you and it's very nice for me to hear him using his imagination in a way that others appreciate and benefit from.”",
-      name: "Sarahe Lliman",
+      text: "“It’s a gift to have Asher work with you. I am often doing housework nearby when he is working with you and it's very nice for me to hear him learn math while using his imagination.”",
+      name: "Asher’s mom",
     },
     {
       image: Image4,
-      text: "“I still can't quite grasp how fascinating it is that the boys actually want to schedule more classes.”",
-      name: "Ally",
+      text: "”I still can't quite grasp how fascinating it is that the boys actually want to schedule more classes.”",
+      name: "Samuel, Asher and Anica’s mom",
     },
     {
       image: Image5,
-      text: "“Good morning! Lucia and her family were so excited to share with me how happy they were with the first session. Her mom told me she was practicing math after your call because she felt like it was a game.”",
-      name: "Lucia's Mom",
+      text: "“Lucia was so excited to share with me how happy she was after the first session. She was practicing math after your call because she felt like it was a game.”",
+      name: "Lucia’s mom",
+    },
+    {
+      image: Image4,
+      text: "“Earlier learning math was always a battle. But now Connor is so excited for the next session. What you guys are doing is really amazing.”",
+      name: "Connor’s mom",
+      title: "All 5 kids learn with Lior",
     },
   ];
 
