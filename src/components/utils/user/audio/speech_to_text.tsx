@@ -50,7 +50,7 @@ const SpeechToText: React.FC<SpeechToTextProps> = ({ onRecordingStart, onRecordi
     }
 
     try {
-      const constraints = {
+      let constraints = {
         audio: {
           echoCancellation: true,
           noiseSuppression: true,
@@ -60,9 +60,27 @@ const SpeechToText: React.FC<SpeechToTextProps> = ({ onRecordingStart, onRecordi
         video: false
       };
 
-      // Request microphone access with wider compatibility
-      const stream = await navigator.mediaDevices.getUserMedia(constraints);
-      streamRef.current = stream;
+      let stream: MediaStream;
+
+      try {
+        // Try with the specified constraints
+        stream = await navigator.mediaDevices.getUserMedia(constraints);
+        streamRef.current = stream;
+      } catch (error) {
+        console.warn('Failed with advanced constraints, trying simpler constraints:', error);
+        // Fallback to simpler constraints
+        constraints = {
+          audio: {
+            echoCancellation: false,
+            noiseSuppression: false,
+            autoGainControl: false,
+            sampleRate: 16000,
+          },
+          video: false
+        };
+        stream = await navigator.mediaDevices.getUserMedia(constraints);
+        streamRef.current = stream;
+      }
 
       const mimeType = findSupportedMimeType();
 
