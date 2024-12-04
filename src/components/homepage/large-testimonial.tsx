@@ -34,15 +34,15 @@ export default function LargeTestimonial() {
       name: "Samuel, Asher and Anica’s mom",
     },
     {
-      image: Image5,
-      text: "“Lucia was so excited to share with me how happy she was after the first session. She was practicing math after your call because she felt like it was a game.”",
-      name: "Lucia’s mom",
-    },
-    {
       image: Image4,
       text: "“Earlier learning math was always a battle. But now Connor is so excited for the next session. What you guys are doing is really amazing.”",
       name: "Connor’s mom",
-      title: "All 5 kids learn with Lior",
+      title: "(All 5 kids learn with Lior)",
+    },
+    {
+      image: Image5,
+      text: "“Lucia was so excited to share with me how happy she was after the first session. She was practicing math after your call because she felt like it was a game.”",
+      name: "Lucia’s mom",
     },
   ];
 
@@ -86,7 +86,7 @@ export default function LargeTestimonial() {
             <p className="text-2xl font-bold text-foreground">
               {testimonials[currentIndex].text}
             </p>
-            <div className="text-sm font-medium text-muted-foreground transition-opacity duration-500 ease-in-out opacity-0">
+            <div className="text-sm font-medium text-muted-foreground transition-opacity duration-500 ease-in-out">
               <span className="text-foreground">{testimonials[currentIndex].name}</span>{" "}
               <span className="text-muted-foreground">/</span>{" "}
               <a className="text-accent-foreground" href="#0">

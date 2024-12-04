@@ -1,14 +1,12 @@
 import ModalVideo from "@/components/homepage/modal-video";
 import { Button } from "@/components/ui/button";
+import CombinedImage from "@/public/product/combine.svg"
 
 export default function HeroHome({ color }: { color: string }) {
   return (
     <section className="relative">
-      {/* <PageIllustration /> */}
-      <div className="mx-auto max-w-6xl px-4 sm:px-6">
-        {/* Hero content */}
-        <div className="pb-12 pt-32 md:pb-20 md:pt-40">
-          {/* Section header */}
+      <div className="mx-auto max-w-8xl px-4 sm:px-6">
+        <div className="pt-32 md:pt-40">
           <div className="pb-12 text-center md:pb-16">
             <h1
               className="mb-6 text-5xl font-bold md:text-6xl"
@@ -31,17 +29,32 @@ export default function HeroHome({ color }: { color: string }) {
                   data-aos="zoom-y-out"
                   data-aos-delay={450}
                 >
-                  <Button
-                    className="group mb-4 w-full bg-[length:100%_100%] bg-[bottom] text-primary-foreground shadow hover:bg-[length:100%_150%] sm:mb-0 sm:w-auto"
-                    style={{ color: 'white', backgroundColor: color, border: `2px solid ${color}`, padding: '20px 20px', borderRadius: '8px', fontWeight: 'bold', fontSize: '1.1rem' }}
+                  <a
+                    href="https://calendly.com/d/cmqw-bn2-4nh/introductory-session-math-by-lior-learning"
+                    target="_blank"
+                    rel="noopener noreferrer"
                   >
-                    Start Free Trial
-                  </Button>
+                    <Button
+                      className="group w-full bg-[length:100%_100%] bg-[bottom] text-primary-foreground shadow hover:bg-[length:100%_150%] sm:mb-0 sm:w-auto"
+                      style={{ color: 'white', backgroundColor: color, border: `2px solid ${color}`, padding: '20px 20px', borderRadius: '8px', fontWeight: 'bold', fontSize: '1.1rem' }}
+                    >
+                      Start Free Trial
+                    </Button>
+                  </a>
                 </div>
               </div>
             </div>
           </div>
-          <ModalVideo />
+        </div>
+        <div className="relative flex justify-center pb-8">
+          <img
+            className="rounded-sm"
+            src={CombinedImage.src}
+            alt="Combined Image"
+            style={{ maxWidth: '70%', height: 'auto' }}
+            data-aos="zoom-y-out"
+            data-aos-delay={600}
+          />
         </div>
       </div>
     </section>
