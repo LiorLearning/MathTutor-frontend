@@ -4,8 +4,6 @@ import Image from "next/image";
 import Image1 from "@/public/images/image1.png"
 import Image2 from "@/public/images/image2.png"
 import Image3 from "@/public/images/image3.png"
-import Image4 from "@/public/images/image4.jpg"
-import Image5 from "@/public/images/image5.jpg"
 import { useState, useEffect } from "react";
 
 export default function LargeTestimonial() {
@@ -19,9 +17,18 @@ export default function LargeTestimonial() {
       title: "Microschool founder",
     },
     {
+      text: "”I still can't quite grasp how fascinating it is that the boys actually want to schedule more classes.”",
+      name: "Samuel, Asher and Anica’s mom",
+    },
+    {
       image: Image2,
       text: "”I asked him the other day what his favourite thing in the week was, and you were right after his favourite video game. Whatever you’re doing is working really well!”",
       name: "Loren’s mom",
+    },
+    {
+      text: "“Earlier learning math was always a battle. But now Connor is so excited for the next session. What you guys are doing is really amazing.”",
+      name: "Connor’s mom",
+      title: "(All 5 kids learn with Lior)",
     },
     {
       image: Image3,
@@ -29,18 +36,6 @@ export default function LargeTestimonial() {
       name: "Asher’s mom",
     },
     {
-      image: Image4,
-      text: "”I still can't quite grasp how fascinating it is that the boys actually want to schedule more classes.”",
-      name: "Samuel, Asher and Anica’s mom",
-    },
-    {
-      image: Image4,
-      text: "“Earlier learning math was always a battle. But now Connor is so excited for the next session. What you guys are doing is really amazing.”",
-      name: "Connor’s mom",
-      title: "(All 5 kids learn with Lior)",
-    },
-    {
-      image: Image5,
       text: "“Lucia was so excited to share with me how happy she was after the first session. She was practicing math after your call because she felt like it was a game.”",
       name: "Lucia’s mom",
     },
@@ -61,28 +56,30 @@ export default function LargeTestimonial() {
       <div className="mx-auto max-w-2xl px-4 sm:px-6">
         <div className="py-12 md:py-20">
           <div className="space-y-3 text-center">
-            <div className="relative inline-flex">
-              <svg
-                className="absolute -left-6 -top-2 -z-10"
-                width={40}
-                height={49}
-                viewBox="0 0 40 49"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M22.7976 -0.000136375L39.9352 23.4746L33.4178 31.7234L13.7686 11.4275L22.7976 -0.000136375ZM9.34947 17.0206L26.4871 40.4953L19.9697 48.7441L0.320491 28.4482L9.34947 17.0206Z"
-                  fill="var(--muted-foreground)"
+            {testimonials[currentIndex].image && (
+              <div className="relative inline-flex">
+                <svg
+                  className="absolute -left-6 -top-2 -z-10"
+                  width={40}
+                  height={49}
+                  viewBox="0 0 40 49"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M22.7976 -0.000136375L39.9352 23.4746L33.4178 31.7234L13.7686 11.4275L22.7976 -0.000136375ZM9.34947 17.0206L26.4871 40.4953L19.9697 48.7441L0.320491 28.4482L9.34947 17.0206Z"
+                    fill="var(--muted-foreground)"
+                  />
+                </svg>
+                <Image
+                  className="rounded-full"
+                  src={testimonials[currentIndex].image}
+                  width={48}
+                  height={48}
+                  alt="Large testimonial"
                 />
-              </svg>
-              <Image
-                className="rounded-full"
-                src={testimonials[currentIndex].image}
-                width={48}
-                height={48}
-                alt="Large testimonial"
-              />
-            </div>
+              </div>
+            )}
             <p className="text-2xl font-bold text-foreground">
               {testimonials[currentIndex].text}
             </p>

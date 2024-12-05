@@ -1,6 +1,6 @@
-// import ModalVideo from "@/components/homepage/modal-video";
 import { Button } from "@/components/ui/button";
 import CombinedImage from "@/public/product/combine.svg"
+import ModalCarousel from "./modal-carousel";
 
 export default function HeroHome({ color }: { color: string }) {
   return (
@@ -45,16 +45,9 @@ export default function HeroHome({ color }: { color: string }) {
               </div>
             </div>
           </div>
-        </div>
-        <div className="relative flex justify-center pb-8">
-          <img
-            className="rounded-sm"
-            src={CombinedImage.src}
-            alt="Combined Image"
-            style={{ maxWidth: '70%', height: 'auto' }}
-            data-aos="zoom-y-out"
-            data-aos-delay={600}
-          />
+          <div className="max-w-4xl mx-auto mb-8">
+            <ModalCarousel />
+          </div>
         </div>
       </div>
     </section>
