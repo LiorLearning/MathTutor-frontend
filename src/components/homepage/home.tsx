@@ -5,11 +5,12 @@ import { useEffect } from "react";
 import AOS from "aos";
 import "aos/dist/aos.css";
 
-import Hero from "@/components/homepage/hero-home";
-import FeaturesPlanet from "@/components/homepage/features-planet";
-import LargeTestimonial from "@/components/homepage/large-testimonial";
-import Header from "@/components/homepage/header";
-import Footer from "@/components/homepage/footer";
+import Hero from "./hero-home";
+import FeaturesPlanet from "./features-planet";
+import LargeTestimonial from "./large-testimonial";
+import Header from "./header";
+import About from "./about";
+import Footer from "./footer";
 
 export default function Home() {
   const color = "#c197db";
@@ -29,6 +30,7 @@ export default function Home() {
       <Hero color={color} />
       <FeaturesPlanet />
       <LargeTestimonial />
+      <About />
       <Footer />
     </>
   );
