@@ -2,6 +2,8 @@
 
 import Image from 'next/image'
 import SahasraImg from '@/public/team/sahasra.png'
+import TilakrajImg from '@/public/team/tilakraj.jpg'
+import VirokImg from '@/public/team/virok.jpg'
 import { FaLinkedin } from 'react-icons/fa'
 
 export default function About() {
@@ -43,7 +45,7 @@ export default function About() {
             <article className="flex flex-col items-center">
               <div className="mb-4 overflow-hidden rounded-full">
                 <Image
-                  src="/placeholder.svg?height=200&width=200"
+                  src={VirokImg}
                   alt="Virok Sharma"
                   width={200}
                   height={200}
@@ -61,7 +63,7 @@ export default function About() {
             <article className="flex flex-col items-center">
               <div className="mb-4 overflow-hidden rounded-full">
                 <Image
-                  src="/placeholder.svg?height=200&width=200"
+                  src={TilakrajImg}
                   alt="Tilakraj Singh"
                   width={200}
                   height={200}
