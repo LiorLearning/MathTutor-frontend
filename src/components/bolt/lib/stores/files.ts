@@ -36,16 +36,14 @@ export class FilesStore {
   #size = 0;
 
   /**
-   * @note Keeps track all modified files with their original content since the last user message.
-   * Needs to be reset when the user sends another message and all changes have to be submitted
-   * for the model to be aware of the changes.
+   * Keeps track of all modified files with their original content.
    */
-  #modifiedFiles: Map<string, string> = import.meta.hot?.data.modifiedFiles ?? new Map();
+  #modifiedFiles: Map<string, string> = new Map();
 
   /**
    * Map of files that matches the state of WebContainer.
    */
-  files: MapStore<FileMap> = import.meta.hot?.data.files ?? map({});
+  files: MapStore<FileMap> = map({});
 
   get filesCount() {
     return this.#size;
@@ -53,12 +51,6 @@ export class FilesStore {
 
   constructor(webcontainerPromise: Promise<WebContainer>) {
     this.#webcontainer = webcontainerPromise;
-
-    if (import.meta.hot) {
-      import.meta.hot.data.files = this.files;
-      import.meta.hot.data.modifiedFiles = this.#modifiedFiles;
-    }
-
     this.#init();
   }
 

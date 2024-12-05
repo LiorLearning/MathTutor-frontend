@@ -1,3 +1,5 @@
+'use client'
+
 import { memo, useEffect, useState } from 'react';
 import { bundledLanguages, codeToHtml, isSpecialLang, type BundledLanguage, type SpecialLanguage } from 'shiki';
 import { classNames } from '@/components/bolt/utils/classNames';

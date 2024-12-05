@@ -1,5 +1,5 @@
 import { atom, computed, map, type MapStore, type WritableAtom } from 'nanostores';
-import type { EditorDocument, ScrollPosition } from '@/components/bolt/components/editor/codemirror/CodeMirrorEditor';
+import type { EditorDocument, ScrollPosition } from '@/components/bolt/components/codemirror/CodeMirrorEditor';
 import type { FileMap, FilesStore } from './files';
 
 export type EditorDocuments = Record<string, EditorDocument>;
@@ -9,8 +9,8 @@ type SelectedFile = WritableAtom<string | undefined>;
 export class EditorStore {
   #filesStore: FilesStore;
 
-  selectedFile: SelectedFile = import.meta.hot?.data.selectedFile ?? atom<string | undefined>();
-  documents: MapStore<EditorDocuments> = import.meta.hot?.data.documents ?? map({});
+  selectedFile: SelectedFile = atom<string | undefined>();
+  documents: MapStore<EditorDocuments> = map({});
 
   currentDocument = computed([this.documents, this.selectedFile], (documents, selectedFile) => {
     if (!selectedFile) {
@@ -22,11 +22,6 @@ export class EditorStore {
 
   constructor(filesStore: FilesStore) {
     this.#filesStore = filesStore;
-
-    if (import.meta.hot) {
-      import.meta.hot.data.documents = this.documents;
-      import.meta.hot.data.selectedFile = this.selectedFile;
-    }
   }
 
   setDocuments(files: FileMap) {

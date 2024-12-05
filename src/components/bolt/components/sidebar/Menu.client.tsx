@@ -1,8 +1,10 @@
+'use client'
+
 import { motion, type Variants } from 'framer-motion';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'react-toastify';
 import { Dialog, DialogButton, DialogDescription, DialogRoot, DialogTitle } from '@/components/bolt/components/ui/Dialog';
-import { IconButton } from '@/components/bolt/components/ui/IconButton';
+// import { IconButton } from '@/components/bolt/components/ui/IconButton';
 import { ThemeSwitch } from '@/components/bolt/components/ui/ThemeSwitch';
 import { db, deleteById, getAll, chatId, type ChatHistoryItem } from '@/components/bolt/lib/persistence';
 import { cubicEasingFn } from '@/components/bolt/utils/easings';

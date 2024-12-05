@@ -1,3 +1,5 @@
+'use client'
+
 import { useStore } from '@nanostores/react';
 import { motion, type HTMLMotionProps, type Variants } from 'framer-motion';
 import { computed } from 'nanostores';
@@ -6,7 +8,7 @@ import { toast } from 'react-toastify';
 import {
   type OnChangeCallback as OnEditorChange,
   type OnScrollCallback as OnEditorScroll,
-} from '@/components/bolt/components/editor/codemirror/CodeMirrorEditor';
+} from '@/components/bolt/components/codemirror/CodeMirrorEditor';
 import { IconButton } from '@/components/bolt/components/ui/IconButton';
 import { PanelHeaderButton } from '@/components/bolt/components/ui/PanelHeaderButton';
 import { Slider, type SliderOptions } from '@/components/bolt/components/ui/Slider';

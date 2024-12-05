@@ -8,7 +8,7 @@ import {
   type OnChangeCallback as OnEditorChange,
   type OnSaveCallback as OnEditorSave,
   type OnScrollCallback as OnEditorScroll,
-} from '@/components/bolt/components/editor/codemirror/CodeMirrorEditor';
+} from '@/components/bolt/components/codemirror/CodeMirrorEditor';
 import { IconButton } from '@/components/bolt/components/ui/IconButton';
 import { PanelHeader } from '@/components/bolt/components/ui/PanelHeader';
 import { PanelHeaderButton } from '@/components/bolt/components/ui/PanelHeaderButton';

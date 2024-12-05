@@ -8,14 +8,10 @@ export class TerminalStore {
   #webcontainer: Promise<WebContainer>;
   #terminals: Array<{ terminal: ITerminal; process: WebContainerProcess }> = [];
 
-  showTerminal: WritableAtom<boolean> = import.meta.hot?.data.showTerminal ?? atom(false);
+  showTerminal: WritableAtom<boolean> = atom(false);
 
   constructor(webcontainerPromise: Promise<WebContainer>) {
     this.#webcontainer = webcontainerPromise;
-
-    if (import.meta.hot) {
-      import.meta.hot.data.showTerminal = this.showTerminal;
-    }
   }
 
   toggleTerminal(value?: boolean) {
