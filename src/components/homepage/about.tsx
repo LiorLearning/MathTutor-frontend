@@ -17,7 +17,7 @@ export default function About() {
               Meet the Team Behind Lior AI
             </h1>
             <p className="mt-4 text-xl text-gray-400">
-              We're passionate about making math learning engaging and accessible for everyone.
+              We&apos;re passionate about making math learning engaging and accessible for everyone.
             </p>
           </div>
 
@@ -82,8 +82,8 @@ export default function About() {
           <div className="mt-16 rounded-lg bg-gray-800 p-6 text-center md:p-10">
             <h2 className="mb-4 text-2xl font-bold text-gray-200">Our Mission</h2>
             <p className="text-gray-400">
-              At Lior AI, we're committed to making math learning an exciting adventure for every child. By combining 
-              cutting-edge AI technology with proven educational methods, we're transforming the way students engage 
+              At Lior AI, we&apos;re committed to making math learning an exciting adventure for every child. By combining 
+              cutting-edge AI technology with proven educational methods, we&apos;re transforming the way students engage 
               with mathematics, fostering a love for learning that lasts a lifetime.
             </p>
           </div>

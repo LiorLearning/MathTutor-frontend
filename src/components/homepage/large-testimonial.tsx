@@ -12,31 +12,31 @@ export default function LargeTestimonial() {
   const testimonials = [
     {
       image: Image1,
-      text: "“These are the coolest progress reports ever. People don't understand that for this and next generation making learning interest-based isn't just a 'nice to have', it's actually the critical piece for their learning efficacy.”",
+      text: "These are the coolest progress reports ever. People don't understand that for this and next generation making learning interest-based isn't just a 'nice to have', it's actually the critical piece for their learning efficacy.",
       name: "Julietta",
       title: "Microschool founder",
     },
     {
-      text: "”I still can't quite grasp how fascinating it is that the boys actually want to schedule more classes.”",
+      text: "I still can't quite grasp how fascinating it is that the boys actually want to schedule more classes.",
       name: "Samuel, Asher and Anica’s mom",
     },
     {
       image: Image2,
-      text: "”I asked him the other day what his favourite thing in the week was, and you were right after his favourite video game. Whatever you’re doing is working really well!”",
+      text: "I asked him the other day what his favourite thing in the week was, and you were right after his favourite video game. Whatever you’re doing is working really well!",
       name: "Loren’s mom",
     },
     {
-      text: "“Earlier learning math was always a battle. But now Connor is so excited for the next session. What you guys are doing is really amazing.”",
+      text: "Earlier learning math was always a battle. But now Connor is so excited for the next session. What you guys are doing is really amazing.",
       name: "Connor’s mom",
       title: "(All 5 kids learn with Lior)",
     },
     {
       image: Image3,
-      text: "“It’s a gift to have Asher work with you. I am often doing housework nearby when he is working with you and it's very nice for me to hear him learn math while using his imagination.”",
+      text: "It’s a gift to have Asher work with you. I am often doing housework nearby when he is working with you and it's very nice for me to hear him learn math while using his imagination.",
       name: "Asher’s mom",
     },
     {
-      text: "“Lucia was so excited to share with me how happy she was after the first session. She was practicing math after your call because she felt like it was a game.”",
+      text: "Lucia was so excited to share with me how happy she was after the first session. She was practicing math after your call because she felt like it was a game.",
       name: "Lucia’s mom",
     },
   ];
@@ -103,6 +103,7 @@ export default function LargeTestimonial() {
             </div>
           </div>
         </div>
+        
       </div>
     </section>
   );
