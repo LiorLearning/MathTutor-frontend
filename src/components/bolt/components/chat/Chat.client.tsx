@@ -4,13 +4,13 @@ import { useChat } from 'ai/react';
 import { useAnimate } from 'framer-motion';
 import { memo, useEffect, useRef, useState } from 'react';
 import { cssTransition, toast, ToastContainer } from 'react-toastify';
-import { useMessageParser, usePromptEnhancer, useShortcuts, useSnapScroll } from '~/lib/hooks';
-import { useChatHistory } from '~/lib/persistence';
-import { chatStore } from '~/lib/stores/chat';
-import { workbenchStore } from '~/lib/stores/workbench';
-import { fileModificationsToHTML } from '~/utils/diff';
-import { cubicEasingFn } from '~/utils/easings';
-import { createScopedLogger, renderLogger } from '~/utils/logger';
+import { useMessageParser, usePromptEnhancer, useShortcuts, useSnapScroll } from '@/components/bolt/lib/hooks';
+import { useChatHistory } from '@/components/bolt/lib/persistence';
+import { chatStore } from '@/components/bolt/lib/stores/chat';
+import { workbenchStore } from '@/components/bolt/lib/stores/workbench';
+import { fileModificationsToHTML } from '@/components/bolt/utils/diff';
+import { cubicEasingFn } from '@/components/bolt/utils/easings';
+import { createScopedLogger, renderLogger } from '@/components/bolt/utils/logger';
 import { BaseChat } from './BaseChat';
 
 const toastAnimation = cssTransition({

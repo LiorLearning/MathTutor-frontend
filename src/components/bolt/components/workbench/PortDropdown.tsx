@@ -1,6 +1,6 @@
 import { memo, useEffect, useRef } from 'react';
-import { IconButton } from '~/components/ui/IconButton';
-import type { PreviewInfo } from '~/lib/stores/previews';
+import { IconButton } from '@/components/bolt/components/ui/IconButton';
+import type { PreviewInfo } from '@/components/bolt/lib/stores/previews';
 
 interface PortDropdownProps {
   activePreviewIndex: number;

@@ -8,18 +8,18 @@ import {
   type OnChangeCallback as OnEditorChange,
   type OnSaveCallback as OnEditorSave,
   type OnScrollCallback as OnEditorScroll,
-} from '~/components/editor/codemirror/CodeMirrorEditor';
-import { IconButton } from '~/components/ui/IconButton';
-import { PanelHeader } from '~/components/ui/PanelHeader';
-import { PanelHeaderButton } from '~/components/ui/PanelHeaderButton';
-import { shortcutEventEmitter } from '~/lib/hooks';
-import type { FileMap } from '~/lib/stores/files';
-import { themeStore } from '~/lib/stores/theme';
-import { workbenchStore } from '~/lib/stores/workbench';
-import { classNames } from '~/utils/classNames';
-import { WORK_DIR } from '~/utils/constants';
-import { renderLogger } from '~/utils/logger';
-import { isMobile } from '~/utils/mobile';
+} from '@/components/bolt/components/editor/codemirror/CodeMirrorEditor';
+import { IconButton } from '@/components/bolt/components/ui/IconButton';
+import { PanelHeader } from '@/components/bolt/components/ui/PanelHeader';
+import { PanelHeaderButton } from '@/components/bolt/components/ui/PanelHeaderButton';
+import { shortcutEventEmitter } from '@/components/bolt/lib/hooks';
+import type { FileMap } from '@/components/bolt/lib/stores/files';
+import { themeStore } from '@/components/bolt/lib/stores/theme';
+import { workbenchStore } from '@/components/bolt/lib/stores/workbench';
+import { classNames } from '@/components/bolt/utils/classNames';
+import { WORK_DIR } from '@/components/bolt/utils/constants';
+import { renderLogger } from '@/components/bolt/utils/logger';
+import { isMobile } from '@/components/bolt/utils/mobile';
 import { FileBreadcrumb } from './FileBreadcrumb';
 import { FileTree } from './FileTree';
 import { Terminal, type TerminalRef } from './terminal/Terminal';

@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { classNames } from '~/utils/classNames';
+import { classNames } from '@/components/bolt/utils/classNames';
 
 type IconSize = 'sm' | 'md' | 'lg' | 'xl' | 'xxl';
 

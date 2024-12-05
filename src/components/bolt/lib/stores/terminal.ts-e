@@ -1,8 +1,8 @@
 import type { WebContainer, WebContainerProcess } from '@webcontainer/api';
 import { atom, type WritableAtom } from 'nanostores';
-import type { ITerminal } from '@/components/bolt/types/terminal';
-import { newShellProcess } from '@/components/bolt/utils/shell';
-import { coloredText } from '@/components/bolt/utils/terminal';
+import type { ITerminal } from '~/types/terminal';
+import { newShellProcess } from '~/utils/shell';
+import { coloredText } from '~/utils/terminal';
 
 export class TerminalStore {
   #webcontainer: Promise<WebContainer>;

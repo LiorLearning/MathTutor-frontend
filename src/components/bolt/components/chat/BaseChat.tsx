@@ -1,10 +1,10 @@
 import type { Message } from 'ai';
 import React, { type RefCallback } from 'react';
 import { ClientOnly } from 'remix-utils/client-only';
-import { Menu } from '~/components/sidebar/Menu.client';
-import { IconButton } from '~/components/ui/IconButton';
-import { Workbench } from '~/components/workbench/Workbench.client';
-import { classNames } from '~/utils/classNames';
+import { Menu } from '@/components/bolt/components/sidebar/Menu.client';
+import { IconButton } from '@/components/bolt/components/ui/IconButton';
+import { Workbench } from '@/components/bolt/components/workbench/Workbench.client';
+import { classNames } from '@/components/bolt/utils/classNames';
 import { Messages } from './Messages.client';
 import { SendButton } from './SendButton.client';
 

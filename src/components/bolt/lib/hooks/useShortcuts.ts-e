@@ -1,6 +1,6 @@
 import { useStore } from '@nanostores/react';
 import { useEffect } from 'react';
-import { shortcutsStore, type Shortcuts } from '@/components/bolt/lib/stores/settings';
+import { shortcutsStore, type Shortcuts } from '~/lib/stores/settings';
 
 class ShortcutEventEmitter {
   #emitter = new EventTarget();

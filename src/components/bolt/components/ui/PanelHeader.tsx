@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { classNames } from '~/utils/classNames';
+import { classNames } from '@/components/bolt/utils/classNames';
 
 interface PanelHeaderProps {
   className?: string;

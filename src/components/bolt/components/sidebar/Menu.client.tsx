@@ -1,12 +1,12 @@
 import { motion, type Variants } from 'framer-motion';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'react-toastify';
-import { Dialog, DialogButton, DialogDescription, DialogRoot, DialogTitle } from '~/components/ui/Dialog';
-import { IconButton } from '~/components/ui/IconButton';
-import { ThemeSwitch } from '~/components/ui/ThemeSwitch';
-import { db, deleteById, getAll, chatId, type ChatHistoryItem } from '~/lib/persistence';
-import { cubicEasingFn } from '~/utils/easings';
-import { logger } from '~/utils/logger';
+import { Dialog, DialogButton, DialogDescription, DialogRoot, DialogTitle } from '@/components/bolt/components/ui/Dialog';
+import { IconButton } from '@/components/bolt/components/ui/IconButton';
+import { ThemeSwitch } from '@/components/bolt/components/ui/ThemeSwitch';
+import { db, deleteById, getAll, chatId, type ChatHistoryItem } from '@/components/bolt/lib/persistence';
+import { cubicEasingFn } from '@/components/bolt/utils/easings';
+import { logger } from '@/components/bolt/utils/logger';
 import { HistoryItem } from './HistoryItem';
 import { binDates } from './date-binning';
 

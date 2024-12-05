@@ -6,14 +6,14 @@ import { toast } from 'react-toastify';
 import {
   type OnChangeCallback as OnEditorChange,
   type OnScrollCallback as OnEditorScroll,
-} from '~/components/editor/codemirror/CodeMirrorEditor';
-import { IconButton } from '~/components/ui/IconButton';
-import { PanelHeaderButton } from '~/components/ui/PanelHeaderButton';
-import { Slider, type SliderOptions } from '~/components/ui/Slider';
-import { workbenchStore, type WorkbenchViewType } from '~/lib/stores/workbench';
-import { classNames } from '~/utils/classNames';
-import { cubicEasingFn } from '~/utils/easings';
-import { renderLogger } from '~/utils/logger';
+} from '@/components/bolt/components/editor/codemirror/CodeMirrorEditor';
+import { IconButton } from '@/components/bolt/components/ui/IconButton';
+import { PanelHeaderButton } from '@/components/bolt/components/ui/PanelHeaderButton';
+import { Slider, type SliderOptions } from '@/components/bolt/components/ui/Slider';
+import { workbenchStore, type WorkbenchViewType } from '@/components/bolt/lib/stores/workbench';
+import { classNames } from '@/components/bolt/utils/classNames';
+import { cubicEasingFn } from '@/components/bolt/utils/easings';
+import { renderLogger } from '@/components/bolt/utils/logger';
 import { EditorPanel } from './EditorPanel';
 import { Preview } from './Preview';
 

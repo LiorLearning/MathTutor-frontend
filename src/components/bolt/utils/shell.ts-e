@@ -1,5 +1,5 @@
 import type { WebContainer } from '@webcontainer/api';
-import type { ITerminal } from '@/components/bolt/types/terminal';
+import type { ITerminal } from '~/types/terminal';
 import { withResolvers } from './promises';
 
 export async function newShellProcess(webcontainer: WebContainer, terminal: ITerminal) {

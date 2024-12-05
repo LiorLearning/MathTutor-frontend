@@ -1,6 +1,6 @@
 import type { Message } from 'ai';
 import React from 'react';
-import { classNames } from '~/utils/classNames';
+import { classNames } from '@/components/bolt/utils/classNames';
 import { AssistantMessage } from './AssistantMessage';
 import { UserMessage } from './UserMessage';
 

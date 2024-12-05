@@ -1,8 +1,8 @@
 import { motion } from 'framer-motion';
 import { memo } from 'react';
-import { classNames } from '~/utils/classNames';
-import { cubicEasingFn } from '~/utils/easings';
-import { genericMemo } from '~/utils/react';
+import { classNames } from '@/components/bolt/utils/classNames';
+import { cubicEasingFn } from '@/components/bolt/utils/easings';
+import { genericMemo } from '@/components/bolt/utils/react';
 
 interface SliderOption<T> {
   value: T;

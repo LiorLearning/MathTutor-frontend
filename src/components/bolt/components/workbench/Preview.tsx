@@ -1,7 +1,7 @@
 import { useStore } from '@nanostores/react';
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
-import { IconButton } from '~/components/ui/IconButton';
-import { workbenchStore } from '~/lib/stores/workbench';
+import { IconButton } from '@/components/bolt/components/ui/IconButton';
+import { workbenchStore } from '@/components/bolt/lib/stores/workbench';
 import { PortDropdown } from './PortDropdown';
 
 export const Preview = memo(() => {

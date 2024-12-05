@@ -1,7 +1,7 @@
 import { memo, useEffect, useMemo, useState, type ReactNode } from 'react';
-import type { FileMap } from '~/lib/stores/files';
-import { classNames } from '~/utils/classNames';
-import { createScopedLogger, renderLogger } from '~/utils/logger';
+import type { FileMap } from '@/components/bolt/lib/stores/files';
+import { classNames } from '@/components/bolt/utils/classNames';
+import { createScopedLogger, renderLogger } from '@/components/bolt/utils/logger';
 
 const logger = createScopedLogger('FileTree');
 
