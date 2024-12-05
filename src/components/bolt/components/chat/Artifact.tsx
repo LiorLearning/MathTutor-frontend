@@ -1,12 +1,14 @@
+'use client'
+
 import { useStore } from '@nanostores/react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { computed } from 'nanostores';
 import { memo, useEffect, useRef, useState } from 'react';
 import { createHighlighter, type BundledLanguage, type BundledTheme, type HighlighterGeneric } from 'shiki';
-import type { ActionState } from '~/lib/runtime/action-runner';
-import { workbenchStore } from '~/lib/stores/workbench';
-import { classNames } from '~/utils/classNames';
-import { cubicEasingFn } from '~/utils/easings';
+import type { ActionState } from '@/components/bolt/lib/runtime/action-runner';
+import { workbenchStore } from '@/components/bolt/lib/stores/workbench';
+import { classNames } from '@/components/bolt/utils/classNames';
+import { cubicEasingFn } from '@/components/bolt/utils/easings';
 
 const highlighterOptions = {
   langs: ['shell'],
