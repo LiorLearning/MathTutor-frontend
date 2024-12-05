@@ -1,5 +1,5 @@
 import { atom, map, type MapStore, type ReadableAtom, type WritableAtom } from 'nanostores';
-import type { EditorDocument, ScrollPosition } from '@/components/bolt/components/editor/codemirror/CodeMirrorEditor';
+import type { EditorDocument, ScrollPosition } from '@/components/bolt/components/codemirror/CodeMirrorEditor';
 import { ActionRunner } from '@/components/bolt/lib/runtime/action-runner';
 import type { ActionCallbackData, ArtifactCallbackData } from '@/components/bolt/lib/runtime/message-parser';
 import { webcontainer } from '@/components/bolt/lib/webcontainer';

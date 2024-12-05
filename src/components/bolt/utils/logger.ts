@@ -11,7 +11,7 @@ interface Logger {
   setLevel: (level: DebugLevel) => void;
 }
 
-let currentLevel: DebugLevel = import.meta.env.VITE_LOG_LEVEL ?? import.meta.env.DEV ? 'debug' : 'info';
+let currentLevel: DebugLevel = process.env.VITE_LOG_LEVEL ?? process.env.DEV ? 'debug' : 'info';
 
 const isWorker = 'HTMLRewriter' in globalThis;
 const supportsColor = !isWorker;
@@ -37,7 +37,7 @@ export function createScopedLogger(scope: string): Logger {
 }
 
 function setLevel(level: DebugLevel) {
-  if ((level === 'trace' || level === 'debug') && import.meta.env.PROD) {
+  if ((level === 'trace' || level === 'debug') && process.env.PROD) {
     return;
   }
 

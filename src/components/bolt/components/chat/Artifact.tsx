@@ -15,12 +15,7 @@ const highlighterOptions = {
   themes: ['light-plus', 'dark-plus'],
 };
 
-const shellHighlighter: HighlighterGeneric<BundledLanguage, BundledTheme> =
-  import.meta.hot?.data.shellHighlighter ?? (await createHighlighter(highlighterOptions));
-
-if (import.meta.hot) {
-  import.meta.hot.data.shellHighlighter = shellHighlighter;
-}
+const shellHighlighter: HighlighterGeneric<BundledLanguage, BundledTheme> = await createHighlighter(highlighterOptions);
 
 interface ArtifactProps {
   messageId: string;
@@ -62,7 +57,7 @@ export const Artifact = memo(({ messageId }: ArtifactProps) => {
         >
           <div className="px-5 p-3.5 w-full text-left">
             <div className="w-full text-bolt-elements-textPrimary font-medium leading-5 text-sm">{artifact?.title}</div>
-            <div className="w-full w-full text-bolt-elements-textSecondary text-xs mt-0.5">Click to open Workbench</div>
+            <div className="w-full text-bolt-elements-textSecondary text-xs mt-0.5">Click to open Workbench</div>
           </div>
         </button>
         <div className="bg-bolt-elements-artifacts-borderColor w-[1px]" />
