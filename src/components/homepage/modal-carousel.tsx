@@ -10,7 +10,6 @@ import productImage5 from '@/public/product/game2.png';
 
 export default function ModalCarousel() {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [isAnimating, setIsAnimating] = useState(false);
 
   const images = [
     productImage1,
@@ -22,12 +21,10 @@ export default function ModalCarousel() {
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setIsAnimating(true);
       setTimeout(() => {
         setCurrentIndex((prevIndex) =>
           prevIndex === images.length - 1 ? 0 : prevIndex + 1
         );
-        setIsAnimating(false);
       }, 500); // Duration of the slide animation
     }, 5000);
 
@@ -63,10 +60,8 @@ export default function ModalCarousel() {
                   index === currentIndex ? "bg-accent-foreground" : "bg-muted"
                 }`}
                 onClick={() => {
-                  setIsAnimating(true);
                   setTimeout(() => {
                     setCurrentIndex(index);
-                    setIsAnimating(false);
                   }, 500); // Duration of the slide animation
                 }}
               ></div>

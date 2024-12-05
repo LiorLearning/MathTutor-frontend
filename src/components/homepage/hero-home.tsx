@@ -1,5 +1,4 @@
 import { Button } from "@/components/ui/button";
-import CombinedImage from "@/public/product/combine.svg"
 import ModalCarousel from "./modal-carousel";
 
 export default function HeroHome({ color }: { color: string }) {
