@@ -1,3 +1,5 @@
+'use client'
+
 import type { Message } from 'ai';
 import React from 'react';
 import { classNames } from '@/components/bolt/utils/classNames';

@@ -1,7 +1,8 @@
-import { motion } from 'framer-motion';
+'use client'
+
+import { easeInOut, motion } from 'framer-motion';
 import { memo } from 'react';
 import { classNames } from '@/components/bolt/utils/classNames';
-import { cubicEasingFn } from '@/components/bolt/utils/easings';
 import { genericMemo } from '@/components/bolt/utils/react';
 
 interface SliderOption<T> {
@@ -56,7 +57,7 @@ const SliderButton = memo(({ selected, children, setSelected }: SliderButtonProp
       {selected && (
         <motion.span
           layoutId="pill-tab"
-          transition={{ duration: 0.2, ease: cubicEasingFn }}
+          transition={{ duration: 0.2, ease: easeInOut }}
           className="absolute inset-0 z-0 bg-bolt-elements-item-backgroundAccent rounded-full"
         ></motion.span>
       )}

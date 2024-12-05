@@ -1,6 +1,6 @@
 import { WebContainer } from '@webcontainer/api';
 import { map, type MapStore } from 'nanostores';
-import * as nodePath from 'node:path';
+import * as nodePath from 'path';
 import type { BoltAction } from '@/components/bolt/types/actions';
 import { createScopedLogger } from '@/components/bolt/utils/logger';
 import { unreachable } from '@/components/bolt/utils/unreachable';

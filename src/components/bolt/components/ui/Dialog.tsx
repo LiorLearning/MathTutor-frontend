@@ -1,15 +1,16 @@
+'use client'
+
 import * as RadixDialog from '@radix-ui/react-dialog';
-import { motion, type Variants } from 'framer-motion';
+import { easeInOut, motion, type Variants } from 'framer-motion';
 import React, { memo, type ReactNode } from 'react';
 import { classNames } from '@/components/bolt/utils/classNames';
-import { cubicEasingFn } from '@/components/bolt/utils/easings';
 import { IconButton } from './IconButton';
 
 export { Close as DialogClose, Root as DialogRoot } from '@radix-ui/react-dialog';
 
 const transition = {
   duration: 0.15,
-  ease: cubicEasingFn,
+  ease: easeInOut,
 };
 
 export const dialogBackdropVariants = {

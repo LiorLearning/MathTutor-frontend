@@ -18,7 +18,12 @@ export interface ChatHistoryItem {
 
 const persistenceEnabled = !process.env.VITE_DISABLE_PERSISTENCE;
 
-export const db = persistenceEnabled ? await openDatabase() : undefined;
+export let db: IDBDatabase | undefined;
+if (persistenceEnabled) {
+  openDatabase().then(database => {
+    db = database;
+  });
+}
 
 export const chatId = atom<string | undefined>(undefined);
 export const description = atom<string | undefined>(undefined);
@@ -60,7 +65,7 @@ export function useChatHistory() {
           toast.error(error.message);
         });
     }
-  }, []);
+  }, [mixedId]);
 
   return {
     ready: !mixedId || ready,
@@ -99,13 +104,7 @@ export function useChatHistory() {
 }
 
 function navigateChat(nextId: string) {
-  /**
-   * FIXME: Using the intended navigate function causes a rerender for <Chat /> that breaks the app.
-   *
-   * `navigate(`/chat/${nextId}`, { replace: true });`
-   */
   const url = new URL(window.location.href);
   url.pathname = `/chat/${nextId}`;
-
   window.history.replaceState({}, '', url);
 }

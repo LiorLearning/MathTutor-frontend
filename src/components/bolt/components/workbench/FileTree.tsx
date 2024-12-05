@@ -1,3 +1,5 @@
+'use client'
+
 import { memo, useEffect, useMemo, useState, type ReactNode } from 'react';
 import type { FileMap } from '@/components/bolt/lib/stores/files';
 import { classNames } from '@/components/bolt/utils/classNames';

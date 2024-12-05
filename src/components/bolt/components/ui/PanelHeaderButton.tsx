@@ -1,3 +1,5 @@
+'use client'
+
 import { memo } from 'react';
 import { classNames } from '@/components/bolt/utils/classNames';
 

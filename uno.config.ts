@@ -1,6 +1,6 @@
 import { globSync } from 'fast-glob';
-import fs from 'node:fs/promises';
-import { basename } from 'node:path';
+import fs from 'fs/promises';
+import { basename } from 'path';
 import { defineConfig, presetIcons, presetUno, transformerDirectives } from 'unocss';
 
 const iconPaths = globSync('./icons/*.svg');

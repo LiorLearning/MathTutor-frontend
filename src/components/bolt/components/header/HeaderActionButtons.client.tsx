@@ -1,3 +1,5 @@
+'use client'
+
 import { useStore } from '@nanostores/react';
 import { chatStore } from '@/components/bolt/lib/stores/chat';
 import { workbenchStore } from '@/components/bolt/lib/stores/workbench';

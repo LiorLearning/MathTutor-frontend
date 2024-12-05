@@ -1,21 +1,23 @@
 'use client'
 
 import { useStore } from '@nanostores/react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, easeInOut, motion } from 'framer-motion';
 import { computed } from 'nanostores';
 import { memo, useEffect, useRef, useState } from 'react';
 import { createHighlighter, type BundledLanguage, type BundledTheme, type HighlighterGeneric } from 'shiki';
 import type { ActionState } from '@/components/bolt/lib/runtime/action-runner';
 import { workbenchStore } from '@/components/bolt/lib/stores/workbench';
 import { classNames } from '@/components/bolt/utils/classNames';
-import { cubicEasingFn } from '@/components/bolt/utils/easings';
 
 const highlighterOptions = {
   langs: ['shell'],
   themes: ['light-plus', 'dark-plus'],
 };
 
-const shellHighlighter: HighlighterGeneric<BundledLanguage, BundledTheme> = await createHighlighter(highlighterOptions);
+let shellHighlighter: HighlighterGeneric<BundledLanguage, BundledTheme>;
+createHighlighter(highlighterOptions).then(highlighter => {
+  shellHighlighter = highlighter;
+});
 
 interface ArtifactProps {
   messageId: string;
@@ -67,7 +69,7 @@ export const Artifact = memo(({ messageId }: ArtifactProps) => {
               initial={{ width: 0 }}
               animate={{ width: 'auto' }}
               exit={{ width: 0 }}
-              transition={{ duration: 0.15, ease: cubicEasingFn }}
+              transition={{ duration: 0.15, ease: easeInOut }}
               className="bg-bolt-elements-artifacts-background hover:bg-bolt-elements-artifacts-backgroundHover"
               onClick={toggleActions}
             >
@@ -142,7 +144,7 @@ const ActionList = memo(({ actions }: ActionListProps) => {
               animate="visible"
               transition={{
                 duration: 0.2,
-                ease: cubicEasingFn,
+                ease: easeInOut,
               }}
             >
               <div className="flex items-center gap-1.5 text-sm">

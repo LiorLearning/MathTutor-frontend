@@ -3,7 +3,7 @@
 import { useStore } from '@nanostores/react';
 import type { Message } from 'ai';
 import { useChat } from 'ai/react';
-import { useAnimate } from 'framer-motion';
+import { easeInOut, useAnimate } from 'framer-motion';
 import { memo, useEffect, useRef, useState } from 'react';
 import { cssTransition, toast, ToastContainer } from 'react-toastify';
 import { useMessageParser, usePromptEnhancer, useShortcuts, useSnapScroll } from '@/components/bolt/lib/hooks';
@@ -11,7 +11,6 @@ import { useChatHistory } from '@/components/bolt/lib/persistence';
 import { chatStore } from '@/components/bolt/lib/stores/chat';
 import { workbenchStore } from '@/components/bolt/lib/stores/workbench';
 import { fileModificationsToHTML } from '@/components/bolt/utils/diff';
-import { cubicEasingFn } from '@/components/bolt/utils/easings';
 import { createScopedLogger, renderLogger } from '@/components/bolt/utils/logger';
 import { BaseChat } from './BaseChat';
 
@@ -141,7 +140,7 @@ export const ChatImpl = memo(({ initialMessages, storeMessageHistory }: ChatProp
 
     await Promise.all([
       animate('#examples', { opacity: 0, display: 'none' }, { duration: 0.1 }),
-      animate('#intro', { opacity: 0, flex: 1 }, { duration: 0.2, ease: cubicEasingFn }),
+      animate('#intro', { opacity: 0, flex: 1 }, { duration: 0.2, ease: easeInOut }),
     ]);
 
     chatStore.setKey('started', true);

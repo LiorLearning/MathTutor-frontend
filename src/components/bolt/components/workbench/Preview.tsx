@@ -1,3 +1,5 @@
+'use client'
+
 import { useStore } from '@nanostores/react';
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { IconButton } from '@/components/bolt/components/ui/IconButton';

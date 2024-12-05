@@ -4,6 +4,14 @@ const nextConfig = {
     images: {
         unoptimized: true,
     },
+    webpack: (config, { isServer }) => {
+      config.resolve.fallback = { 
+        ...config.resolve.fallback,
+        buffer: false
+      };
+
+      return config;
+    }
 };
 
 export default nextConfig;

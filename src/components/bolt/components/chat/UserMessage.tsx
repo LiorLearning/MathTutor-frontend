@@ -1,3 +1,5 @@
+'use client'
+
 import { modificationsRegex } from '@/components/bolt/utils/diff';
 import { Markdown } from './Markdown';
 

@@ -1,10 +1,11 @@
+'use client'
+
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
-import { AnimatePresence, motion, type Variants } from 'framer-motion';
+import { AnimatePresence, easeInOut, motion, type Variants } from 'framer-motion';
 import { memo, useEffect, useRef, useState } from 'react';
 import type { FileMap } from '@/components/bolt/lib/stores/files';
 import { classNames } from '@/components/bolt/utils/classNames';
 import { WORK_DIR } from '@/components/bolt/utils/constants';
-import { cubicEasingFn } from '@/components/bolt/utils/easings';
 import { renderLogger } from '@/components/bolt/utils/logger';
 import FileTree from './FileTree';
 
@@ -22,7 +23,7 @@ const contextMenuVariants = {
     opacity: 1,
     transition: {
       duration: 0.15,
-      ease: cubicEasingFn,
+      ease: easeInOut,
     },
   },
   close: {
@@ -30,7 +31,7 @@ const contextMenuVariants = {
     opacity: 0,
     transition: {
       duration: 0.15,
-      ease: cubicEasingFn,
+      ease: easeInOut,
     },
   },
 } satisfies Variants;
@@ -87,7 +88,7 @@ export const FileBreadcrumb = memo<FileBreadcrumbProps>(({ files, pathSegments =
             <DropdownMenu.Root open={isActive} modal={false}>
               <DropdownMenu.Trigger asChild>
                 <span
-                  ref={(ref) => (segmentRefs.current[index] = ref)}
+                  ref={(ref) => {segmentRefs.current[index] = ref}}
                   className={classNames('flex items-center gap-1.5 cursor-pointer shrink-0', {
                     'text-bolt-elements-textTertiary hover:text-bolt-elements-textPrimary': !isActive,
                     'text-bolt-elements-textPrimary underline': isActive,

@@ -1,7 +1,7 @@
 'use client'
 
 import { useStore } from '@nanostores/react';
-import { motion, type HTMLMotionProps, type Variants } from 'framer-motion';
+import { easeInOut, motion, type HTMLMotionProps, type Variants } from 'framer-motion';
 import { computed } from 'nanostores';
 import { memo, useCallback, useEffect } from 'react';
 import { toast } from 'react-toastify';
@@ -14,7 +14,6 @@ import { PanelHeaderButton } from '@/components/bolt/components/ui/PanelHeaderBu
 import { Slider, type SliderOptions } from '@/components/bolt/components/ui/Slider';
 import { workbenchStore, type WorkbenchViewType } from '@/components/bolt/lib/stores/workbench';
 import { classNames } from '@/components/bolt/utils/classNames';
-import { cubicEasingFn } from '@/components/bolt/utils/easings';
 import { renderLogger } from '@/components/bolt/utils/logger';
 import { EditorPanel } from './EditorPanel';
 import { Preview } from './Preview';
@@ -24,7 +23,7 @@ interface WorkspaceProps {
   isStreaming?: boolean;
 }
 
-const viewTransition = { ease: cubicEasingFn };
+const viewTransition = { ease: easeInOut };
 
 const sliderOptions: SliderOptions<WorkbenchViewType> = {
   left: {
@@ -42,14 +41,14 @@ const workbenchVariants = {
     width: 0,
     transition: {
       duration: 0.2,
-      ease: cubicEasingFn,
+      ease: easeInOut,
     },
   },
   open: {
     width: 'var(--workbench-width)',
     transition: {
       duration: 0.2,
-      ease: cubicEasingFn,
+      ease: easeInOut,
     },
   },
 } satisfies Variants;

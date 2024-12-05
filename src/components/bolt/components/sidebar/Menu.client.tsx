@@ -1,13 +1,12 @@
 'use client'
 
-import { motion, type Variants } from 'framer-motion';
+import { easeInOut, motion, type Variants } from 'framer-motion';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'react-toastify';
 import { Dialog, DialogButton, DialogDescription, DialogRoot, DialogTitle } from '@/components/bolt/components/ui/Dialog';
 // import { IconButton } from '@/components/bolt/components/ui/IconButton';
 import { ThemeSwitch } from '@/components/bolt/components/ui/ThemeSwitch';
 import { db, deleteById, getAll, chatId, type ChatHistoryItem } from '@/components/bolt/lib/persistence';
-import { cubicEasingFn } from '@/components/bolt/utils/easings';
 import { logger } from '@/components/bolt/utils/logger';
 import { HistoryItem } from './HistoryItem';
 import { binDates } from './date-binning';
@@ -19,7 +18,7 @@ const menuVariants = {
     left: '-150px',
     transition: {
       duration: 0.2,
-      ease: cubicEasingFn,
+      ease: easeInOut,
     },
   },
   open: {
@@ -28,7 +27,7 @@ const menuVariants = {
     left: 0,
     transition: {
       duration: 0.2,
-      ease: cubicEasingFn,
+      ease: easeInOut,
     },
   },
 } satisfies Variants;
