@@ -91,12 +91,14 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
               <ClientOnly>
                 {() => {
                   return chatStarted ? (
-                    <Messages
-                      ref={messageRef}
-                      className="flex flex-col w-full flex-1 max-w-chat px-4 pb-6 mx-auto z-1"
-                      messages={messages}
-                      isStreaming={isStreaming}
-                    />
+                    <>
+                      <Messages
+                        ref={messageRef}
+                        className="flex flex-col w-full flex-1 max-w-chat px-4 pb-6 mx-auto z-1"
+                        messages={messages}
+                        isStreaming={isStreaming}
+                      />
+                    </>
                   ) : null;
                 }}
               </ClientOnly>
@@ -207,7 +209,7 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
               </div>
             )}
           </div>
-          {/* <ClientOnly>{() => <Workbench chatStarted={chatStarted} isStreaming={isStreaming} />}</ClientOnly> */}
+          <ClientOnly>{() => <Workbench chatStarted={chatStarted} isStreaming={isStreaming} />}</ClientOnly>
         </div>
       </div>
     );

@@ -10,7 +10,7 @@ interface UserMessageProps {
 export function UserMessage({ content }: UserMessageProps) {
   return (
     <div className="overflow-hidden pt-[4px]">
-      {/* <Markdown limitedMarkdown>{sanitizeUserMessage(content)}</Markdown> */}
+      <Markdown limitedMarkdown>{sanitizeUserMessage(content)}</Markdown>
     </div>
   );
 }
