@@ -1,6 +1,6 @@
 'use client'
 
-import { useLoaderData, useNavigate } from '@remix-run/react';
+import { useLoaderData } from '@remix-run/react';
 import { useState, useEffect } from 'react';
 import { atom } from 'nanostores';
 import type { Message } from 'ai';
@@ -29,7 +29,6 @@ export const chatId = atom<string | undefined>(undefined);
 export const description = atom<string | undefined>(undefined);
 
 export function useChatHistory() {
-  const navigate = useNavigate();
   const { id: mixedId } = useLoaderData<{ id?: string }>();
 
   const [initialMessages, setInitialMessages] = useState<Message[]>([]);
@@ -56,7 +55,7 @@ export function useChatHistory() {
             description.set(storedMessages.description);
             chatId.set(storedMessages.id);
           } else {
-            navigate(`/`, { replace: true });
+            window.location.replace(`/`);
           }
 
           setReady(true);
@@ -80,7 +79,7 @@ export function useChatHistory() {
       if (!urlId && firstArtifact?.id) {
         const urlId = await getUrlId(db, firstArtifact.id);
 
-        navigateChat(urlId);
+        updateChatUrl(urlId);
         setUrlId(urlId);
       }
 
@@ -94,7 +93,7 @@ export function useChatHistory() {
         chatId.set(nextId);
 
         if (!urlId) {
-          navigateChat(nextId);
+          updateChatUrl(nextId);
         }
       }
 
@@ -103,7 +102,7 @@ export function useChatHistory() {
   };
 }
 
-function navigateChat(nextId: string) {
+function updateChatUrl(nextId: string) {
   const url = new URL(window.location.href);
   url.pathname = `/chat/${nextId}`;
   window.history.replaceState({}, '', url);

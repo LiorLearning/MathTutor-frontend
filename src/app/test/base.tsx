@@ -15,7 +15,8 @@ export const loader = () => json({});
 export default function Base() {
   return (
     <div className="flex flex-col h-full w-full">
-      <Header />
+      {/* <Header /> */}
+      {/* <BaseChat /> */}
       <ClientOnly fallback={<BaseChat />}>{() => <Chat />}</ClientOnly>
     </div>
   );

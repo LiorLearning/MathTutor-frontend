@@ -24,12 +24,13 @@ const logger = createScopedLogger('Chat');
 export function Chat() {
   renderLogger.trace('Chat');
 
-  const { ready, initialMessages, storeMessageHistory } = useChatHistory();
+  // const { ready, initialMessages, storeMessageHistory } = useChatHistory();
+  const initialMessages: Message[] = [];
 
   return (
     <>
       {/* <p>{JSON.stringify(initialMessages)}</p> */}
-      {ready && <ChatImpl initialMessages={initialMessages} storeMessageHistory={storeMessageHistory} />}
+      <ChatImpl initialMessages={initialMessages} storeMessageHistory={async (msg: Message[]) => {}} />
       <ToastContainer
         closeButton={({ closeToast }) => {
           return (
