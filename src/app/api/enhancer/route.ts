@@ -1,4 +1,4 @@
-import { type ActionFunctionArgs } from '@remix-run/cloudflare';
+import { type ActionFunctionArgs, json } from '@remix-run/cloudflare';
 import { StreamingTextResponse, parseStreamPart } from 'ai';
 import { streamText } from '@/components/bolt/lib/.server/llm/stream-text';
 import { stripIndents } from '@/components/bolt/utils/stripIndent';
@@ -6,7 +6,7 @@ import { stripIndents } from '@/components/bolt/utils/stripIndent';
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
 
-export async function action(args: ActionFunctionArgs) {
+export async function POST(args: ActionFunctionArgs) {
   return enhancerAction(args);
 }
 
