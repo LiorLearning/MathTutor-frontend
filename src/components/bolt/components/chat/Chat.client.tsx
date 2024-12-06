@@ -23,9 +23,11 @@ const logger = createScopedLogger('Chat');
 
 export function Chat() {
   renderLogger.trace('Chat');
+  logger.info('Rendering Chat component');
 
   // const { ready, initialMessages, storeMessageHistory } = useChatHistory();
   const initialMessages: Message[] = [];
+  logger.debug('Initial messages:', initialMessages);
 
   return (
     <>
@@ -68,18 +70,24 @@ interface ChatProps {
 }
 
 export const ChatImpl = memo(({ initialMessages, storeMessageHistory }: ChatProps) => {
+  logger.info('Initializing ChatImpl component');
   useShortcuts();
+  logger.debug('Shortcuts initialized');
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  logger.debug('Textarea ref created');
 
   const [chatStarted, setChatStarted] = useState(initialMessages.length > 0);
+  logger.debug('Chat started state:', chatStarted);
 
   const { showChat } = useStore(chatStore);
+  logger.debug('Show chat state from store:', showChat);
 
   const [animationScope, animate] = useAnimate();
+  logger.debug('Animation scope and animate function initialized');
 
   const { messages, isLoading, input, handleInputChange, setInput, stop, append } = useChat({
-    api: '/api/chat',
+    api: `${process.env.NEXT_PUBLIC_API_BASE_URL}api/chat`,
     onError: (error) => {
       logger.error('Request failed\n\n', error);
       toast.error('There was an error processing your request');
@@ -89,33 +97,47 @@ export const ChatImpl = memo(({ initialMessages, storeMessageHistory }: ChatProp
     },
     initialMessages,
   });
+  logger.debug('Chat hook initialized with messages:', messages);
 
   const { enhancingPrompt, promptEnhanced, enhancePrompt, resetEnhancer } = usePromptEnhancer();
+  logger.debug('Prompt enhancer initialized');
+
   const { parsedMessages, parseMessages } = useMessageParser();
+  logger.debug('Message parser initialized');
 
   const TEXTAREA_MAX_HEIGHT = chatStarted ? 400 : 200;
+  logger.debug('Textarea max height set to:', TEXTAREA_MAX_HEIGHT);
 
   useEffect(() => {
     chatStore.setKey('started', initialMessages.length > 0);
-  }, []);
+    logger.info('Chat store started key set');
+  }, [initialMessages.length]);
 
   useEffect(() => {
+    logger.info('Messages updated:', messages);
     parseMessages(messages, isLoading);
+    logger.debug('Messages parsed');
 
     if (messages.length > initialMessages.length) {
-      storeMessageHistory(messages).catch((error) => toast.error(error.message));
+      storeMessageHistory(messages).catch((error) => {
+        logger.error('Error storing message history:', error);
+        toast.error(error.message);
+      });
     }
   }, [messages, isLoading, parseMessages]);
 
   const scrollTextArea = () => {
     const textarea = textareaRef.current;
+    logger.debug('Scrolling textarea');
 
     if (textarea) {
       textarea.scrollTop = textarea.scrollHeight;
+      logger.debug('Textarea scrolled to bottom');
     }
   };
 
   const abort = () => {
+    logger.info('Aborting chat');
     stop();
     chatStore.setKey('aborted', true);
     workbenchStore.abortAllActions();
@@ -123,19 +145,21 @@ export const ChatImpl = memo(({ initialMessages, storeMessageHistory }: ChatProp
 
   useEffect(() => {
     const textarea = textareaRef.current;
+    logger.debug('Adjusting textarea height');
 
     if (textarea) {
       textarea.style.height = 'auto';
-
       const scrollHeight = textarea.scrollHeight;
-
       textarea.style.height = `${Math.min(scrollHeight, TEXTAREA_MAX_HEIGHT)}px`;
       textarea.style.overflowY = scrollHeight > TEXTAREA_MAX_HEIGHT ? 'auto' : 'hidden';
+      logger.debug('Textarea height adjusted');
     }
   }, [input, textareaRef]);
 
   const runAnimation = async () => {
+    logger.info('Running animation');
     if (chatStarted) {
+      logger.debug('Chat already started, skipping animation');
       return;
     }
 
@@ -145,61 +169,47 @@ export const ChatImpl = memo(({ initialMessages, storeMessageHistory }: ChatProp
     ]);
 
     chatStore.setKey('started', true);
-
     setChatStarted(true);
+    logger.debug('Animation completed and chat started');
   };
 
   const sendMessage = async (_event: React.UIEvent, messageInput?: string) => {
     const _input = messageInput || input;
+    logger.info('Sending message:', _input);
 
     if (_input.length === 0 || isLoading) {
+      logger.warn('Input is empty or chat is loading, aborting send');
       return;
     }
 
-    /**
-     * @note (delm) Usually saving files shouldn't take long but it may take longer if there
-     * many unsaved files. In that case we need to block user input and show an indicator
-     * of some kind so the user is aware that something is happening. But I consider the
-     * happy case to be no unsaved files and I would expect users to save their changes
-     * before they send another message.
-     */
     await workbenchStore.saveAllFiles();
+    logger.debug('All files saved');
 
     const fileModifications = workbenchStore.getFileModifcations();
+    logger.debug('File modifications:', fileModifications);
 
     chatStore.setKey('aborted', false);
-
     runAnimation();
 
     if (fileModifications !== undefined) {
       const diff = fileModificationsToHTML(fileModifications);
+      logger.debug('File modifications diff:', diff);
 
-      /**
-       * If we have file modifications we append a new user message manually since we have to prefix
-       * the user input with the file modifications and we don't want the new user input to appear
-       * in the prompt. Using `append` is almost the same as `handleSubmit` except that we have to
-       * manually reset the input and we'd have to manually pass in file attachments. However, those
-       * aren't relevant here.
-       */
       append({ role: 'user', content: `${diff}\n\n${_input}` });
-
-      /**
-       * After sending a new message we reset all modifications since the model
-       * should now be aware of all the changes.
-       */
       workbenchStore.resetAllFileModifications();
+      logger.debug('File modifications reset');
     } else {
       append({ role: 'user', content: _input });
     }
 
     setInput('');
-
     resetEnhancer();
-
     textareaRef.current?.blur();
+    logger.info('Message sent and input reset');
   };
 
   const [messageRef, scrollRef] = useSnapScroll();
+  logger.debug('Snap scroll initialized');
 
   return (
     <BaseChat
