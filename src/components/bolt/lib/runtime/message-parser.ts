@@ -235,7 +235,6 @@ export class StreamingMessageParser {
     }
 
     state.position = i;
-    logger.info(`Finished parsing message with ID: ${messageId}, current position: ${i}`);
 
     return output;
   }
