@@ -1,8 +1,6 @@
-'use client'
-
 import { useStore } from '@nanostores/react';
-import { memo, useEffect, useMemo, useRef, useState } from 'react';
-import { Panel, PanelGroup, PanelResizeHandle, type ImperativePanelHandle } from 'react-resizable-panels';
+import { memo, useEffect, useMemo, useRef } from 'react';
+import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import {
   CodeMirrorEditor,
   type EditorDocument,
@@ -11,14 +9,12 @@ import {
   type OnSaveCallback as OnEditorSave,
   type OnScrollCallback as OnEditorScroll,
 } from '@/components/bolt/components/codemirror/CodeMirrorEditor';
-import { IconButton } from '@/components/bolt/components/ui/IconButton';
 import { PanelHeader } from '@/components/bolt/components/ui/PanelHeader';
 import { PanelHeaderButton } from '@/components/bolt/components/ui/PanelHeaderButton';
 import { shortcutEventEmitter } from '@/components/bolt/lib/hooks';
 import type { FileMap } from '@/components/bolt/lib/stores/files';
 import { themeStore } from '@/components/bolt/lib/stores/theme';
 import { workbenchStore } from '@/components/bolt/lib/stores/workbench';
-import { classNames } from '@/components/bolt/utils/classNames';
 import { WORK_DIR } from '@/components/bolt/utils/constants';
 import { renderLogger } from '@/components/bolt/utils/logger';
 import { isMobile } from '@/components/bolt/utils/mobile';
@@ -67,8 +63,8 @@ export const EditorPanel = memo(
     // const terminalPanelRef = useRef<ImperativePanelHandle>(null);
     const terminalToggledByShortcut = useRef(false);
 
-    const [activeTerminal, setActiveTerminal] = useState(0);
-    const [terminalCount, setTerminalCount] = useState(1);
+    // const [activeTerminal, setActiveTerminal] = useState(0);
+    // const [terminalCount, setTerminalCount] = useState(1);
 
     const activeFileSegments = useMemo(() => {
       if (!editorDocument) {
@@ -117,12 +113,12 @@ export const EditorPanel = memo(
     //   terminalToggledByShortcut.current = false;
     // }, [showTerminal]);
 
-    const addTerminal = () => {
-      if (terminalCount < MAX_TERMINALS) {
-        setTerminalCount(terminalCount + 1);
-        setActiveTerminal(terminalCount);
-      }
-    };
+    // const addTerminal = () => {
+    //   if (terminalCount < MAX_TERMINALS) {
+    //     setTerminalCount(terminalCount + 1);
+    //     setActiveTerminal(terminalCount);
+    //   }
+    // };
 
     return (
       <PanelGroup direction="vertical">
