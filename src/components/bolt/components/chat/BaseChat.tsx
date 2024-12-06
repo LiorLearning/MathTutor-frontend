@@ -209,7 +209,9 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
               )}
             </div>
             <div className="w-1/2">
-              <ClientOnly>{() => <Workbench chatStarted={chatStarted} isStreaming={isStreaming} />}</ClientOnly>
+              <ClientOnly>
+                {() => <Workbench chatStarted={true} isStreaming={isStreaming} />}
+              </ClientOnly>
             </div>
           </div>
         </div>

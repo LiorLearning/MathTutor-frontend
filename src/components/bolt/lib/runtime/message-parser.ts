@@ -59,11 +59,9 @@ export class StreamingMessageParser {
   }
 
   parse(messageId: string, input: string) {
-    logger.info(`Parsing message with ID: ${messageId}`);
     let state = this.#messages.get(messageId);
 
     if (!state) {
-      logger.debug(`Initializing new state for message ID: ${messageId}`);
       state = {
         position: 0,
         insideAction: false,

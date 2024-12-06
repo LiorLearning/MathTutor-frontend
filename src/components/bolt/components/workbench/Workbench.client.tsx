@@ -108,12 +108,12 @@ export const Workbench = memo(({ chatStarted, isStreaming }: WorkspaceProps) => 
         animate={showWorkbench ? 'open' : 'closed'}
         variants={workbenchVariants}
         className="z-workbench h-full w-full"
-        >
+      >
         <div
           className={classNames(
             'flex w-full h-full mr-4 z-0 transition-[left,width] duration-200 bolt-ease-cubic-bezier',
           )}
-          >
+        >
           <div className="relative w-full h-full px-6">
             <div className="h-full flex flex-col bg-bolt-elements-background-depth-2 border border-bolt-elements-borderColor shadow-sm rounded-lg overflow-hidden">
               <div className="flex items-center px-3 py-2 border-b border-bolt-elements-borderColor">
@@ -140,11 +140,16 @@ export const Workbench = memo(({ chatStarted, isStreaming }: WorkspaceProps) => 
                 />
               </div>
               <div className="relative flex-1 overflow-hidden">
-                <View
-                  initial={{ x: selectedView === 'code' ? 0 : '-100%' }}
-                  animate={{ x: selectedView === 'code' ? 0 : '-100%' }}
-                >
-                  <>
+                <div className="absolute inset-0 flex">
+                  <motion.div
+                    className="w-full h-full absolute"
+                    animate={{
+                      x: selectedView === 'code' ? 0 : '-100%',
+                      opacity: selectedView === 'code' ? 1 : 0,
+                      pointerEvents: selectedView === 'code' ? 'auto' : 'none',
+                    }}
+                    transition={viewTransition}
+                  >
                     <EditorPanel
                       editorDocument={currentDocument}
                       isStreaming={isStreaming}
@@ -157,31 +162,24 @@ export const Workbench = memo(({ chatStarted, isStreaming }: WorkspaceProps) => 
                       onFileSave={onFileSave}
                       onFileReset={onFileReset}
                     />
-                  </>
-                </View>
-                <View
-                  initial={{ x: selectedView === 'preview' ? 0 : '100%' }}
-                  animate={{ x: selectedView === 'preview' ? 0 : '100%' }}
-                >
-                  <Preview />
-                </View>
+                  </motion.div>
+                  <motion.div
+                    className="w-full h-full absolute"
+                    animate={{
+                      x: selectedView === 'preview' ? 0 : '100%',
+                      opacity: selectedView === 'preview' ? 1 : 0,
+                      pointerEvents: selectedView === 'preview' ? 'auto' : 'none',
+                    }}
+                    transition={viewTransition}
+                  >
+                    <Preview />
+                  </motion.div>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </motion.div>
     )
-  );
-});
-
-interface ViewProps extends HTMLMotionProps<'div'> {
-  children: JSX.Element;
-}
-
-const View = memo(({ children, ...props }: ViewProps) => {
-  return (
-    <motion.div className="relative w-full h-full" transition={viewTransition} {...props}>
-      {children}
-    </motion.div>
   );
 });
