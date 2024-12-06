@@ -15,7 +15,7 @@ import { Slider, type SliderOptions } from '@/components/bolt/components/ui/Slid
 import { workbenchStore, type WorkbenchViewType } from '@/components/bolt/lib/stores/workbench';
 import { classNames } from '@/components/bolt/utils/classNames';
 import { renderLogger } from '@/components/bolt/utils/logger';
-import { EditorPanel } from './EditorPanel';
+// import { EditorPanel } from './EditorPanel';
 import { Preview } from './Preview';
 
 interface WorkspaceProps {
@@ -143,7 +143,7 @@ export const Workbench = memo(({ chatStarted, isStreaming }: WorkspaceProps) => 
                 />
               </div>
               <div className="relative flex-1 overflow-hidden">
-                <View
+                {/* <View
                   initial={{ x: selectedView === 'code' ? 0 : '-100%' }}
                   animate={{ x: selectedView === 'code' ? 0 : '-100%' }}
                 >
@@ -159,7 +159,7 @@ export const Workbench = memo(({ chatStarted, isStreaming }: WorkspaceProps) => 
                     onFileSave={onFileSave}
                     onFileReset={onFileReset}
                   />
-                </View>
+                </View> */}
                 <View
                   initial={{ x: selectedView === 'preview' ? 0 : '100%' }}
                   animate={{ x: selectedView === 'preview' ? 0 : '100%' }}

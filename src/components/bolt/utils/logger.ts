@@ -1,3 +1,5 @@
+'use client'
+
 export type DebugLevel = 'trace' | 'debug' | 'info' | 'warn' | 'error';
 
 type LoggerFunction = (...messages: any[]) => void;

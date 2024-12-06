@@ -1,3 +1,5 @@
+'use client'
+
 import { map } from 'nanostores';
 import { workbenchStore } from './workbench';
 

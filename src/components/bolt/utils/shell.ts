@@ -1,3 +1,5 @@
+'use client'
+
 import type { WebContainer } from '@webcontainer/api';
 import type { ITerminal } from '@/components/bolt/types/terminal';
 import { withResolvers } from './promises';

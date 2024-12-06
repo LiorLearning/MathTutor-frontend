@@ -1,3 +1,5 @@
+'use client'
+
 import { createTwoFilesPatch } from 'diff';
 import type { FileMap } from '@/components/bolt/lib/stores/files';
 import { MODIFICATIONS_TAG_NAME } from './constants';

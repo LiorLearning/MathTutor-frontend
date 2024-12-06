@@ -70,7 +70,7 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
         )}
         data-chat-visible={showChat}
       >
-        <ClientOnly>{() => <Menu />}</ClientOnly>
+        {/* <ClientOnly>{() => <Menu />}</ClientOnly> */}
         <div ref={scrollRef} className="flex overflow-y-auto w-full h-full">
           <div className={classNames(styles.Chat, 'flex flex-col flex-grow min-w-[var(--chat-min-width)] h-full')}>
             {!chatStarted && (
@@ -207,7 +207,7 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
               </div>
             )}
           </div>
-          <ClientOnly>{() => <Workbench chatStarted={chatStarted} isStreaming={isStreaming} />}</ClientOnly>
+          {/* <ClientOnly>{() => <Workbench chatStarted={chatStarted} isStreaming={isStreaming} />}</ClientOnly> */}
         </div>
       </div>
     );

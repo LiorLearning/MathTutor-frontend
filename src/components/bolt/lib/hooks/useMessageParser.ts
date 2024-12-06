@@ -1,3 +1,5 @@
+'use client'
+
 import type { Message } from 'ai';
 import { useCallback, useState } from 'react';
 import { StreamingMessageParser } from '@/components/bolt/lib/runtime/message-parser';

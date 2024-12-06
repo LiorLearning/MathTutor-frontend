@@ -24,7 +24,7 @@ import { renderLogger } from '@/components/bolt/utils/logger';
 import { isMobile } from '@/components/bolt/utils/mobile';
 import { FileBreadcrumb } from './FileBreadcrumb';
 import { FileTree } from './FileTree';
-import { Terminal, type TerminalRef } from './terminal/Terminal';
+// import { Terminal, type TerminalRef } from './terminal/Terminal';
 
 interface EditorPanelProps {
   files?: FileMap;
@@ -63,7 +63,7 @@ export const EditorPanel = memo(
     const theme = useStore(themeStore);
     const showTerminal = useStore(workbenchStore.showTerminal);
 
-    const terminalRefs = useRef<Array<TerminalRef | null>>([]);
+    // const terminalRefs = useRef<Array<TerminalRef | null>>([]);
     const terminalPanelRef = useRef<ImperativePanelHandle>(null);
     const terminalToggledByShortcut = useRef(false);
 
@@ -88,9 +88,9 @@ export const EditorPanel = memo(
       });
 
       const unsubscribeFromThemeStore = themeStore.subscribe(() => {
-        for (const ref of Object.values(terminalRefs.current)) {
-          ref?.reloadStyles();
-        }
+        // for (const ref of Object.values(terminalRefs.current)) {
+        //   ref?.reloadStyles();
+        // }
       });
 
       return () => {
@@ -231,7 +231,7 @@ export const EditorPanel = memo(
                   onClick={() => workbenchStore.toggleTerminal(false)}
                 />
               </div>
-              {Array.from({ length: terminalCount }, (_, index) => {
+              {/* {Array.from({ length: terminalCount }, (_, index) => {
                 const isActive = activeTerminal === index;
 
                 return (
@@ -248,7 +248,7 @@ export const EditorPanel = memo(
                     theme={theme}
                   />
                 );
-              })}
+              })} */}
             </div>
           </div>
         </Panel>
