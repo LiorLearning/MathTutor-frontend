@@ -64,7 +64,7 @@ export const EditorPanel = memo(
     const showTerminal = useStore(workbenchStore.showTerminal);
 
     // const terminalRefs = useRef<Array<TerminalRef | null>>([]);
-    const terminalPanelRef = useRef<ImperativePanelHandle>(null);
+    // const terminalPanelRef = useRef<ImperativePanelHandle>(null);
     const terminalToggledByShortcut = useRef(false);
 
     const [activeTerminal, setActiveTerminal] = useState(0);
@@ -87,35 +87,35 @@ export const EditorPanel = memo(
         terminalToggledByShortcut.current = true;
       });
 
-      const unsubscribeFromThemeStore = themeStore.subscribe(() => {
-        // for (const ref of Object.values(terminalRefs.current)) {
-        //   ref?.reloadStyles();
-        // }
-      });
+      // const unsubscribeFromThemeStore = themeStore.subscribe(() => {
+      //   for (const ref of Object.values(terminalRefs.current)) {
+      //     ref?.reloadStyles();
+      //   }
+      // });
 
       return () => {
         unsubscribeFromEventEmitter();
-        unsubscribeFromThemeStore();
+        // unsubscribeFromThemeStore();
       };
     }, []);
 
-    useEffect(() => {
-      const { current: terminal } = terminalPanelRef;
+    // useEffect(() => {
+    //   const { current: terminal } = terminalPanelRef;
 
-      if (!terminal) {
-        return;
-      }
+    //   if (!terminal) {
+    //     return;
+    //   }
 
-      const isCollapsed = terminal.isCollapsed();
+    //   const isCollapsed = terminal.isCollapsed();
 
-      if (!showTerminal && !isCollapsed) {
-        terminal.collapse();
-      } else if (showTerminal && isCollapsed) {
-        terminal.resize(DEFAULT_TERMINAL_SIZE);
-      }
+    //   if (!showTerminal && !isCollapsed) {
+    //     terminal.collapse();
+    //   } else if (showTerminal && isCollapsed) {
+    //     terminal.resize(DEFAULT_TERMINAL_SIZE);
+    //   }
 
-      terminalToggledByShortcut.current = false;
-    }, [showTerminal]);
+    //   terminalToggledByShortcut.current = false;
+    // }, [showTerminal]);
 
     const addTerminal = () => {
       if (terminalCount < MAX_TERMINALS) {
@@ -182,7 +182,7 @@ export const EditorPanel = memo(
           </PanelGroup>
         </Panel>
         <PanelResizeHandle />
-        <Panel
+        {/* <Panel
           ref={terminalPanelRef}
           defaultSize={showTerminal ? DEFAULT_TERMINAL_SIZE : 0}
           minSize={10}
@@ -231,7 +231,7 @@ export const EditorPanel = memo(
                   onClick={() => workbenchStore.toggleTerminal(false)}
                 />
               </div>
-              {/* {Array.from({ length: terminalCount }, (_, index) => {
+              {Array.from({ length: terminalCount }, (_, index) => {
                 const isActive = activeTerminal === index;
 
                 return (
@@ -248,10 +248,10 @@ export const EditorPanel = memo(
                     theme={theme}
                   />
                 );
-              })} */}
+              })}
             </div>
           </div>
-        </Panel>
+        </Panel> */}
       </PanelGroup>
     );
   },

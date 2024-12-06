@@ -1,7 +1,7 @@
 'use client'
 
-// import { FitAddon } from '@xterm/addon-fit';
-// import { WebLinksAddon } from '@xterm/addon-web-links';
+import { FitAddon } from '@xterm/addon-fit';
+import { WebLinksAddon } from '@xterm/addon-web-links';
 import { Terminal as XTerm } from '@xterm/xterm';
 import { forwardRef, memo, useEffect, useImperativeHandle, useRef } from 'react';
 import type { Theme } from '@/components/bolt/lib/stores/theme';
@@ -30,8 +30,8 @@ export const Terminal = memo(
     useEffect(() => {
       const element = terminalElementRef.current!;
 
-      // const fitAddon = new FitAddon();
-      // const webLinksAddon = new WebLinksAddon();
+      const fitAddon = new FitAddon();
+      const webLinksAddon = new WebLinksAddon();
 
       const terminal = new XTerm({
         cursorBlink: true,
@@ -44,13 +44,16 @@ export const Terminal = memo(
 
       terminalRef.current = terminal;
 
-      // terminal.loadAddon(fitAddon);
-      // terminal.loadAddon(webLinksAddon);
+      terminal.loadAddon(fitAddon);
+      terminal.loadAddon(webLinksAddon);
       terminal.open(element);
 
       const resizeObserver = new ResizeObserver(() => {
-        // fitAddon.fit();
-        onTerminalResize?.(terminal.cols, terminal.rows);
+        if (terminal.element && terminal.element.clientWidth && terminal.element.clientHeight) {
+          // Ensure dimensions are available before calling resize
+          terminal.resize(terminal.element.clientWidth, terminal.element.clientHeight);
+          onTerminalResize?.(terminal.cols, terminal.rows);
+        }
       });
 
       resizeObserver.observe(element);

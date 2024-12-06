@@ -33,7 +33,7 @@ export class WorkbenchStore {
 
   artifacts: Artifacts = map({});
 
-  showWorkbench: WritableAtom<boolean> = atom(false);
+  showWorkbench: WritableAtom<boolean> = atom(true);
   currentView: WritableAtom<WorkbenchViewType> = atom('code');
   unsavedFiles: WritableAtom<Set<string>> = atom(new Set<string>());
   modifiedFiles = new Set<string>();

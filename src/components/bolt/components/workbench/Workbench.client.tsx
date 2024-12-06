@@ -8,13 +8,14 @@ import { toast } from 'react-toastify';
 import {
   type OnChangeCallback as OnEditorChange,
   type OnScrollCallback as OnEditorScroll,
-} from '@/components/bolt/components/codemirror/CodeMirrorEditor';
-import { IconButton } from '@/components/bolt/components/ui/IconButton';
-import { PanelHeaderButton } from '@/components/bolt/components/ui/PanelHeaderButton';
-import { Slider, type SliderOptions } from '@/components/bolt/components/ui/Slider';
-import { workbenchStore, type WorkbenchViewType } from '@/components/bolt/lib/stores/workbench';
-import { classNames } from '@/components/bolt/utils/classNames';
-import { renderLogger } from '@/components/bolt/utils/logger';
+} from '../codemirror/CodeMirrorEditor';
+import { IconButton } from '../ui/IconButton';
+import { PanelHeaderButton } from '../ui/PanelHeaderButton';
+import { Slider, type SliderOptions } from '../ui/Slider';
+import { workbenchStore, type WorkbenchViewType } from '../../lib/stores/workbench';
+
+import { classNames } from '../../utils/classNames';
+import { renderLogger } from '../../utils/logger';
 import { EditorPanel } from './EditorPanel';
 import { Preview } from './Preview';
 
@@ -107,16 +108,16 @@ export const Workbench = memo(({ chatStarted, isStreaming }: WorkspaceProps) => 
         animate={showWorkbench ? 'open' : 'closed'}
         variants={workbenchVariants}
         className="z-workbench"
-      >
+        >
         <div
           className={classNames(
-            'fixed top-[calc(var(--header-height)+1.5rem)] bottom-6 w-[var(--workbench-inner-width)] mr-4 z-0 transition-[left,width] duration-200 bolt-ease-cubic-bezier',
+            'fixed w-full h-full mr-4 z-0 transition-[left,width] duration-200 bolt-ease-cubic-bezier',
             {
               'left-[var(--workbench-left)]': showWorkbench,
               'left-[100%]': !showWorkbench,
             },
           )}
-        >
+          >
           <div className="absolute inset-0 px-6">
             <div className="h-full flex flex-col bg-bolt-elements-background-depth-2 border border-bolt-elements-borderColor shadow-sm rounded-lg overflow-hidden">
               <div className="flex items-center px-3 py-2 border-b border-bolt-elements-borderColor">
@@ -147,18 +148,20 @@ export const Workbench = memo(({ chatStarted, isStreaming }: WorkspaceProps) => 
                   initial={{ x: selectedView === 'code' ? 0 : '-100%' }}
                   animate={{ x: selectedView === 'code' ? 0 : '-100%' }}
                 >
-                  <EditorPanel
-                    editorDocument={currentDocument}
-                    isStreaming={isStreaming}
-                    selectedFile={selectedFile}
-                    files={files}
-                    unsavedFiles={unsavedFiles}
-                    onFileSelect={onFileSelect}
-                    onEditorScroll={onEditorScroll}
-                    onEditorChange={onEditorChange}
-                    onFileSave={onFileSave}
-                    onFileReset={onFileReset}
-                  />
+                  <>
+                    <EditorPanel
+                      editorDocument={currentDocument}
+                      isStreaming={isStreaming}
+                      selectedFile={selectedFile}
+                      files={files}
+                      unsavedFiles={unsavedFiles}
+                      onFileSelect={onFileSelect}
+                      onEditorScroll={onEditorScroll}
+                      onEditorChange={onEditorChange}
+                      onFileSave={onFileSave}
+                      onFileReset={onFileReset}
+                    />
+                  </>
                 </View>
                 <View
                   initial={{ x: selectedView === 'preview' ? 0 : '100%' }}

@@ -1,23 +1,25 @@
 'use client'
 
-import { json, type MetaFunction } from '@remix-run/cloudflare';
 import { ClientOnly } from 'remix-utils/client-only';
 import { BaseChat } from '@/components/bolt/components/chat/BaseChat';
-import { Chat } from '@/components/bolt/components/chat/Chat.client';
+import { Chat } from '@/components/bolt/components/chat/ChatClient';
 import { Header } from '@/components/bolt/components/header/Header';
+import { Workbench } from '@/components/bolt/components/workbench/Workbench.client';
 
-export const meta: MetaFunction = () => {
-  return [{ title: 'Lior' }, { name: 'description', content: 'Talk with Lior, an AI assistant from Lior AI' }];
-};
+import { useStore } from '@nanostores/react';
+import { themeStore } from '@/components/bolt/lib/stores/theme';
 
-export const loader = () => json({});
 
-export default function Base() {
+
+export function Base() {
+  const theme = useStore(themeStore);
+  
   return (
     <div className="flex flex-col h-full w-full">
+      <Workbench chatStarted={true} isStreaming={true} />
       {/* <Header /> */}
       {/* <BaseChat /> */}
-      <ClientOnly fallback={<BaseChat />}>{() => <Chat />}</ClientOnly>
+      {/* <ClientOnly fallback={<BaseChat />}>{() => <Chat />}</ClientOnly> */}
     </div>
   );
 }

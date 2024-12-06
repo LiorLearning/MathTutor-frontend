@@ -3,7 +3,6 @@
 import type { Message } from 'ai';
 import React, { type RefCallback } from 'react';
 import { ClientOnly } from 'remix-utils/client-only';
-import { Menu } from '@/components/bolt/components/sidebar/Menu.client';
 import { IconButton } from '@/components/bolt/components/ui/IconButton';
 import { Workbench } from '@/components/bolt/components/workbench/Workbench.client';
 import { classNames } from '@/components/bolt/utils/classNames';
@@ -70,7 +69,6 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
         )}
         data-chat-visible={showChat}
       >
-        <ClientOnly>{() => <Menu />}</ClientOnly>
         <div ref={scrollRef} className="flex overflow-y-auto w-full h-full">
           <div className={classNames(styles.Chat, 'flex flex-col flex-grow min-w-[var(--chat-min-width)] h-full')}>
             {!chatStarted && (

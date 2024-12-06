@@ -7,7 +7,7 @@ import { easeInOut, useAnimate } from 'framer-motion';
 import { memo, useEffect, useRef, useState } from 'react';
 import { cssTransition, toast, ToastContainer } from 'react-toastify';
 import { useMessageParser, usePromptEnhancer, useShortcuts, useSnapScroll } from '@/components/bolt/lib/hooks';
-import { useChatHistory } from '@/components/bolt/lib/persistence';
+// import { useChatHistory } from '@/components/bolt/lib/persistence';
 import { chatStore } from '@/components/bolt/lib/stores/chat';
 import { workbenchStore } from '@/components/bolt/lib/stores/workbench';
 import { fileModificationsToHTML } from '@/components/bolt/utils/diff';
@@ -76,6 +76,7 @@ export const ChatImpl = memo(({ initialMessages, storeMessageHistory }: ChatProp
 
   const { messages, isLoading, input, handleInputChange, setInput, stop, append } = useChat({
     api: `${process.env.NEXT_PUBLIC_API_BASE_URL}api/chat`,
+    // api: `http://localhost:5173/api/chat`,
     onError: (error) => {
       toast.error('There was an error processing your request');
     },
