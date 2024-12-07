@@ -15,9 +15,10 @@ interface MessagesProps {
 
 export const Messages = React.forwardRef<HTMLDivElement, MessagesProps>((props: MessagesProps, ref) => {
   const { id, isStreaming = false, messages = [] } = props;
-
+  const messagesId = id ?? crypto.randomUUID();
+  
   return (
-    <div id={id} ref={ref} className={props.className}>
+    <div id={messagesId} ref={ref} className={props.className}>
       {messages.length > 0
         ? messages.map((message, index) => {
             const { role, content } = message;

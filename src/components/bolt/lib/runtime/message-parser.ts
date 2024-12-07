@@ -54,9 +54,7 @@ interface MessageState {
 export class StreamingMessageParser {
   #messages = new Map<string, MessageState>();
 
-  constructor(private _options: StreamingMessageParserOptions = {}) {
-    logger.info('StreamingMessageParser initialized with options:', _options);
-  }
+  constructor(private _options: StreamingMessageParserOptions = {}) {}
 
   parse(messageId: string, input: string) {
     let state = this.#messages.get(messageId);
@@ -79,7 +77,6 @@ export class StreamingMessageParser {
 
     while (i < input.length) {
       if (state.insideArtifact) {
-        logger.debug('Inside artifact');
         const currentArtifact = state.currentArtifact;
 
         if (currentArtifact === undefined) {
@@ -87,13 +84,11 @@ export class StreamingMessageParser {
         }
 
         if (state.insideAction) {
-          logger.debug('Inside action');
           const closeIndex = input.indexOf(ARTIFACT_ACTION_TAG_CLOSE, i);
 
           const currentAction = state.currentAction;
 
           if (closeIndex !== -1) {
-            logger.debug('Closing action tag found');
             currentAction.content += input.slice(i, closeIndex);
 
             let content = currentAction.content.trim();
@@ -104,11 +99,14 @@ export class StreamingMessageParser {
 
             currentAction.content = content;
 
-            this._options.callbacks?.onActionClose?.({
-              artifactId: currentArtifact.id,
-              messageId,
-              actionId: String(state.actionId - 1),
-              action: currentAction as BoltAction,
+            // Batch callbacks to prevent infinite update loops
+            Promise.resolve().then(() => {
+              this._options.callbacks?.onActionClose?.({
+                artifactId: currentArtifact.id,
+                messageId,
+                actionId: String(state.actionId - 1),
+                action: currentAction as BoltAction,
+              });
             });
 
             state.insideAction = false;
@@ -116,7 +114,6 @@ export class StreamingMessageParser {
 
             i = closeIndex + ARTIFACT_ACTION_TAG_CLOSE.length;
           } else {
-            logger.debug('No closing action tag found, breaking loop');
             break;
           }
         } else {
@@ -127,33 +124,35 @@ export class StreamingMessageParser {
             const actionEndIndex = input.indexOf('>', actionOpenIndex);
 
             if (actionEndIndex !== -1) {
-              logger.debug('Opening action tag found');
               state.insideAction = true;
 
               state.currentAction = this.#parseActionTag(input, actionOpenIndex, actionEndIndex);
 
-              this._options.callbacks?.onActionOpen?.({
-                artifactId: currentArtifact.id,
-                messageId,
-                actionId: String(state.actionId++),
-                action: state.currentAction as BoltAction,
+              // Batch callbacks to prevent infinite update loops
+              Promise.resolve().then(() => {
+                this._options.callbacks?.onActionOpen?.({
+                  artifactId: currentArtifact.id,
+                  messageId,
+                  actionId: String(state.actionId++),
+                  action: state.currentAction as BoltAction,
+                });
               });
 
               i = actionEndIndex + 1;
             } else {
-              logger.debug('No end of action tag found, breaking loop');
               break;
             }
           } else if (artifactCloseIndex !== -1) {
-            logger.debug('Closing artifact tag found');
-            this._options.callbacks?.onArtifactClose?.({ messageId, ...currentArtifact });
+            // Batch callbacks to prevent infinite update loops
+            Promise.resolve().then(() => {
+              this._options.callbacks?.onArtifactClose?.({ messageId, ...currentArtifact });
+            });
 
             state.insideArtifact = false;
             state.currentArtifact = undefined;
 
             i = artifactCloseIndex + ARTIFACT_TAG_CLOSE.length;
           } else {
-            logger.debug('No closing artifact tag found, breaking loop');
             break;
           }
         }
@@ -176,7 +175,6 @@ export class StreamingMessageParser {
             const openTagEnd = input.indexOf('>', j);
 
             if (openTagEnd !== -1) {
-              logger.debug('Opening artifact tag found');
               const artifactTag = input.slice(i, openTagEnd + 1);
 
               const artifactTitle = this.#extractAttribute(artifactTag, 'title') as string;
@@ -199,7 +197,10 @@ export class StreamingMessageParser {
 
               state.currentArtifact = currentArtifact;
 
-              this._options.callbacks?.onArtifactOpen?.({ messageId, ...currentArtifact });
+              // Batch callbacks to prevent infinite update loops
+              Promise.resolve().then(() => {
+                this._options.callbacks?.onArtifactOpen?.({ messageId, ...currentArtifact });
+              });
 
               const artifactFactory = this._options.artifactElement ?? createArtifactElement;
 
@@ -207,7 +208,6 @@ export class StreamingMessageParser {
 
               i = openTagEnd + 1;
             } else {
-              logger.debug('No end of artifact tag found, breaking loop');
               earlyBreak = true;
             }
 
@@ -240,12 +240,10 @@ export class StreamingMessageParser {
   }
 
   reset() {
-    logger.info('Resetting parser state');
     this.#messages.clear();
   }
 
   #parseActionTag(input: string, actionOpenIndex: number, actionEndIndex: number) {
-    logger.debug('Parsing action tag');
     const actionTag = input.slice(actionOpenIndex, actionEndIndex + 1);
 
     const actionType = this.#extractAttribute(actionTag, 'type') as ActionType;
@@ -271,22 +269,16 @@ export class StreamingMessageParser {
   }
 
   #extractAttribute(tag: string, attributeName: string): string | undefined {
-    logger.debug(`Extracting attribute: ${attributeName} from tag: ${tag}`);
     const match = tag.match(new RegExp(`${attributeName}="([^"]*)"`, 'i'));
     return match ? match[1] : undefined;
   }
 }
 
 const createArtifactElement: ElementFactory = (props) => {
-  logger.debug('Creating artifact element');
   const elementProps = [
     'class="__boltArtifact__"',
     ...Object.entries(props).map(([key, value]) => {
-      logger.debug(`Processing prop: ${key} with value: ${value}`);
-      const dashKey = camelToDashCase(key);
-      const jsonValue = JSON.stringify(value);
-      console.log(`Converting prop: ${key} to data-${dashKey} with value ${jsonValue}`);
-      return `data-${dashKey}=${jsonValue}`;
+      return `data-${camelToDashCase(key)}=${JSON.stringify(value)}`;
     }),
   ];
 
@@ -294,6 +286,5 @@ const createArtifactElement: ElementFactory = (props) => {
 };
 
 function camelToDashCase(input: string) {
-  logger.debug(`Converting camelCase to dash-case for input: ${input}`);
   return input.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase();
 }

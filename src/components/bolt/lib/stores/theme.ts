@@ -13,7 +13,7 @@ export const DEFAULT_THEME = 'light';
 export const themeStore = atom<Theme>(initStore());
 
 function initStore() {
-  if (!process.env.SSR) {
+  if (!process.env.NEXT_PUBLIC_SSR) {
     const persistedTheme = localStorage.getItem(kTheme) as Theme | undefined;
     const themeAttribute = document.querySelector('html')?.getAttribute('data-theme');
 

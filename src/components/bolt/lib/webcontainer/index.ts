@@ -13,7 +13,7 @@ export let webcontainer: Promise<WebContainer> = new Promise(() => {
   // noop for ssr
 });
 
-if (!process.env.SSR) {
+if (!process.env.NEXT_PUBLIC_SSR) {
   webcontainer =
     Promise.resolve()
       .then(() => {

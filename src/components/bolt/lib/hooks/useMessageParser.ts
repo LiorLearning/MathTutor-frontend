@@ -47,7 +47,7 @@ export function useMessageParser() {
   const parseMessages = useCallback((messages: Message[], isLoading: boolean) => {
     let reset = false;
 
-    if (process.env.DEV && !isLoading) {
+    if (process.env.NEXT_PUBLIC_DEV && !isLoading) {
       reset = true;
       messageParser.reset();
     }

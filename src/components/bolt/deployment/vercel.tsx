@@ -1,43 +1,61 @@
 import { Octokit } from '@octokit/rest';
 import path from 'path';
 import type { WebContainer } from '@webcontainer/api';
+import { Vercel } from '@vercel/sdk'
+import { createScopedLogger } from '@/components/bolt/utils/logger';
+
+const logger = createScopedLogger('VercelDeployer');
+
+const vercel = new Vercel({
+  bearerToken: process.env.NEXT_PUBLIC_VERCEL_TOKEN,
+  serverURL: 'https://api.vercel.com'
+});
 
 export class VercelDeployer {
   private githubClient: Octokit;
 
-  constructor(githubToken: string) {
+  constructor(githubToken?: string) {
+    if (!githubToken) {
+      logger.error('GitHub token is required for deployment');
+      throw new Error('GitHub token is required for deployment');
+    }
+    logger.debug('Initializing VercelDeployer with GitHub token');
     this.githubClient = new Octokit({ auth: githubToken });
   }
 
   private async extractProjectFiles(webcontainer: WebContainer) {
+    logger.debug('Extracting project files from WebContainer');
     const fs = webcontainer.fs;
     const projectFiles: Record<string, string> = {};
   
     async function traverseDirectory(dir = '/') {
-      const entries = await fs.readdir(dir);
+      const entries = await fs.readdir(dir, { withFileTypes: true });
+      logger.trace(`Traversing directory: ${dir}, found ${entries.length} entries`);
       
       for (const entry of entries) {
-        const fullPath = path.join(dir, entry);
-        const stats = await fs.stat(fullPath);
+        const fullPath = path.join(dir, entry.name);
         
-        if (stats.isDirectory()) {
+        if (entry.isDirectory()) {
           await traverseDirectory(fullPath);
         } else {
           const content = await fs.readFile(fullPath, 'utf-8');
           // Normalize path to remove leading /
           const normalizedPath = fullPath.replace(/^\//, '');
           projectFiles[normalizedPath] = content;
+          logger.trace(`Added file: ${normalizedPath}`);
         }
       }
     }
   
     await traverseDirectory();
+    logger.debug(`Extracted ${Object.keys(projectFiles).length} files from WebContainer`);
     return projectFiles;
   }
 
   private async createGitHubRepository(projectFiles: Record<string, string>) {
     // Generate a unique repository name
     const repoName = `generated-project-${Date.now()}`;
+    logger.info(`Creating GitHub repository: ${repoName}`);
 
     // Create a new repository
     const repo = await this.githubClient.repos.createForAuthenticatedUser({
@@ -45,8 +63,10 @@ export class VercelDeployer {
       private: false,
       auto_init: true // Create with a README to initialize
     });
+    logger.debug(`Repository created: ${repo.data.html_url}`);
 
     // Create files in the repository
+    logger.debug(`Adding ${Object.keys(projectFiles).length} files to repository`);
     for (const [path, content] of Object.entries(projectFiles)) {
       await this.githubClient.repos.createOrUpdateFileContents({
         owner: repo.data.owner.login,
@@ -56,6 +76,7 @@ export class VercelDeployer {
         content: Buffer.from(content).toString('base64'),
         branch: 'main'
       });
+      logger.trace(`Added file to repository: ${path}`);
     }
 
     return {
@@ -71,28 +92,38 @@ export class VercelDeployer {
     repoName: string 
   }) {
     try {
-      // Deploy to Vercel using GitHub repository URL
-      const vercelDeployment = await vercel.deployments.create({
-        repository: githubRepoInfo.repoUrl,
-        team: null, // Optional: specify Vercel team
-        project: {
+      logger.info(`Deploying repository to Vercel: ${githubRepoInfo.repoUrl}`);
+      // Deploy to Vercel using Git source
+      const vercelDeployment = await vercel.deployments.createDeployment({
+        requestBody: {
+          gitMetadata: {
+            remoteUrl: githubRepoInfo.repoUrl,
+            commitRef: "main",
+            dirty: true,
+          },
           name: `generated-project-${Date.now()}`,
-          framework: 'nextjs' // Or appropriate framework
+          projectSettings: {
+            framework: "nextjs",
+            buildCommand: "npm run build",
+            outputDirectory: ".next"
+          }
         }
       });
 
+      logger.info(`Deployment successful. URL: ${vercelDeployment.url}`);
       return {
         deploymentUrl: vercelDeployment.url,
-        previewUrl: vercelDeployment.preview_url
+        previewUrl: vercelDeployment.alias // Vercel API returns alias instead of preview_url
       };
     } catch (error) {
-      console.error('Vercel deployment error:', error);
+      logger.error('Vercel deployment error:', error);
       throw error;
     }
   }
 
   async deployWebContainerProject(webcontainer: WebContainer) {
     try {
+      logger.info('Starting WebContainer project deployment');
       // Step 1: Extract files from WebContainer
       const projectFiles = await this.extractProjectFiles(webcontainer);
 
@@ -102,13 +133,14 @@ export class VercelDeployer {
       // Step 3: Deploy to Vercel
       const deployment = await this.deployToVercel(githubRepoInfo);
 
+      logger.info('Deployment completed successfully');
       return {
         success: true,
         shareableLink: deployment.previewUrl,
         deploymentDetails: deployment
       };
     } catch (error) {
-      console.error('Deployment failed:', error);
+      logger.error('Deployment failed:', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error occurred'

@@ -16,7 +16,7 @@ export interface ChatHistoryItem {
   timestamp: string;
 }
 
-const persistenceEnabled = !process.env.VITE_DISABLE_PERSISTENCE;
+const persistenceEnabled = !process.env.NEXT_PUBLIC_VITE_DISABLE_PERSISTENCE;
 
 export let db: IDBDatabase | undefined;
 if (persistenceEnabled) {

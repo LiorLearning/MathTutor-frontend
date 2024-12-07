@@ -1,7 +1,7 @@
 'use client'
 
 import { useStore } from '@nanostores/react';
-import { easeInOut, motion, type HTMLMotionProps, type Variants } from 'framer-motion';
+import { easeInOut, motion, type Variants } from 'framer-motion';
 import { computed } from 'nanostores';
 import { memo, useCallback, useEffect } from 'react';
 import { toast } from 'react-toastify';
@@ -13,6 +13,8 @@ import { IconButton } from '../ui/IconButton';
 import { PanelHeaderButton } from '../ui/PanelHeaderButton';
 import { Slider, type SliderOptions } from '../ui/Slider';
 import { workbenchStore, type WorkbenchViewType } from '../../lib/stores/workbench';
+import { VercelDeployer } from '../../deployment/vercel';
+import { webcontainer } from '@/components/bolt/lib/webcontainer';
 
 import { classNames } from '../../utils/classNames';
 import { renderLogger } from '../../utils/logger';
@@ -101,6 +103,24 @@ export const Workbench = memo(({ chatStarted, isStreaming }: WorkspaceProps) => 
     workbenchStore.resetCurrentDocument();
   }, []);
 
+  const onDeploy = useCallback(async () => {
+    try {
+      console.log("Token: ", process.env.NEXT_PUBLIC_GITHUB_TOKEN)
+      const deployer = new VercelDeployer(process.env.NEXT_PUBLIC_GITHUB_TOKEN || '');
+      const webContainerInstance = await webcontainer;
+      const result = await deployer.deployWebContainerProject(webContainerInstance);
+      
+      if (result.success) {
+        toast.success(`Deployed successfully! URL: ${result.shareableLink}`);
+      } else {
+        toast.error(`Deployment failed: ${result.error}`);
+      }
+    } catch (error) {
+      toast.error('Failed to deploy project');
+      console.error(error);
+    }
+  }, []);
+
   return (
     chatStarted && (
       <motion.div
@@ -120,16 +140,25 @@ export const Workbench = memo(({ chatStarted, isStreaming }: WorkspaceProps) => 
                 <Slider selected={selectedView} options={sliderOptions} setSelected={setSelectedView} />
                 <div className="ml-auto" />
                 {selectedView === 'code' && (
-                  <PanelHeaderButton
-                    className="mr-1 text-sm"
-                    onClick={() => {
-                      workbenchStore.toggleTerminal(!workbenchStore.showTerminal.get());
-                    }}
-                  >
-                    <div className="i-ph:terminal" />
-                    Toggle Terminal
-                  </PanelHeaderButton>
+                  <>
+                    <PanelHeaderButton
+                      className="mr-1 text-sm"
+                      onClick={() => {
+                        workbenchStore.toggleTerminal(!workbenchStore.showTerminal.get());
+                      }}
+                    >
+                      <div className="i-ph:terminal" />
+                      Toggle Terminal
+                    </PanelHeaderButton>
+                  </>
                 )}
+                <PanelHeaderButton
+                    className="mr-1 text-sm"
+                    onClick={onDeploy}
+                  >
+                    <div className="i-ph:rocket-launch" />
+                    Deploy to Vercel
+                  </PanelHeaderButton>
                 <IconButton
                   icon="i-ph:x-circle"
                   className="-mr-1"
