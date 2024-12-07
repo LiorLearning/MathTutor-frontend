@@ -21,6 +21,7 @@ import { renderLogger } from '@/components/bolt/utils/logger';
 import { EditorPanel } from './EditorPanel';
 import { Preview } from './Preview';
 import { useWebSocket } from '@/components/bolt/components/websocket';
+import { FileMap } from '../../lib/stores/files';
 
 interface WorkspaceProps {
   chatStarted?: boolean;
@@ -109,14 +110,24 @@ export const Workbench = memo(({ chatStarted, isStreaming }: WorkspaceProps) => 
   }, []);
 
   const sendFilesToWebSocket = useCallback(() => {
-    Object.entries(files).forEach(([fileName, fileData]) => {
-      if (fileData?.type === 'file') {
-        sendJsonMessage({
-          fileName,
-          content: fileData.content,
-        });
+    const fileMap = Object.entries(files).reduce((acc, [fileName, fileData]) => {
+      if (fileData) {
+        if (fileData.type === 'file') {
+          acc[fileName] = {
+            type: 'file',
+            content: fileData.content,
+            isBinary: fileData.isBinary,
+          };
+        } else if (fileData.type === 'folder') {
+          acc[fileName] = {
+            type: 'folder',
+          };
+        }
       }
-    });
+      return acc;
+    }, {} as FileMap);
+
+    sendJsonMessage({ files: fileMap });
   }, [files, sendJsonMessage]);
 
   return (

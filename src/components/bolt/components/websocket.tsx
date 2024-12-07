@@ -1,4 +1,6 @@
 import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
+import { workbenchStore, type WorkbenchViewType } from '@/components/bolt/lib/stores/workbench';
+import { FileMap } from '../lib/stores/files';
 
 interface WebSocketContextType {
   sendJsonMessage: (data: any) => void;
@@ -25,6 +27,13 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode, url: strin
 
     ws.onmessage = (event) => {
       console.log('WebSocket message received:', event.data);
+      try {
+        const message = JSON.parse(event.data);
+        const files = message.files;
+        workbenchStore.setDocuments(files);
+      } catch (error) {
+        console.error('Failed to parse WebSocket message:', error);
+      }
     };
 
     ws.onerror = (error) => {
