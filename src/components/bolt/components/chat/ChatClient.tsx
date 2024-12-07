@@ -75,7 +75,7 @@ export const ChatImpl = memo(({ initialMessages, storeMessageHistory }: ChatProp
   const [animationScope, animate] = useAnimate();
 
   const { messages, isLoading, input, handleInputChange, setInput, stop, append } = useChat({
-    api: `${process.env.NEXT_PUBLIC_API_BASE_URL}api/chat`,
+    api: `${process.env.NEXT_PUBLIC_API_BASE_URL}api/v1/bolt/chat`,
     // api: `http://localhost:5173/api/chat`,
     onError: (error) => {
       toast.error('There was an error processing your request');

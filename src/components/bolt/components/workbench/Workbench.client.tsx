@@ -20,6 +20,7 @@ import { classNames } from '@/components/bolt/utils/classNames'
 import { renderLogger } from '@/components/bolt/utils/logger';
 import { EditorPanel } from './EditorPanel';
 import { Preview } from './Preview';
+import { useWebSocket } from '@/app/test/websocket';
 
 interface WorkspaceProps {
   chatStarted?: boolean;
@@ -66,6 +67,10 @@ export const Workbench = memo(({ chatStarted, isStreaming }: WorkspaceProps) => 
   const unsavedFiles = useStore(workbenchStore.unsavedFiles);
   const files = useStore(workbenchStore.files);
   const selectedView = useStore(workbenchStore.currentView);
+  const webSocketContext = useWebSocket();
+  const sendJsonMessage = webSocketContext ? webSocketContext.sendJsonMessage : () => {
+    console.error('WebSocket context is not available');
+  };
 
   const setSelectedView = (view: WorkbenchViewType) => {
     workbenchStore.currentView.set(view);
@@ -103,6 +108,17 @@ export const Workbench = memo(({ chatStarted, isStreaming }: WorkspaceProps) => 
     workbenchStore.resetCurrentDocument();
   }, []);
 
+  const sendFilesToWebSocket = useCallback(() => {
+    Object.entries(files).forEach(([fileName, fileData]) => {
+      if (fileData?.type === 'file') {
+        sendJsonMessage({
+          fileName,
+          content: fileData.content,
+        });
+      }
+    });
+  }, [files, sendJsonMessage]);
+
   return (
     chatStarted && (
       <motion.div
@@ -134,6 +150,13 @@ export const Workbench = memo(({ chatStarted, isStreaming }: WorkspaceProps) => 
                     </PanelHeaderButton>
                   </>
                 )}
+                <PanelHeaderButton
+                  className="mr-1 text-sm"
+                  onClick={sendFilesToWebSocket}
+                >
+                  <div className="i-ph:upload" />
+                  Send Files
+                </PanelHeaderButton>
                 <IconButton
                   icon="i-ph:x-circle"
                   className="-mr-1"
