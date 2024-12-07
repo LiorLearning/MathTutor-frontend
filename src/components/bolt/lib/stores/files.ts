@@ -43,7 +43,13 @@ export class FilesStore {
   /**
    * Map of files that matches the state of WebContainer.
    */
-  files: MapStore<FileMap> = map({});
+  files: MapStore<FileMap> = map({
+    '/home/project/README.md': {
+      type: 'file',
+      content: '# Welcome to the Project\n\nThis is the initial readme file.',
+      isBinary: false,
+    },
+  });
 
   get filesCount() {
     return this.#size;

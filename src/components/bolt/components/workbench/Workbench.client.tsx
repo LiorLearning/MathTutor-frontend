@@ -20,7 +20,7 @@ import { classNames } from '@/components/bolt/utils/classNames'
 import { renderLogger } from '@/components/bolt/utils/logger';
 import { EditorPanel } from './EditorPanel';
 import { Preview } from './Preview';
-import { useWebSocket } from '@/app/test/websocket';
+import { useWebSocket } from '@/components/bolt/components/websocket';
 
 interface WorkspaceProps {
   chatStarted?: boolean;

@@ -10,15 +10,13 @@ export const useWebSocket = () => {
   return useContext(WebSocketContext);
 };
 
-export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [socket, setSocket] = useState<WebSocket | null>(null);
+export const WebSocketProvider: React.FC<{ children: React.ReactNode, url: string }> = ({ children, url }) => {
   const [isConnected, setIsConnected] = useState(false);
   const socketRef = useRef<WebSocket | null>(null);
 
   useEffect(() => {
-    const ws = new WebSocket('ws://localhost:8000/ws');
+    const ws = new WebSocket(url);
     socketRef.current = ws;
-    setSocket(ws);
 
     ws.onopen = () => {
       console.log('WebSocket connection established');
@@ -41,7 +39,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     return () => {
       ws.close();
     };
-  }, []);
+  }, [url]);
 
   const sendJsonMessage = (data: any) => {
     if (socketRef.current && isConnected) {
