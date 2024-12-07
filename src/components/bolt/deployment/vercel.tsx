@@ -20,7 +20,15 @@ export class VercelDeployer {
       throw new Error('GitHub token is required for deployment');
     }
     logger.debug('Initializing VercelDeployer with GitHub token');
-    this.githubClient = new Octokit({ auth: githubToken });
+    this.githubClient = new Octokit({ 
+      auth: githubToken,
+      baseUrl: 'https://api.github.com',
+      headers: {
+        accept: 'application/vnd.github.v3+json',
+        'X-GitHub-Api-Version': '2022-11-28' // Latest GitHub API version
+      },
+      userAgent: 'MathTutor/1.0.0' // Optional but can help with API calls
+    });
   }
 
   private async extractProjectFiles(webcontainer: WebContainer) {
@@ -53,37 +61,48 @@ export class VercelDeployer {
   }
 
   private async createGitHubRepository(projectFiles: Record<string, string>) {
-    // Generate a unique repository name
-    const repoName = `generated-project-${Date.now()}`;
-    logger.info(`Creating GitHub repository: ${repoName}`);
+    try {
+      const repoName = `generated-project-${Date.now()}`;
+      logger.info(`Creating GitHub repository: ${repoName}`);
 
-    // Create a new repository
-    const repo = await this.githubClient.repos.createForAuthenticatedUser({
-      name: repoName,
-      private: false,
-      auto_init: true // Create with a README to initialize
-    });
-    logger.debug(`Repository created: ${repo.data.html_url}`);
-
-    // Create files in the repository
-    logger.debug(`Adding ${Object.keys(projectFiles).length} files to repository`);
-    for (const [path, content] of Object.entries(projectFiles)) {
-      await this.githubClient.repos.createOrUpdateFileContents({
-        owner: repo.data.owner.login,
-        repo: repoName,
-        path,
-        message: `Add ${path}`,
-        content: Buffer.from(content).toString('base64'),
-        branch: 'main'
+      // Create a new repository
+      const repo = await this.githubClient.repos.createForAuthenticatedUser({
+        name: repoName,
+        private: false,
+        auto_init: true // Initialize with README to have a base commit
       });
-      logger.trace(`Added file to repository: ${path}`);
-    }
+      logger.debug(`Repository created: ${repo.data.html_url}`);
 
-    return {
-      repoUrl: repo.data.clone_url,
-      owner: repo.data.owner.login,
-      repoName
-    };
+      // Create files using REST API method
+      for (const [filePath, content] of Object.entries(projectFiles)) {
+        await this.githubClient.repos.createOrUpdateFileContents({
+          owner: repo.data.owner.login,
+          repo: repoName,
+          path: filePath,
+          message: `Add ${filePath}`,
+          content: Buffer.from(content).toString('base64'),
+          branch: 'main'
+        });
+      }
+
+      return {
+        repoUrl: repo.data.clone_url,
+        owner: repo.data.owner.login,
+        repoName
+      };
+    } catch (error) {
+      if (error instanceof Error) {
+        logger.error('Detailed GitHub API Error:', {
+          message: error.message,
+          status: (error as any).status,
+          response: (error as any).response?.data,
+          headers: (error as any).headers
+        });
+      } else {
+        logger.error('An unknown error occurred');
+      }
+      throw error;
+    }
   }
 
   private async deployToVercel(githubRepoInfo: { 

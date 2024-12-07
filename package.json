@@ -4,13 +4,15 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev", 
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test": "vitest",
+    "test:coverage": "vitest --coverage"
   },
   "engines": {
-    "node": ">=18.18.0"
+    "node": ">=18.20.5"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^0.0.39",
@@ -79,12 +81,13 @@
     "rehype-raw": "^7.0.0",
     "rehype-sanitize": "^6.0.0",
     "remark-gfm": "^4.0.0",
-    "remix-utils": "^7.0.1",
+    "remix-utils": "^7.0.0",
     "sass": "^1.82.0",
     "shiki": "^1.9.1",
     "tailwind-merge": "^2.5.3",
     "tailwindcss-animate": "^1.0.7",
-    "unist-util-visit": "^5.0.0"
+    "unist-util-visit": "^5.0.0",
+    "vitest": "^2.1.8"
   },
   "devDependencies": {
     "@types/aos": "^3.0.7",

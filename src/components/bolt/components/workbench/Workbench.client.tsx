@@ -8,16 +8,17 @@ import { toast } from 'react-toastify';
 import {
   type OnChangeCallback as OnEditorChange,
   type OnScrollCallback as OnEditorScroll,
-} from '../codemirror/CodeMirrorEditor';
-import { IconButton } from '../ui/IconButton';
-import { PanelHeaderButton } from '../ui/PanelHeaderButton';
-import { Slider, type SliderOptions } from '../ui/Slider';
-import { workbenchStore, type WorkbenchViewType } from '../../lib/stores/workbench';
-import { VercelDeployer } from '../../deployment/vercel';
+} from '@/components/bolt/components/codemirror/CodeMirrorEditor';
+import { IconButton } from '@/components/bolt/components/ui/IconButton';
+
+import { PanelHeaderButton } from '@/components/bolt/components/ui/PanelHeaderButton';
+import { Slider, type SliderOptions } from '@/components/bolt/components/ui/Slider';
+import { workbenchStore, type WorkbenchViewType } from '@/components/bolt/lib/stores/workbench';
+import { VercelDeployer } from '@/components/bolt/deployment/vercel';
 import { webcontainer } from '@/components/bolt/lib/webcontainer';
 
-import { classNames } from '../../utils/classNames';
-import { renderLogger } from '../../utils/logger';
+import { classNames } from '@/components/bolt/utils/classNames'
+import { renderLogger } from '@/components/bolt/utils/logger';
 import { EditorPanel } from './EditorPanel';
 import { Preview } from './Preview';
 

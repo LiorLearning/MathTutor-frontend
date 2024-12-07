@@ -9,18 +9,8 @@ export const webcontainerContext: WebContainerContext = {
   loaded: false,
 };
 
-export let webcontainer: Promise<WebContainer> = new Promise(() => {
-  // noop for ssr
-});
-
-if (!process.env.NEXT_PUBLIC_SSR) {
-  webcontainer =
-    Promise.resolve()
-      .then(() => {
-        return WebContainer.boot({ workdirName: WORK_DIR_NAME });
-      })
-      .then((webcontainer) => {
-        webcontainerContext.loaded = true;
-        return webcontainer;
-      });
-}
+export const webcontainer = (async () => {
+  const webcontainer = await WebContainer.boot({ workdirName: WORK_DIR_NAME });
+  webcontainerContext.loaded = true;
+  return webcontainer;
+})();
