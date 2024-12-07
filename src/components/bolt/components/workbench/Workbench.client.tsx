@@ -14,7 +14,6 @@ import { IconButton } from '@/components/bolt/components/ui/IconButton';
 import { PanelHeaderButton } from '@/components/bolt/components/ui/PanelHeaderButton';
 import { Slider, type SliderOptions } from '@/components/bolt/components/ui/Slider';
 import { workbenchStore, type WorkbenchViewType } from '@/components/bolt/lib/stores/workbench';
-import { VercelDeployer } from '@/components/bolt/deployment/vercel';
 import { webcontainer } from '@/components/bolt/lib/webcontainer';
 
 import { classNames } from '@/components/bolt/utils/classNames'
@@ -104,24 +103,6 @@ export const Workbench = memo(({ chatStarted, isStreaming }: WorkspaceProps) => 
     workbenchStore.resetCurrentDocument();
   }, []);
 
-  const onDeploy = useCallback(async () => {
-    try {
-      console.log("Token: ", process.env.NEXT_PUBLIC_GITHUB_TOKEN)
-      const deployer = new VercelDeployer(process.env.NEXT_PUBLIC_GITHUB_TOKEN || '');
-      const webContainerInstance = await webcontainer;
-      const result = await deployer.deployWebContainerProject(webContainerInstance);
-      
-      if (result.success) {
-        toast.success(`Deployed successfully! URL: ${result.shareableLink}`);
-      } else {
-        toast.error(`Deployment failed: ${result.error}`);
-      }
-    } catch (error) {
-      toast.error('Failed to deploy project');
-      console.error(error);
-    }
-  }, []);
-
   return (
     chatStarted && (
       <motion.div
@@ -153,13 +134,6 @@ export const Workbench = memo(({ chatStarted, isStreaming }: WorkspaceProps) => 
                     </PanelHeaderButton>
                   </>
                 )}
-                <PanelHeaderButton
-                    className="mr-1 text-sm"
-                    onClick={onDeploy}
-                  >
-                    <div className="i-ph:rocket-launch" />
-                    Deploy to Vercel
-                  </PanelHeaderButton>
                 <IconButton
                   icon="i-ph:x-circle"
                   className="-mr-1"
