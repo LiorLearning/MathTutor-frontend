@@ -10,7 +10,7 @@ export function Base() {
     <div className="flex flex-col h-full w-full">
       <ClientOnly fallback={<BaseChat />}>
         {() => (
-          <WebSocketProvider url={`${process.env.NEXT_PUBLIC_WS_BASE_URL}/bolt/ws/admin`}>
+          <WebSocketProvider url={`${process.env.NEXT_PUBLIC_WS_BASE_URL}/bolt/ws/testuser/1/admin`}>
             <Chat />
           </WebSocketProvider>
         )}
