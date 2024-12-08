@@ -70,33 +70,37 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode, url: strin
     ws.onmessage = (event) => {
       try {
         const message = JSON.parse(event.data);
-        const files: FileMap = message.files;
-
-        for (const path in files) {
-          if (files.hasOwnProperty(path)) {
-            const dirent = files[path];
-            if (dirent?.type === 'file') {
-              const { content, isBinary } = dirent;
-              const action = {
-                artifactId: 'artifact1',
-                messageId: 'message1',
-                actionId: String(actionCount++),
-                action: {
-                  type: 'file',
-                  content: content,
-                  filePath: getFilteredPathName(path),
-                } as FileAction,
-              };
-
-              actionRunner.addAction(action);
-              actionRunner.runAction(action);
+        const role = message.role;
+        if (role == 'admin') {
+          const files: FileMap = message.content.files;
+  
+          for (const path in files) {
+            if (files.hasOwnProperty(path)) {
+              const dirent = files[path];
+              if (dirent?.type === 'file') {
+                const { content } = dirent;
+                const action = {
+                  artifactId: 'artifact1',
+                  messageId: 'message1',
+                  actionId: String(actionCount++),
+                  action: {
+                    type: 'file',
+                    content: content,
+                    filePath: getFilteredPathName(path),
+                  } as FileAction,
+                };
+  
+                actionRunner.addAction(action);
+                actionRunner.runAction(action);
+              }
             }
           }
+
+          runCommands();
         }
       } catch (error) {
         console.error('Failed to parse WebSocket message:', error);
       }
-      runCommands();
     };
 
     ws.onerror = (error) => {

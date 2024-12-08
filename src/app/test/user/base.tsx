@@ -13,7 +13,8 @@ export function Base() {
         {() => (
           <WebSocketProvider url={`${process.env.NEXT_PUBLIC_WS_BASE_URL}/bolt/ws/testuser/1/user`}>
             <div className="h-screen">
-              <Preview />
+              {/* <Preview /> */}
+              <Workbench isStreaming={false} chatStarted={true} />
             </div>
           </WebSocketProvider>
         )}
