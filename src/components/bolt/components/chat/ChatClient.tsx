@@ -5,19 +5,13 @@ import type { Message } from 'ai';
 import { useChat } from 'ai/react';
 import { easeInOut, useAnimate } from 'framer-motion';
 import { memo, useEffect, useRef, useState } from 'react';
-import { cssTransition, toast, ToastContainer } from 'react-toastify';
+import { toast } from 'react-toastify';
 import { useMessageParser, usePromptEnhancer, useShortcuts, useSnapScroll } from '@/components/bolt/lib/hooks';
-// import { useChatHistory } from '@/components/bolt/lib/persistence';
 import { chatStore } from '@/components/bolt/lib/stores/chat';
 import { workbenchStore } from '@/components/bolt/lib/stores/workbench';
 import { fileModificationsToHTML } from '@/components/bolt/utils/diff';
 import { createScopedLogger, renderLogger } from '@/components/bolt/utils/logger';
 import { BaseChat } from './BaseChat';
-
-const toastAnimation = cssTransition({
-  enter: 'animated fadeInRight',
-  exit: 'animated fadeOutRight',
-});
 
 const logger = createScopedLogger('Chat');
 
@@ -30,30 +24,6 @@ export function Chat() {
   return (
     <>
       <ChatImpl initialMessages={initialMessages} storeMessageHistory={async (msg: Message[]) => {}} />
-      <ToastContainer
-        closeButton={({ closeToast }) => {
-          return (
-            <button className="Toastify__close-button" onClick={closeToast}>
-              <div className="i-ph:x text-lg" />
-            </button>
-          );
-        }}
-        icon={({ type }) => {
-          switch (type) {
-            case 'success': {
-              return <div className="i-ph:check-bold text-bolt-elements-icon-success text-2xl" />;
-            }
-            case 'error': {
-              return <div className="i-ph:warning-circle-bold text-bolt-elements-icon-error text-2xl" />;
-            }
-          }
-
-          return undefined;
-        }}
-        position="bottom-right"
-        pauseOnFocusLoss
-        transition={toastAnimation}
-      />
     </>
   );
 }
@@ -76,9 +46,8 @@ export const ChatImpl = memo(({ initialMessages, storeMessageHistory }: ChatProp
 
   const { messages, isLoading, input, handleInputChange, setInput, stop, append } = useChat({
     api: `${process.env.NEXT_PUBLIC_API_BASE_URL}api/v1/bolt/chat`,
-    // api: `http://localhost:5173/api/chat`,
     onError: (error) => {
-      toast.error('There was an error processing your request');
+      console.log('There was an error processing your request: ', error);
     },
     onFinish: () => {},
     initialMessages,
@@ -133,11 +102,6 @@ export const ChatImpl = memo(({ initialMessages, storeMessageHistory }: ChatProp
     if (chatStarted) {
       return;
     }
-
-    await Promise.all([
-      animate('#examples', { opacity: 0, display: 'none' }, { duration: 0.1 }),
-      animate('#intro', { opacity: 0, flex: 1 }, { duration: 0.2, ease: easeInOut }),
-    ]);
 
     chatStore.setKey('started', true);
     setChatStarted(true);

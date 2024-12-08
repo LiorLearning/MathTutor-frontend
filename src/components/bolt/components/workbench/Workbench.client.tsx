@@ -140,7 +140,7 @@ export const Workbench = memo(({ chatStarted, isStreaming }: WorkspaceProps) => 
       >
         <div
           className={classNames(
-            'flex w-full h-full mr-4 z-0 transition-[left,width] duration-200 bolt-ease-cubic-bezier',
+            'flex w-full h-full transition-[left,width] duration-200 bolt-ease-cubic-bezier',
           )}
         >
           <div className="relative w-full h-full px-6">
