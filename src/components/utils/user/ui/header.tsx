@@ -75,7 +75,7 @@ const Header: React.FC<HeaderProps> = ({ username, isChatConnected, speakout, to
                 <span>Settings</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>
+              <DropdownMenuItem onSelect={(event) => event.preventDefault()}>
                 <AudioSelector />
               </DropdownMenuItem>
               <DropdownMenuSeparator />
