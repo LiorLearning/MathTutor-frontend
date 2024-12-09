@@ -8,7 +8,7 @@ export default function Header({ color }: { color: string }) {
           {/* Site branding */}
           <div className="flex flex-1 items-center" style={{ color: `${color} !important` }}>
             {/* <Logo /> */}
-            <span className="ml-3 text-[1.2rem] font-bold" style={{ color: `${color} !important` }}>Lior AI</span>
+            <span className="ml-3 text-[1.2rem] font-bold" style={{ color: `${color} !important` }}>Lior Learning</span>
           </div>
           <DarkModeToggle />
         </div>

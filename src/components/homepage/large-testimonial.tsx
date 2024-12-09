@@ -107,20 +107,19 @@ export default function LargeTestimonial() {
         </div>
         
         <div className="flex justify-center">
-          <Image
-            src={BackedBy}
-            width={300}
-            height={300}
-            alt="Backed By Logo"
-          />
+          <p className="text-md font-medium text-muted-foreground">Backed by</p>
         </div>
-        <div className="flex justify-center mt-8 mb-16" style={{ backgroundColor: 'rgb(90, 30, 213)', padding: '1rem' }}>
-          <Image
-            src={EFLogo}
-            width={1200}
-            height={1200}
-            alt="EF Logo"
-          />
+        <div className="mt-4 mb-16">
+          <div className="flex justify-center items-center" style={{ backgroundColor: 'rgb(90, 30, 213)', padding: '1rem', width: '70%', margin: '0 auto' }}>
+            <div className="flex justify-center">
+              <Image
+                src={EFLogo}
+                width={1200}
+                height={1200}
+                alt="EF Logo"
+              />
+            </div>
+          </div>
         </div>
       </div>
     </section>
