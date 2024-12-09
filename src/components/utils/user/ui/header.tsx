@@ -1,9 +1,17 @@
 import React from 'react';
-import { Wifi, WifiOff, Volume2, VolumeX } from 'lucide-react';
+import { Wifi, WifiOff, Volume2, VolumeX, User, Settings, LogOut } from 'lucide-react';
 import { DarkModeToggle } from '@/components/themeContext';
 import { Button } from "@/components/ui/button";
 import AudioSelector from '@/components/audio-selector';
 import { ANDROID_PHONE, IPHONE } from '@/components/utils/common_utils';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 interface HeaderProps {
   username: string;
@@ -21,15 +29,17 @@ const Header: React.FC<HeaderProps> = ({ username, isChatConnected, speakout, to
       <div className="flex justify-between items-center">
         <h1 className="text-lg font-bold">MathTutor</h1>
         <div className="flex items-center gap-2">
-          {!isPhone && <h3 className="text-base text-muted-foreground">{username}</h3>}
-          <div className="mx-4">
-            <AudioSelector />
+          <div className="flex items-center gap-2">
+            {isChatConnected ? (
+              <div className="flex items-center gap-2">
+                <Wifi className="text-green-500" size={16} />
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <WifiOff className="text-red-500" size={16} />
+              </div>
+            )}
           </div>
-          {isChatConnected ? (
-            <Wifi className="text-green-500" size={16} />
-          ) : (
-            <WifiOff className="text-red-500" size={16} />
-          )}
           <DarkModeToggle />
           <Button 
             onClick={toggleSpeakout} 
@@ -37,11 +47,45 @@ const Header: React.FC<HeaderProps> = ({ username, isChatConnected, speakout, to
             variant="ghost"
           >
             {speakout ? (
-              <Volume2 size={16} />
+              <div className="flex items-center gap-2">
+                <Volume2 size={16} />
+              </div>
             ) : (
-              <VolumeX size={16} />
+              <div className="flex items-center gap-2">
+                <VolumeX size={16} />
+              </div>
             )}
           </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="flex items-center gap-2">
+                <User size={16} />
+                <span className="hidden sm:inline">{username}</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>My Account</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem>
+                <User className="mr-2 h-4 w-4" />
+                <span>Profile</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <Settings className="mr-2 h-4 w-4" />
+                <span>Settings</span>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem>
+                <AudioSelector />
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuSeparator />
+              <DropdownMenuItem>
+                <LogOut className="mr-2 h-4 w-4" />
+                <span>Log out</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
     </header>
