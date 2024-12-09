@@ -1,7 +1,7 @@
 'use client'
 
 import { ClientOnly } from 'remix-utils/client-only';
-import { WebSocketProvider } from '@/components/bolt/components/websocket';
+import { UserWebSocketProvider } from '@/components/bolt/components/websocket/user';
 // import { Workbench } from '@/components/bolt/components/workbench/Workbench.client';
 import { FallbackComponent } from '@/components/fallback';
 import { Preview } from '@/components/bolt/components/workbench/Preview';
@@ -24,11 +24,15 @@ interface UserArtifactProps {
     <div className="flex flex-col h-full w-full">
       <ClientOnly fallback={<FallbackComponent />}>
         {() => (
-          <WebSocketProvider base_url={`${process.env.NEXT_PUBLIC_WS_BASE_URL}/bolt/ws/${username}/${sessionId}`} is_admin={false}>
+          <UserWebSocketProvider 
+            base_url={`${process.env.NEXT_PUBLIC_WS_BASE_URL}/bolt/ws/${username}/${sessionId}`}
+            isRightColumnCollapsed={isRightColumnCollapsed}
+            toggleRightColumn={toggleRightColumn}
+          >
             <div className="h-screen m-4">
               <Preview />
             </div>
-          </WebSocketProvider>
+          </UserWebSocketProvider>
         )}
       </ClientOnly>
     </div>

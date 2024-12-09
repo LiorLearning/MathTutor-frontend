@@ -14,13 +14,12 @@ import { IconButton } from '@/components/bolt/components/ui/IconButton';
 import { PanelHeaderButton } from '@/components/bolt/components/ui/PanelHeaderButton';
 import { Slider, type SliderOptions } from '@/components/bolt/components/ui/Slider';
 import { workbenchStore, type WorkbenchViewType } from '@/components/bolt/lib/stores/workbench';
-import { webcontainer } from '@/components/bolt/lib/webcontainer';
 
 import { classNames } from '@/components/bolt/utils/classNames'
 import { renderLogger } from '@/components/bolt/utils/logger';
 import { EditorPanel } from './EditorPanel';
 import { Preview } from './Preview';
-import { useWebSocket } from '@/components/bolt/components/websocket';
+import { useAdminWebSocket } from '@/components/bolt/components/websocket/admin';
 import { FileMap } from '../../lib/stores/files';
 
 interface WorkspaceProps {
@@ -68,8 +67,8 @@ export const Workbench = memo(({ chatStarted, isStreaming }: WorkspaceProps) => 
   const unsavedFiles = useStore(workbenchStore.unsavedFiles);
   const files = useStore(workbenchStore.files);
   const selectedView = useStore(workbenchStore.currentView);
-  const webSocketContext = useWebSocket();
-  const sendJsonMessage = webSocketContext ? webSocketContext.sendJsonMessage : () => {
+  const adminWebSocketContext = useAdminWebSocket();
+  const sendJsonMessage = adminWebSocketContext ? adminWebSocketContext.sendJsonMessage : () => {
     console.error('WebSocket context is not available');
   };
 

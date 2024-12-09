@@ -1,22 +1,33 @@
 'use client'
 
 import { ClientOnly } from 'remix-utils/client-only';
-import { WebSocketProvider } from '@/components/bolt/components/websocket';
-import { Workbench } from '@/components/bolt/components/workbench/Workbench.client';
+import { UserWebSocketProvider } from '@/components/bolt/components/websocket/user';
 import { FallbackComponent } from '@/components/fallback';
 import { Preview } from '@/components/bolt/components/workbench/Preview';
 
-export function Base() {
+interface BaseProp {
+    isRightColumnCollapsed?: React.MutableRefObject<boolean>;
+    toggleRightColumn?: (override?: boolean) => void;
+  }
+  
+  
+  export const Base: React.FC<BaseProp> = ({ 
+    isRightColumnCollapsed, 
+    toggleRightColumn, 
+  }) => {
   return (
     <div className="flex flex-col h-full w-full">
       <ClientOnly fallback={<FallbackComponent />}>
         {() => (
-          <WebSocketProvider base_url={`${process.env.NEXT_PUBLIC_WS_BASE_URL}/bolt/ws/test/0`} is_admin={false}>
-            <div className="h-screen">
-              {/* <Preview /> */}
-              <Workbench isStreaming={false} chatStarted={true} />
+          <UserWebSocketProvider 
+            base_url={`${process.env.NEXT_PUBLIC_WS_BASE_URL}/bolt/ws/test/0`}
+            isRightColumnCollapsed={isRightColumnCollapsed ?? { current: false }}
+            toggleRightColumn={toggleRightColumn ?? (() => {})}
+          >
+            <div className="h-screen m-4">
+              <Preview />
             </div>
-          </WebSocketProvider>
+          </UserWebSocketProvider>
         )}
       </ClientOnly>
     </div>

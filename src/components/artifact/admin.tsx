@@ -3,7 +3,7 @@
 import { ClientOnly } from 'remix-utils/client-only';
 import { FallbackComponent } from '@/components/fallback';
 import { Chat } from '@/components/bolt/components/chat/ChatClient';
-import { WebSocketProvider } from '@/components/bolt/components/websocket';
+import { AdminWebSocketProvider } from '@/components/bolt/components/websocket/admin';
 
 export interface AdminArtifactProps {
     username: string;
@@ -15,9 +15,9 @@ export interface AdminArtifactProps {
     <div className="flex flex-col h-full w-full">
       <ClientOnly fallback={<FallbackComponent />}>
         {() => (
-          <WebSocketProvider base_url={`${process.env.NEXT_PUBLIC_WS_BASE_URL}/bolt/ws/${username}/${sessionId}`} is_admin={true}>
+          <AdminWebSocketProvider base_url={`${process.env.NEXT_PUBLIC_WS_BASE_URL}/bolt/ws/${username}/${sessionId}`}>
             <Chat />
-          </WebSocketProvider>
+          </AdminWebSocketProvider>
         )}
       </ClientOnly>
     </div>
