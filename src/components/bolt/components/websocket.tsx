@@ -16,7 +16,7 @@ export const useWebSocket = () => {
   return useContext(WebSocketContext);
 };
 
-export const WebSocketProvider: React.FC<{ children: React.ReactNode, url: string }> = ({ children, url }) => {
+export const WebSocketProvider: React.FC<{ children: React.ReactNode, base_url: string, is_admin: boolean }> = ({ children, base_url, is_admin }) => {
   const [isConnected, setIsConnected] = useState(false);
   const socketRef = useRef<WebSocket | null>(null);
   const actionRunner = new ActionRunner(webcontainer);
@@ -59,7 +59,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode, url: strin
   };
 
   useEffect(() => {
-    const ws = new WebSocket(url);
+    const ws = new WebSocket(is_admin ? `${base_url}/admin` : `${base_url}/user`);
     socketRef.current = ws;
 
     ws.onopen = () => {
@@ -71,14 +71,17 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode, url: strin
       try {
         const message = JSON.parse(event.data);
         const role = message.role;
-        if (role == 'admin') {
-          const files: FileMap = message.content.files;
+
+        if (!is_admin && role === 'files') {
+          const files: FileMap = message.content;
   
           for (const path in files) {
             if (files.hasOwnProperty(path)) {
               const dirent = files[path];
+
               if (dirent?.type === 'file') {
                 const { content } = dirent;
+
                 const action = {
                   artifactId: 'artifact1',
                   messageId: 'message1',
@@ -89,13 +92,13 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode, url: strin
                     filePath: getFilteredPathName(path),
                   } as FileAction,
                 };
-  
+
+                console.log('Adding and running action:', action);
                 actionRunner.addAction(action);
                 actionRunner.runAction(action);
               }
             }
           }
-
           runCommands();
         }
       } catch (error) {
@@ -115,7 +118,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode, url: strin
     return () => {
       ws.close();
     };
-  }, [url]);
+  }, []);
 
   const sendJsonMessage = (data: any) => {
     if (socketRef.current && isConnected) {

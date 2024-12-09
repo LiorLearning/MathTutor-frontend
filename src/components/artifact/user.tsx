@@ -24,7 +24,7 @@ interface UserArtifactProps {
     <div className="flex flex-col h-full w-full">
       <ClientOnly fallback={<FallbackComponent />}>
         {() => (
-          <WebSocketProvider url={`${process.env.NEXT_PUBLIC_WS_BASE_URL}/bolt/ws/${username}/${sessionId}/user`}>
+          <WebSocketProvider base_url={`${process.env.NEXT_PUBLIC_WS_BASE_URL}/bolt/ws/${username}/${sessionId}`} is_admin={false}>
             <div className="h-screen m-4">
               <Preview />
             </div>

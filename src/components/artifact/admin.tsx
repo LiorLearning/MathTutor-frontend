@@ -15,7 +15,7 @@ export interface AdminArtifactProps {
     <div className="flex flex-col h-full w-full">
       <ClientOnly fallback={<FallbackComponent />}>
         {() => (
-          <WebSocketProvider url={`${process.env.NEXT_PUBLIC_WS_BASE_URL}/bolt/ws/${username}/${sessionId}/admin`}>
+          <WebSocketProvider base_url={`${process.env.NEXT_PUBLIC_WS_BASE_URL}/bolt/ws/${username}/${sessionId}`} is_admin={true}>
             <Chat />
           </WebSocketProvider>
         )}

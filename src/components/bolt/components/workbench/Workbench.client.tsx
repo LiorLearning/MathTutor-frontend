@@ -127,7 +127,7 @@ export const Workbench = memo(({ chatStarted, isStreaming }: WorkspaceProps) => 
       return acc;
     }, {} as FileMap);
 
-    sendJsonMessage({ files: fileMap });
+    sendJsonMessage({ role: 'files', content: fileMap });
   }, [files, sendJsonMessage]);
 
   return (

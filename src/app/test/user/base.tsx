@@ -11,7 +11,7 @@ export function Base() {
     <div className="flex flex-col h-full w-full">
       <ClientOnly fallback={<FallbackComponent />}>
         {() => (
-          <WebSocketProvider url={`${process.env.NEXT_PUBLIC_WS_BASE_URL}/bolt/ws/testuser/1/user`}>
+          <WebSocketProvider base_url={`${process.env.NEXT_PUBLIC_WS_BASE_URL}/bolt/ws/test/0`} is_admin={false}>
             <div className="h-screen">
               {/* <Preview /> */}
               <Workbench isStreaming={false} chatStarted={true} />
