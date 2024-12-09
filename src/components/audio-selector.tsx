@@ -12,11 +12,11 @@ interface AudioFile {
 }
 
 export const audioFiles: AudioFile[] = [
-  { name: "Jessica", url: "https://mathtutor-images.s3.us-east-1.amazonaws.com/audio/jessica.mp3", voice_id: "cgSgspJ2msm6clMCkdW9" },
-  { name: "Matilda", url: "https://mathtutor-images.s3.us-east-1.amazonaws.com/audio/matilda.mp3", voice_id: "XrExE9yKIg1WjnnlVkGX" },
-  { name: "Dorothy", url: "https://mathtutor-images.s3.us-east-1.amazonaws.com/audio/dorothy.mp3", voice_id: "ThT5KcBeYPX3keUQqHPh" },
-  { name: "Chris", url: "https://mathtutor-images.s3.us-east-1.amazonaws.com/audio/chris.mp3", voice_id: "iP95p4xoKVk53GoZ742B" },
-  { name: "Charlie", url: "https://mathtutor-images.s3.us-east-1.amazonaws.com/audio/charlie.mp3", voice_id: "IKne3meq5aSn9XLyUdCD" },
+  { name: "Jessica", url: `/api/proxy?url=https://mathtutor-images.s3.us-east-1.amazonaws.com/audio/jessica.mp3`, voice_id: "cgSgspJ2msm6clMCkdW9" },
+  { name: "Matilda", url: `/api/proxy?url=https://mathtutor-images.s3.us-east-1.amazonaws.com/audio/matilda.mp3`, voice_id: "XrExE9yKIg1WjnnlVkGX" },
+  { name: "Dorothy", url: `/api/proxy?url=https://mathtutor-images.s3.us-east-1.amazonaws.com/audio/dorothy.mp3`, voice_id: "ThT5KcBeYPX3keUQqHPh" },
+  { name: "Chris", url: `/api/proxy?url=https://mathtutor-images.s3.us-east-1.amazonaws.com/audio/chris.mp3`, voice_id: "iP95p4xoKVk53GoZ742B" },
+  { name: "Charlie", url: `/api/proxy?url=https://mathtutor-images.s3.us-east-1.amazonaws.com/audio/charlie.mp3`, voice_id: "IKne3meq5aSn9XLyUdCD" },
 ]
 
 export const audioFileMap: { [key: string]: AudioFile } = audioFiles.reduce((map: { [key: string]: AudioFile }, audio) => {

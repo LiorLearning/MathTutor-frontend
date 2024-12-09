@@ -46,7 +46,7 @@ const MarkdownImage: React.FC<{ src?: string; alt?: string }> = ({ src, alt }) =
                     </div>
                 )}
                 <Image
-                    src={src || ''}
+                    src={`/api/proxy?url=${src || ''}`}
                     alt={alt || ''}
                     layout="responsive"
                     width={60}
@@ -63,7 +63,7 @@ const MarkdownImage: React.FC<{ src?: string; alt?: string }> = ({ src, alt }) =
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75" onClick={toggleModal}>
                     <div className="relative w-[90%] h-[90%] max-w-4xl max-h-full p-4 rounded-lg">
                         <Image
-                            src={src || ''}
+                            src={`/api/proxy?url=${src || ''}`}
                             alt={alt || ''}
                             layout="fill"
                             className="rounded-lg"

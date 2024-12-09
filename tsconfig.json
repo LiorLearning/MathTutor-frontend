@@ -27,7 +27,8 @@
       ],
       "@/public/*": [
         "./public/*"
-      ]
+      ],
+      "@/bolt/*": ["./src/components/bolt/*"]
     },
     "target": "ES2017"
   },

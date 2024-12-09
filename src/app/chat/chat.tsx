@@ -14,8 +14,8 @@ const queryClient = new QueryClient();
 
 export default function Chat () {
   const searchParams = useSearchParams();
-  const username = searchParams.get('username') || 'testuser';
-  const sessionId = searchParams.get('session') || '0';
+  const username = searchParams?.get('username') || 'testuser';
+  const sessionId = searchParams?.get('session') || '0';
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [showPopup, setShowPopup] = useState(false);

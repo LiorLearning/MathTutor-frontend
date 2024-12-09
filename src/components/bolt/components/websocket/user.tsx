@@ -66,7 +66,7 @@ export const UserWebSocketProvider: React.FC<{
     return path;
   };
 
-  const userSpecificMessageHandler = (message: any) => {
+  const userSpecificMessageHandler = async (message: any) => {
     // User-specific WebSocket message handling logic
     if (message.role === 'files') {
       const files: FileMap = message.content;
@@ -94,7 +94,18 @@ export const UserWebSocketProvider: React.FC<{
           }
         }
       }
-      runCommands();
+      await runCommands();
+      if(isRightColumnCollapsed.current) {
+        console.log('Right column is collapsed, toggling right column');
+        toggleRightColumn(false);
+      } else {
+        console.log('Right column is not collapsed');
+        if (message === "") {
+          console.log('Message is empty, toggling right column');
+          toggleRightColumn(true);
+        }
+      }
+
     }
   };
 
