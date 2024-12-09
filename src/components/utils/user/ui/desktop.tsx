@@ -107,11 +107,11 @@ const DesktopChat: React.FC<DesktopProps> = ({
             </div>
           ) : (
             <div className="pt-4 border-t border-border dark:border-dark-border flex items-center justify-center">
-              <div className="relative flex flex-row items-center gap-4 max-w-xs mx-auto">
-                <div className='relative'>
+              <div className="flex space-x-4 w-full max-w-xs">
+                <div className="flex-[3]">
                   <InputBar onSendMessage={onSendTextMessage} />
                 </div>
-                <div className='relative w-1/2'>
+                <div className="flex-[1]">
                   <SpeechToText onRecordingStart={handleRecordingStart} onRecordingStop={handleRecordingStop} />
                 </div>
               </div>
