@@ -17,12 +17,16 @@ export const UserWebSocketProvider: React.FC<{
   base_url: string, 
   children: React.ReactNode, 
   isRightColumnCollapsed: React.MutableRefObject<boolean>, 
-  toggleRightColumn: (override?: boolean) => void 
+  toggleRightColumn: (override?: boolean) => void,
+  htmlContentRef: React.MutableRefObject<string>,
+  setShowHtml: React.Dispatch<React.SetStateAction<boolean>>
 }> = ({ 
   children, 
   base_url, 
   isRightColumnCollapsed, 
-  toggleRightColumn 
+  toggleRightColumn,
+  htmlContentRef,
+  setShowHtml
 }) => {
   const [isConnected, setIsConnected] = useState(false);
   const socketRef = useRef<WebSocket | null>(null);
@@ -66,9 +70,16 @@ export const UserWebSocketProvider: React.FC<{
     return path;
   };
 
+  const toggleRightCol = () => {
+    const isCollapsed = isRightColumnCollapsed.current;
+    console.log(`Right column is ${isCollapsed ? 'collapsed' : 'not collapsed'}, toggling right column`);
+    toggleRightColumn(!isCollapsed);
+  }
+
   const userSpecificMessageHandler = async (message: any) => {
     // User-specific WebSocket message handling logic
     if (message.role === 'files') {
+      setShowHtml(false);
       const files: FileMap = message.content;
       for (const path in files) {
         if (files.hasOwnProperty(path)) {
@@ -95,17 +106,13 @@ export const UserWebSocketProvider: React.FC<{
         }
       }
       await runCommands();
-      if(isRightColumnCollapsed.current) {
-        console.log('Right column is collapsed, toggling right column');
-        toggleRightColumn(false);
-      } else {
-        console.log('Right column is not collapsed');
-        if (message === "") {
-          console.log('Message is empty, toggling right column');
-          toggleRightColumn(true);
-        }
-      }
-
+      toggleRightCol();
+    }
+    else if (message.role === 'image') {
+        const html = message.content;
+        setShowHtml(true);
+        htmlContentRef.current = html
+        toggleRightCol();
     }
   };
 
