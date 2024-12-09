@@ -5,7 +5,6 @@ import Image1 from "@/public/images/image1.png"
 import Image2 from "@/public/images/image2.png"
 import Image3 from "@/public/images/image3.png"
 import EFLogo from "@/public/images/ef_logo.svg"
-import BackedBy from "@/public/images/backedby.png"
 import { useState, useEffect } from "react";
 
 export default function LargeTestimonial() {

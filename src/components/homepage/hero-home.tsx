@@ -23,7 +23,7 @@ export default function HeroHome({ color }: { color: string }) {
                 What if kids could learn math by building their own math adventures, just like Minecraft? We make it happen!
               </p>
               <p className="text-lg text-muted-foreground">
-                Our AI tutor engages, and a <strong>1:1 math coach</strong> guarantees progress. Together, we unlock your child's potential.
+                Our AI tutor engages, and a <strong>1:1 math coach</strong> guarantees progress. Together, we unlock your child&apos;s potential.
               </p>
             </div>
             {/* Button */}

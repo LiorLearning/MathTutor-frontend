@@ -6,7 +6,6 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { useToast } from "@/hooks/use-toast"
 import { ChevronDown, ChevronUp, Trash2, Save } from 'lucide-react'
 import axios from 'axios'
 import { Prompt, MODEL_API_BASE_URL } from '@/components/utils/admin/admin_utils'
@@ -33,7 +32,6 @@ export function PromptManagerComponent() {
   const [allPrompts, setAllPrompts] = useState<Prompt[]>([]);
   const [newPrompt, setNewPrompt] = useState<NewPrompt>({ name: '', content: '' , desc: ''})
   const [expandedPrompts, setExpandedPrompts] = useState<boolean>(false);
-  const { toast } = useToast()
 
   useEffect(() => {
     fetchPromptNames()
@@ -50,7 +48,7 @@ export function PromptManagerComponent() {
       const response = await axios.get<string[]>(`${MODEL_API_BASE_URL}/prompts/names/`)
       setPromptNames(response.data)
     } catch (error) {
-      toast({ title: "Error", description: "Failed to fetch prompt names", variant: "destructive" })
+      console.error(`Failed to fetch prompt names: ${error}`)
     }
   }
 
@@ -60,7 +58,7 @@ export function PromptManagerComponent() {
       setPrompt(response.data)
       setPromptInput(response.data.content)
     } catch (error) {
-      toast({ title: "Error", description: "Failed to fetch latest prompt", variant: "destructive" })
+      console.error(`Failed to fetch latest prompt: ${error}`)
     }
   }
 
@@ -69,10 +67,10 @@ export function PromptManagerComponent() {
       const response = await axios.post<Prompt>(`${MODEL_API_BASE_URL}/prompts/`, newPrompt)
       setPrompt(response.data)
       setNewPrompt({ name: '', content: '', desc: ''})
-      toast({ title: "Success", description: "Prompt created successfully" })
+      console.log("Prompt created successfully")
       fetchPromptNames()
     } catch (error) {
-      toast({ title: "Error", description: "Failed to create prompt", variant: "destructive" })
+      console.error(`Failed to create prompt: ${error}`)
     }
   }
 
@@ -84,9 +82,9 @@ export function PromptManagerComponent() {
         "content": inputContent,
       })
       setPrompt(response.data);
-      toast({ title: "Success", description: "Prompt updated successfully" })
+      console.log("Prompt updated successfully")
     } catch (error) {
-      toast({ title: "Error", description: "Failed to update prompt", variant: "destructive" })
+      console.error(`Failed to update prompt: ${error}`)
     }
   }
 
@@ -95,7 +93,7 @@ export function PromptManagerComponent() {
       const response = await axios.get<Prompt[]>(`${MODEL_API_BASE_URL}/prompts/all/${name}`)
       setAllPrompts(response.data)
     } catch (error) {
-      toast({ title: "Error", description: "Failed to fetch all prompts", variant: "destructive" })
+      console.error(`Failed to fetch all prompts: ${error}`)
     }
   }
 
@@ -104,9 +102,9 @@ export function PromptManagerComponent() {
       await axios.delete(`${MODEL_API_BASE_URL}/prompts/${id}`)
       setPrompt(emptyPrompt)
       setSelectedName('');
-      toast({ title: "Success", description: "Prompt deleted successfully" })
+      console.log("Prompt deleted successfully")
     } catch (error) {
-      toast({ title: "Error", description: "Failed to delete prompt", variant: "destructive" })
+      console.error(`Failed to delete prompt: ${error}`)
     }
   }
 
@@ -114,10 +112,10 @@ export function PromptManagerComponent() {
     try {
       await axios.delete(`${MODEL_API_BASE_URL}/prompts/name/${name}`)
       setPrompt(emptyPrompt)
-      toast({ title: "Success", description: "All prompts with the selected name deleted successfully" })
+      console.log("All prompts with the selected name deleted successfully")
       fetchPromptNames()
     } catch (error) {
-      toast({ title: "Error", description: "Failed to delete prompts", variant: "destructive" })
+      console.error(`Failed to delete prompts: ${error}`)
     }
   }
 

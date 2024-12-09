@@ -17,7 +17,7 @@ const fetchStudents = async () => {
     const response = await axios.get<Student[]>(`${MODEL_API_BASE_URL}/users/`);
     return response.data;
   } catch (error) {
-    throw new Error('Error fetching students');
+    throw new Error(`Error fetching students: ${error}`);
   }
 };
 
