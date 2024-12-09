@@ -4,6 +4,8 @@ import Image from "next/image";
 import Image1 from "@/public/images/image1.png"
 import Image2 from "@/public/images/image2.png"
 import Image3 from "@/public/images/image3.png"
+import EFLogo from "@/public/images/ef_logo.svg"
+import BackedBy from "@/public/images/backedby.png"
 import { useState, useEffect } from "react";
 
 export default function LargeTestimonial() {
@@ -104,6 +106,22 @@ export default function LargeTestimonial() {
           </div>
         </div>
         
+        <div className="flex justify-center">
+          <Image
+            src={BackedBy}
+            width={300}
+            height={300}
+            alt="Backed By Logo"
+          />
+        </div>
+        <div className="flex justify-center mt-8 mb-16" style={{ backgroundColor: 'rgb(90, 30, 213)', padding: '1rem' }}>
+          <Image
+            src={EFLogo}
+            width={1200}
+            height={1200}
+            alt="EF Logo"
+          />
+        </div>
       </div>
     </section>
   );

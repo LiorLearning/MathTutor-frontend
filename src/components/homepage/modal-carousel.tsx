@@ -41,7 +41,6 @@ export default function ModalCarousel() {
               {images.map((image, index) => (
                 <figure key={index} className="min-w-full">
                   <Image
-                    className="opacity-80"
                     src={image}
                     width={1920}
                     height={1080}
