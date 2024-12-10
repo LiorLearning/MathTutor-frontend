@@ -9,8 +9,8 @@ export const webcontainerContext: WebContainerContext = {
   loaded: false,
 };
 
-export const webcontainer = (async () => {
+export const webcontainer = typeof window !== 'undefined' ? (async () => {
   const webcontainer = await WebContainer.boot({ workdirName: WORK_DIR_NAME });
   webcontainerContext.loaded = true;
   return webcontainer;
-})();
+})() : null;

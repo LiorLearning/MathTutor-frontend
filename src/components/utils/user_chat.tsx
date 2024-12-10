@@ -12,9 +12,9 @@ import DesktopChat from './user/ui/desktop';
 import MobileChat from './user/ui/mobile';
 
 import { useWebSocket } from './user/websocket';
-import { getDeviceType, ANDROID_PHONE, IPHONE } from './common_utils';
+import { getDeviceType, ANDROID_PHONE, IPHONE, OTHER } from './common_utils';
 
-const deviceType = getDeviceType();
+const deviceType = typeof window !== 'undefined' ? getDeviceType() : OTHER;
 
 interface UserChatProps {
   messages: Message[];

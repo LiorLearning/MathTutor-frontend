@@ -30,8 +30,14 @@ export const UserWebSocketProvider: React.FC<{
 }) => {
   const [isConnected, setIsConnected] = useState(false);
   const socketRef = useRef<WebSocket | null>(null);
-  const actionRunner = new ActionRunner(webcontainer);
+  const actionRunner = useRef<ActionRunner>();
   let actionCount = 0;
+
+  useEffect(() => {
+    if (webcontainer) {
+      actionRunner.current = new ActionRunner(webcontainer);
+    }
+  }, []);
 
 
   const createAndRunAction = async (content: string) => {
@@ -45,8 +51,8 @@ export const UserWebSocketProvider: React.FC<{
       } as ShellAction,
     };
 
-    actionRunner.addAction(action);
-    actionRunner.runAction(action);
+    actionRunner.current?.addAction(action);
+    actionRunner.current?.runAction(action);
   };
 
   const runCommands = async () => {
@@ -100,8 +106,8 @@ export const UserWebSocketProvider: React.FC<{
             };
 
             console.log('Adding and running action:', action);
-            actionRunner.addAction(action);
-            actionRunner.runAction(action);
+            actionRunner.current?.addAction(action);
+            actionRunner.current?.runAction(action);
           }
         }
       }

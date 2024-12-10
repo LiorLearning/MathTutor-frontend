@@ -13,7 +13,6 @@ import { PanelHeader } from '@/components/bolt/components/ui/PanelHeader';
 import { PanelHeaderButton } from '@/components/bolt/components/ui/PanelHeaderButton';
 import { shortcutEventEmitter } from '@/components/bolt/lib/hooks';
 import type { FileMap } from '@/components/bolt/lib/stores/files';
-import { themeStore } from '@/components/bolt/lib/stores/theme';
 import { workbenchStore } from '@/components/bolt/lib/stores/workbench';
 import { WORK_DIR } from '@/components/bolt/utils/constants';
 import { renderLogger } from '@/components/bolt/utils/logger';
@@ -56,7 +55,6 @@ export const EditorPanel = memo(
   }: EditorPanelProps) => {
     renderLogger.trace('EditorPanel');
 
-    const theme = useStore(themeStore);
     const showTerminal = useStore(workbenchStore.showTerminal);
 
     // const terminalRefs = useRef<Array<TerminalRef | null>>([]);
@@ -164,7 +162,6 @@ export const EditorPanel = memo(
               </PanelHeader>
               <div className="h-full flex-1 overflow-hidden">
                 <CodeMirrorEditor
-                  theme={theme}
                   editable={!isStreaming && editorDocument !== undefined}
                   settings={editorSettings}
                   doc={editorDocument}

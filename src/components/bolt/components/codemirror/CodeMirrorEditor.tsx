@@ -62,7 +62,6 @@ export type OnScrollCallback = (position: ScrollPosition) => void;
 export type OnSaveCallback = () => void;
 
 interface Props {
-  theme: Theme;
   id?: unknown;
   doc?: EditorDocument;
   editable?: boolean;
@@ -128,7 +127,6 @@ export const CodeMirrorEditor = memo(
     onScroll,
     onChange,
     onSave,
-    theme,
     settings,
     className = '',
   }: Props) => {
@@ -138,7 +136,6 @@ export const CodeMirrorEditor = memo(
 
     const containerRef = useRef<HTMLDivElement | null>(null);
     const viewRef = useRef<EditorView>();
-    const themeRef = useRef<Theme>();
     const docRef = useRef<EditorDocument>();
     const editorStatesRef = useRef<EditorStates>();
     const onScrollRef = useRef(onScroll);
@@ -154,7 +151,6 @@ export const CodeMirrorEditor = memo(
       onChangeRef.current = onChange;
       onSaveRef.current = onSave;
       docRef.current = doc;
-      themeRef.current = theme;
     });
 
     useEffect(() => {
@@ -195,26 +191,15 @@ export const CodeMirrorEditor = memo(
     }, []);
 
     useEffect(() => {
-      if (!viewRef.current) {
-        return;
-      }
-
-      viewRef.current.dispatch({
-        effects: [reconfigureTheme(theme)],
-      });
-    }, [theme]);
-
-    useEffect(() => {
       editorStatesRef.current = new Map<string, EditorState>();
     }, [id]);
 
     useEffect(() => {
       const editorStates = editorStatesRef.current!;
       const view = viewRef.current!;
-      const theme = themeRef.current!;
 
       if (!doc) {
-        const state = newEditorState('', theme, settings, onScrollRef, debounceScroll, onSaveRef, [
+        const state = newEditorState('', 'dark', settings, onScrollRef, debounceScroll, onSaveRef, [
           languageCompartment.of([]),
         ]);
 
@@ -236,7 +221,7 @@ export const CodeMirrorEditor = memo(
       let state = editorStates.get(doc.filePath);
 
       if (!state) {
-        state = newEditorState(doc.value, theme, settings, onScrollRef, debounceScroll, onSaveRef, [
+        state = newEditorState(doc.value, 'dark', settings, onScrollRef, debounceScroll, onSaveRef, [
           languageCompartment.of([]),
         ]);
 
@@ -247,7 +232,7 @@ export const CodeMirrorEditor = memo(
 
       setEditorDocument(
         view,
-        theme,
+        'dark',
         editable,
         languageCompartment,
         autoFocusOnDocumentChange,

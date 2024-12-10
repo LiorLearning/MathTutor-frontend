@@ -26,10 +26,19 @@ type Artifacts = MapStore<Record<string, ArtifactState>>;
 export type WorkbenchViewType = 'code' | 'preview';
 
 export class WorkbenchStore {
-  #previewsStore = new PreviewsStore(webcontainer);
-  #filesStore = new FilesStore(webcontainer);
-  #editorStore = new EditorStore(this.#filesStore);
-  #terminalStore = new TerminalStore(webcontainer);
+  constructor() {
+    if (webcontainer) {
+      this.#previewsStore = new PreviewsStore(webcontainer);
+      this.#filesStore = new FilesStore(webcontainer);
+      this.#terminalStore = new TerminalStore(webcontainer);
+    }
+    this.#editorStore = new EditorStore(this.#filesStore);
+  }
+
+  #previewsStore!: PreviewsStore;
+  #filesStore!: FilesStore;
+  #editorStore: EditorStore;
+  #terminalStore!: TerminalStore;
 
   artifacts: Artifacts = map({});
 
@@ -38,8 +47,6 @@ export class WorkbenchStore {
   unsavedFiles: WritableAtom<Set<string>> = atom(new Set<string>());
   modifiedFiles = new Set<string>();
   artifactIdList: string[] = [];
-
-  constructor() {}
 
   get previews() {
     return this.#previewsStore.previews;
@@ -225,7 +232,7 @@ export class WorkbenchStore {
       id,
       title,
       closed: false,
-      runner: new ActionRunner(webcontainer),
+      runner: new ActionRunner(webcontainer!),
     });
   }
 
