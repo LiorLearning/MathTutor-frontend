@@ -7,7 +7,7 @@ import type { FileMap } from '@/components/bolt/lib/stores/files';
 import { classNames } from '@/components/bolt/utils/classNames';
 import { WORK_DIR } from '@/components/bolt/utils/constants';
 import { renderLogger } from '@/components/bolt/utils/logger';
-import FileTree from './FileTree';
+import { FileTree } from './FileTree';
 
 const WORK_DIR_REGEX = new RegExp(`^${WORK_DIR.split('/').slice(0, -1).join('/').replaceAll('/', '\\/')}/`);
 

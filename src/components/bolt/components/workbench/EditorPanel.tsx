@@ -34,13 +34,12 @@ interface EditorPanelProps {
   onFileReset?: () => void;
 }
 
-const MAX_TERMINALS = 3;
 const DEFAULT_TERMINAL_SIZE = 25;
 const DEFAULT_EDITOR_SIZE = 100 - DEFAULT_TERMINAL_SIZE;
 
 const editorSettings: EditorSettings = { tabSize: 2 };
 
-export const EditorPanel = memo(
+const EditorPanel = memo(
   ({
     files,
     unsavedFiles,
@@ -249,3 +248,7 @@ export const EditorPanel = memo(
     );
   },
 );
+
+EditorPanel.displayName = 'EditorPanel'
+
+export { EditorPanel }

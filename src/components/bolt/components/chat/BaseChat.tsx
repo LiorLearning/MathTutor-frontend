@@ -1,6 +1,7 @@
 'use client'
 
-import React from 'react'
+import React, { type RefCallback, useEffect } from 'react'
+import { type Message } from 'ai'
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { Workbench } from '@/components/bolt/components/workbench/Workbench.client'
@@ -9,9 +10,12 @@ import { Stars, Loader2 } from 'lucide-react'
 
 interface BaseChatProps {
   textareaRef?: React.RefObject<HTMLTextAreaElement>
+  messageRef?: RefCallback<HTMLDivElement>
+  scrollRef?: RefCallback<HTMLDivElement>
   showChat?: boolean
   chatStarted?: boolean
   isStreaming?: boolean
+  messages?: Message[]
   enhancingPrompt?: boolean
   promptEnhanced?: boolean
   input?: string
@@ -24,11 +28,14 @@ interface BaseChatProps {
 export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
   ({
     textareaRef,
+    messageRef,
+    scrollRef,
     showChat = true,
     chatStarted = false,
     isStreaming = false,
     enhancingPrompt = false,
     promptEnhanced = false,
+    messages,
     input = '',
     sendMessage,
     handleInputChange,
@@ -37,6 +44,12 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
   }, ref) => {
     const TEXTAREA_MIN_HEIGHT = 76
     const TEXTAREA_MAX_HEIGHT = chatStarted ? 400 : 200
+
+    useEffect(() => {
+    }, [messages, messageRef]);
+
+    useEffect(() => {
+    }, [scrollRef]);
 
     return (
       <div

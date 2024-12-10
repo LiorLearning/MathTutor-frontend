@@ -3,7 +3,7 @@
 import { useStore } from '@nanostores/react';
 import type { Message } from 'ai';
 import { useChat } from 'ai/react';
-import { easeInOut, useAnimate } from 'framer-motion';
+import { useAnimate } from 'framer-motion';
 import { memo, useEffect, useRef, useState } from 'react';
 import { useMessageParser, usePromptEnhancer, useShortcuts, useSnapScroll } from '@/components/bolt/lib/hooks';
 import { chatStore } from '@/components/bolt/lib/stores/chat';
@@ -22,7 +22,9 @@ export function Chat() {
 
   return (
     <>
-      <ChatImpl initialMessages={initialMessages} storeMessageHistory={async (msg: Message[]) => {}} />
+      <ChatImpl initialMessages={initialMessages} storeMessageHistory={async (msg: Message[]) => {
+        console.log("Message: ", msg)
+      }} />
     </>
   );
 }
@@ -32,7 +34,7 @@ interface ChatProps {
   storeMessageHistory: (messages: Message[]) => Promise<void>;
 }
 
-export const ChatImpl = memo(({ initialMessages, storeMessageHistory }: ChatProps) => {
+const ChatImpl = memo(({ initialMessages, storeMessageHistory }: ChatProps) => {
   useShortcuts();
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -41,7 +43,7 @@ export const ChatImpl = memo(({ initialMessages, storeMessageHistory }: ChatProp
 
   const { showChat } = useStore(chatStore);
 
-  const [animationScope, animate] = useAnimate();
+  const [animationScope] = useAnimate();
 
   const { messages, isLoading, input, handleInputChange, setInput, stop, append } = useChat({
     api: `${process.env.NEXT_PUBLIC_API_BASE_URL}api/v1/bolt/chat`,
@@ -171,3 +173,7 @@ export const ChatImpl = memo(({ initialMessages, storeMessageHistory }: ChatProp
     />
   );
 });
+
+ChatImpl.displayName = 'ChatImpl'
+
+export { ChatImpl }

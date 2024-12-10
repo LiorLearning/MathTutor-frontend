@@ -23,7 +23,7 @@ interface Props {
   className?: string;
 }
 
-export const FileTree = memo(
+const FileTree = memo(
   ({
     files = {},
     onFileSelect,
@@ -152,7 +152,9 @@ export const FileTree = memo(
   },
 );
 
-export default FileTree;
+FileTree.displayName = 'FileTree'
+
+export { FileTree };
 
 interface FolderProps {
   folder: FolderNode;

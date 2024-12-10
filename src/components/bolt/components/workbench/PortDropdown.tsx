@@ -13,7 +13,7 @@ interface PortDropdownProps {
   previews: PreviewInfo[];
 }
 
-export const PortDropdown = memo(
+const PortDropdown = memo(
   ({
     activePreviewIndex,
     setActivePreviewIndex,
@@ -83,3 +83,6 @@ export const PortDropdown = memo(
     );
   },
 );
+
+PortDropdown.displayName = 'PortDropdown'
+export { PortDropdown }
