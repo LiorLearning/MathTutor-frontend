@@ -7,7 +7,7 @@ import { Suspense } from 'react';
 
 function QuestionContent() {
   const searchParams = useSearchParams();
-  const questionId = searchParams.get('id');
+  const questionId = searchParams?.get('id');
   
   if (!questionId) {
     return (

@@ -1,7 +1,6 @@
 'use client'
 
 import React, { type RefCallback } from 'react'
-import { ClientOnly } from 'remix-utils/client-only'
 import { type Message } from 'ai'
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
@@ -53,9 +52,7 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
         data-chat-visible={showChat}
       >
         <div className="h-[80%] overflow-hidden">
-          <ClientOnly>
-            {() => <Workbench chatStarted={true} isStreaming={isStreaming} />}
-          </ClientOnly>
+          <Workbench chatStarted={true} isStreaming={isStreaming} />
         </div>
         
         <div className="h-[20%] p-4 flex flex-col">
@@ -97,23 +94,17 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
                 </>
               )}
             </Button>
-            <ClientOnly>
-              {() => (
-                <>
-                  <SendButton
-                    show={input.length > 0}
-                    isStreaming={isStreaming}
-                    onClick={(event) => {
-                      if (isStreaming) {
-                        handleStop?.()
-                        return
-                      }
-                      sendMessage?.(event)
-                    }}
-                  />
-                </>
-              )}
-            </ClientOnly>
+              <SendButton
+                show={input.length > 0}
+                isStreaming={isStreaming}
+                onClick={(event) => {
+                  if (isStreaming) {
+                    handleStop?.()
+                    return
+                  }
+                  sendMessage?.(event)
+                }}
+              />
           </div>
         </div>
       </div>

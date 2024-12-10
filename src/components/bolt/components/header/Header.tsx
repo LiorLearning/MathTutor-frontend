@@ -1,7 +1,6 @@
 'use client'
 
 import { useStore } from '@nanostores/react';
-import { ClientOnly } from 'remix-utils/client-only';
 import { chatStore } from '@/components/bolt/lib/stores/chat';
 import { classNames } from '@/components/bolt/utils/classNames';
 import { HeaderActionButtons } from './HeaderActionButtons.client';
@@ -10,8 +9,7 @@ export function Header() {
   const chat = useStore(chatStore);
 
   return (
-    <header
-      className={classNames(
+    <header className={classNames(
         'flex items-center bg-bolt-elements-background-depth-1 p-5 border-b h-[var(--header-height)]',
         {
           'border-transparent': !chat.started,
@@ -26,13 +24,9 @@ export function Header() {
         </a>
       </div>
       {chat.started && (
-        <ClientOnly>
-          {() => (
-            <div className="mr-1">
-              <HeaderActionButtons />
-            </div>
-          )}
-        </ClientOnly>
+        <div className="mr-1">
+          <HeaderActionButtons />
+        </div>
       )}
     </header>
   );
