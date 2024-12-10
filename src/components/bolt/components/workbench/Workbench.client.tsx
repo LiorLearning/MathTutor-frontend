@@ -4,7 +4,6 @@ import { useStore } from '@nanostores/react';
 import { easeInOut, motion, type Variants } from 'framer-motion';
 import { computed } from 'nanostores';
 import { memo, useCallback, useEffect } from 'react';
-import { toast } from 'react-toastify';
 import {
   type OnChangeCallback as OnEditorChange,
   type OnScrollCallback as OnEditorScroll,
@@ -100,7 +99,7 @@ export const Workbench = memo(({ chatStarted, isStreaming }: WorkspaceProps) => 
 
   const onFileSave = useCallback(() => {
     workbenchStore.saveCurrentDocument().catch(() => {
-      toast.error('Failed to update file content');
+      console.error('Failed to update file content');
     });
   }, []);
 
@@ -142,7 +141,7 @@ export const Workbench = memo(({ chatStarted, isStreaming }: WorkspaceProps) => 
             'flex w-full h-full transition-[left,width] duration-200 bolt-ease-cubic-bezier',
           )}
         >
-          <div className="relative w-full h-full px-6">
+          <div className="relative w-full h-full">
             <div className="h-full flex flex-col bg-bolt-elements-background-depth-2 border border-bolt-elements-borderColor shadow-sm rounded-lg overflow-hidden">
               <div className="flex items-center px-3 py-2 border-b border-bolt-elements-borderColor">
                 <Slider selected={selectedView} options={sliderOptions} setSelected={setSelectedView} />

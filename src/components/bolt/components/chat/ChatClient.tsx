@@ -5,7 +5,6 @@ import type { Message } from 'ai';
 import { useChat } from 'ai/react';
 import { easeInOut, useAnimate } from 'framer-motion';
 import { memo, useEffect, useRef, useState } from 'react';
-import { toast } from 'react-toastify';
 import { useMessageParser, usePromptEnhancer, useShortcuts, useSnapScroll } from '@/components/bolt/lib/hooks';
 import { chatStore } from '@/components/bolt/lib/stores/chat';
 import { workbenchStore } from '@/components/bolt/lib/stores/workbench';
@@ -69,7 +68,7 @@ export const ChatImpl = memo(({ initialMessages, storeMessageHistory }: ChatProp
 
     if (messages.length > initialMessages.length) {
       storeMessageHistory(messages).catch((error) => {
-        toast.error(error.message);
+        console.error('Error storing message history:', error);
       });
     }
   }, [messages, isLoading, parseMessages]);

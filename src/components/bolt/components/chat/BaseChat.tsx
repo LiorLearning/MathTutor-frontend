@@ -48,14 +48,14 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
     return (
       <div
         ref={ref}
-        className="relative flex flex-col h-screen w-full overflow-hidden bg-background m-4"
+        className="relative flex flex-col h-full w-full overflow-hidden bg-background"
         data-chat-visible={showChat}
       >
-        <div className="h-[80%] overflow-hidden">
+        <div className="h-full overflow-hidden">
           <Workbench chatStarted={true} isStreaming={isStreaming} />
         </div>
         
-        <div className="h-[20%] p-4 flex flex-col">
+        <div className="p-1 pt-2 flex flex-col">
           <Textarea
             ref={textareaRef}
             className="w-full resize-none text-md focus-visible:ring-1"
