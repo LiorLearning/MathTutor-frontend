@@ -22,16 +22,14 @@ export function Chat() {
 
   return (
     <>
-      <ChatImpl initialMessages={initialMessages} storeMessageHistory={async (msg: Message[]) => {
-        console.log("Message: ", msg)
-      }} />
+      <ChatImpl initialMessages={initialMessages} />
     </>
   );
 }
 
 interface ChatProps {
   initialMessages: Message[];
-  storeMessageHistory: (messages: Message[]) => Promise<void>;
+  storeMessageHistory?: (messages: Message[]) => Promise<void>;
 }
 
 const ChatImpl = memo(({ initialMessages, storeMessageHistory }: ChatProps) => {
@@ -68,7 +66,7 @@ const ChatImpl = memo(({ initialMessages, storeMessageHistory }: ChatProps) => {
   useEffect(() => {
     parseMessages(messages, isLoading);
 
-    if (messages.length > initialMessages.length) {
+    if (storeMessageHistory && messages.length > initialMessages.length) {
       storeMessageHistory(messages).catch((error) => {
         console.error('Error storing message history:', error);
       });
