@@ -3,9 +3,9 @@
 import { useStore } from '@nanostores/react';
 import type { Message } from 'ai';
 import { useChat } from 'ai/react';
-import { easeInOut, useAnimate } from 'framer-motion';
+import { useAnimate } from 'framer-motion';
 import { memo, useEffect, useRef, useState } from 'react';
-import { useMessageParser, usePromptEnhancer, useShortcuts, useSnapScroll } from '@/components/bolt/lib/hooks';
+import { usePromptEnhancer, useShortcuts } from '@/components/bolt/lib/hooks';
 import { chatStore } from '@/components/bolt/lib/stores/chat';
 import { workbenchStore } from '@/components/bolt/lib/stores/workbench';
 import { fileModificationsToHTML } from '@/components/bolt/utils/diff';
@@ -22,17 +22,16 @@ export function Chat() {
 
   return (
     <>
-      <ChatImpl initialMessages={initialMessages} storeMessageHistory={async (msg: Message[]) => {}} />
+      <ChatImpl initialMessages={initialMessages} />
     </>
   );
 }
 
 interface ChatProps {
   initialMessages: Message[];
-  storeMessageHistory: (messages: Message[]) => Promise<void>;
 }
 
-export const ChatImpl = memo(({ initialMessages, storeMessageHistory }: ChatProps) => {
+const ChatImpl = memo(function ChatImpl({ initialMessages }: ChatProps) {
   useShortcuts();
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -41,9 +40,9 @@ export const ChatImpl = memo(({ initialMessages, storeMessageHistory }: ChatProp
 
   const { showChat } = useStore(chatStore);
 
-  const [animationScope, animate] = useAnimate();
+  const [animationScope] = useAnimate();
 
-  const { messages, isLoading, input, handleInputChange, setInput, stop, append } = useChat({
+  const { isLoading, input, handleInputChange, setInput, stop, append } = useChat({
     api: `${process.env.NEXT_PUBLIC_API_BASE_URL}api/v1/bolt/chat`,
     // api: `http://localhost:5173/api/chat`,
     onError: (error) => {
@@ -55,23 +54,12 @@ export const ChatImpl = memo(({ initialMessages, storeMessageHistory }: ChatProp
 
   const { enhancingPrompt, promptEnhanced, enhancePrompt, resetEnhancer } = usePromptEnhancer();
 
-  const { parsedMessages, parseMessages } = useMessageParser();
 
   const TEXTAREA_MAX_HEIGHT = chatStarted ? 400 : 200;
 
   useEffect(() => {
     chatStore.setKey('started', initialMessages.length > 0);
   }, [initialMessages.length]);
-
-  useEffect(() => {
-    parseMessages(messages, isLoading);
-
-    if (messages.length > initialMessages.length) {
-      storeMessageHistory(messages).catch((error) => {
-        console.error('Error storing message history:', error);
-      });
-    }
-  }, [messages, isLoading, parseMessages]);
 
   const scrollTextArea = () => {
     const textarea = textareaRef.current;
@@ -135,8 +123,6 @@ export const ChatImpl = memo(({ initialMessages, storeMessageHistory }: ChatProp
     textareaRef.current?.blur();
   };
 
-  const [messageRef, scrollRef] = useSnapScroll();
-
   return (
     <BaseChat
       ref={animationScope}
@@ -148,20 +134,8 @@ export const ChatImpl = memo(({ initialMessages, storeMessageHistory }: ChatProp
       enhancingPrompt={enhancingPrompt}
       promptEnhanced={promptEnhanced}
       sendMessage={sendMessage}
-      messageRef={messageRef}
-      scrollRef={scrollRef}
       handleInputChange={handleInputChange}
       handleStop={abort}
-      messages={messages.map((message, i) => {
-        if (message.role === 'user') {
-          return message;
-        }
-
-        return {
-          ...message,
-          content: parsedMessages[i] || '',
-        };
-      })}
       enhancePrompt={() => {
         enhancePrompt(input, (input) => {
           setInput(input);

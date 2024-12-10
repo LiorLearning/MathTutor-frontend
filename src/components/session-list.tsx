@@ -36,7 +36,7 @@ const fetchSessionsWithSummaries = async (username: string) => {
 
 export default function SessionList({ is_admin }: { is_admin: boolean }) {
   const searchParams = useSearchParams();
-  const username = searchParams.get('username') || 'testuser';
+  const username = searchParams?.get('username') || 'testuser';
   const baseRedirectUrl = is_admin 
     ? `/admin/interceptor?username=${username}`
     : `/chat?username=${username}`;

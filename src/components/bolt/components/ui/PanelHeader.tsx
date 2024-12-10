@@ -8,7 +8,7 @@ interface PanelHeaderProps {
   children: React.ReactNode;
 }
 
-export const PanelHeader = memo(({ className, children }: PanelHeaderProps) => {
+const PanelHeader = memo(({ className, children }: PanelHeaderProps) => {
   return (
     <div
       className={classNames(
@@ -20,3 +20,7 @@ export const PanelHeader = memo(({ className, children }: PanelHeaderProps) => {
     </div>
   );
 });
+
+PanelHeader.displayName = 'PanelHeader';
+
+export { PanelHeader };

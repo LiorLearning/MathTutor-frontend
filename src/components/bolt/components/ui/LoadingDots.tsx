@@ -6,7 +6,7 @@ interface LoadingDotsProps {
   text: string;
 }
 
-export const LoadingDots = memo(({ text }: LoadingDotsProps) => {
+const LoadingDotsComponent = ({ text }: LoadingDotsProps) => {
   const [dotCount, setDotCount] = useState(0);
 
   useEffect(() => {
@@ -26,4 +26,8 @@ export const LoadingDots = memo(({ text }: LoadingDotsProps) => {
       </div>
     </div>
   );
-});
+};
+
+LoadingDotsComponent.displayName = 'LoadingDots';
+
+export const LoadingDots = memo(LoadingDotsComponent);

@@ -11,7 +11,7 @@ import { Student, MODEL_API_BASE_URL } from '@/components/utils/admin/admin_util
 
 export function ManageStudentsComponent() {
   const searchParams = useSearchParams();
-  const username = searchParams.get('username') || 'testuser';
+  const username = searchParams?.get('username') || 'testuser';
   const [studentDetails, setStudentDetails] = useState<Student | null>(null);
 
   useEffect(() => {

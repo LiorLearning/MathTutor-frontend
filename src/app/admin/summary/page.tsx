@@ -12,8 +12,8 @@ const queryClient = new QueryClient();
 
 function SummaryContent() {
   const searchParams = useSearchParams();
-  const username = searchParams.get('username') || 'testuser';
-  const sessionId = searchParams.get('session') || '0';
+  const username = searchParams?.get('username') || 'testuser';
+  const sessionId = searchParams?.get('session') || '0';
 
   return (
     <div className="flex flex-col h-screen bg-background text-foreground">

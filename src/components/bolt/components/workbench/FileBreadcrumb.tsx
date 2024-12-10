@@ -36,7 +36,7 @@ const contextMenuVariants = {
   },
 } satisfies Variants;
 
-export const FileBreadcrumb = memo<FileBreadcrumbProps>(({ files, pathSegments = [], onFileSelect }) => {
+const FileBreadcrumbComponent = ({ files, pathSegments = [], onFileSelect }: FileBreadcrumbProps) => {
   renderLogger.trace('FileBreadcrumb');
 
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
@@ -146,4 +146,8 @@ export const FileBreadcrumb = memo<FileBreadcrumbProps>(({ files, pathSegments =
       })}
     </div>
   );
-});
+};
+
+FileBreadcrumbComponent.displayName = 'FileBreadcrumb';
+
+export const FileBreadcrumb = memo(FileBreadcrumbComponent);

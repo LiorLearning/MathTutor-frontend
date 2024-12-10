@@ -6,7 +6,7 @@ import { IconButton } from '@/components/bolt/components/ui/IconButton';
 import { workbenchStore } from '@/components/bolt/lib/stores/workbench';
 import { PortDropdown } from './PortDropdown';
 
-export const Preview = memo(() => {
+const PreviewComponent = () => {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const [activePreviewIndex, setActivePreviewIndex] = useState(0);
@@ -130,4 +130,7 @@ export const Preview = memo(() => {
       </div>
     </div>
   );
-});
+};
+
+export const Preview = memo(PreviewComponent);
+Preview.displayName = 'Preview';

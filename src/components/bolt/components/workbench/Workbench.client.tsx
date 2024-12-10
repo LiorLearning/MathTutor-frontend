@@ -56,7 +56,7 @@ const workbenchVariants = {
   },
 } satisfies Variants;
 
-export const Workbench = memo(({ chatStarted, isStreaming }: WorkspaceProps) => {
+const WorkbenchComponent = ({ chatStarted, isStreaming }: WorkspaceProps) => {
   renderLogger.trace('Workbench');
 
   const hasPreview = useStore(computed(workbenchStore.previews, (previews) => previews.length > 0));
@@ -229,4 +229,6 @@ export const Workbench = memo(({ chatStarted, isStreaming }: WorkspaceProps) => 
       </motion.div>
     )
   );
-});
+};
+
+export const Workbench = memo(WorkbenchComponent);

@@ -18,7 +18,7 @@ interface MarkdownProps {
   limitedMarkdown?: boolean;
 }
 
-export const Markdown = memo(({ children, html = false, limitedMarkdown = false }: MarkdownProps) => {
+const MarkdownComponent = ({ children, html = false, limitedMarkdown = false }: MarkdownProps) => {
   logger.trace('Render');
 
   const components = useMemo(() => {
@@ -73,4 +73,8 @@ export const Markdown = memo(({ children, html = false, limitedMarkdown = false 
       {children}
     </ReactMarkdown>
   );
-});
+};
+
+MarkdownComponent.displayName = 'MarkdownComponent';
+
+export const Markdown = memo(MarkdownComponent);

@@ -24,6 +24,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin')
     res.status(200).send(response.data)
   } catch (error) {
+    console.error('Proxy request error:', error);
     res.status(500).json({ error: 'Proxy request failed' })
   }
 }

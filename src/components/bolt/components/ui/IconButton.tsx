@@ -27,42 +27,44 @@ type IconButtonWithChildrenProps = {
 
 type IconButtonProps = IconButtonWithoutChildrenProps | IconButtonWithChildrenProps;
 
-export const IconButton = memo(
-  ({
-    icon,
-    size = 'xl',
-    className,
-    iconClassName,
-    disabledClassName,
-    disabled = false,
-    title,
-    onClick,
-    children,
-  }: IconButtonProps) => {
-    return (
-      <button
-        className={classNames(
-          'flex items-center text-bolt-elements-item-contentDefault bg-transparent enabled:hover:text-bolt-elements-item-contentActive rounded-md p-1 enabled:hover:bg-bolt-elements-item-backgroundActive disabled:cursor-not-allowed',
-          {
-            [classNames('opacity-30', disabledClassName)]: disabled,
-          },
-          className,
-        )}
-        title={title}
-        disabled={disabled}
-        onClick={(event) => {
-          if (disabled) {
-            return;
-          }
+const IconButtonComponent = ({
+  icon,
+  size = 'xl',
+  className,
+  iconClassName,
+  disabledClassName,
+  disabled = false,
+  title,
+  onClick,
+  children,
+}: IconButtonProps) => {
+  return (
+    <button
+      className={classNames(
+        'flex items-center text-bolt-elements-item-contentDefault bg-transparent enabled:hover:text-bolt-elements-item-contentActive rounded-md p-1 enabled:hover:bg-bolt-elements-item-backgroundActive disabled:cursor-not-allowed',
+        {
+          [classNames('opacity-30', disabledClassName)]: disabled,
+        },
+        className,
+      )}
+      title={title}
+      disabled={disabled}
+      onClick={(event) => {
+        if (disabled) {
+          return;
+        }
 
-          onClick?.(event);
-        }}
-      >
-        {children ? children : <div className={classNames(icon, getIconSize(size), iconClassName)}></div>}
-      </button>
-    );
-  },
-);
+        onClick?.(event);
+      }}
+    >
+      {children ? children : <div className={classNames(icon, getIconSize(size), iconClassName)}></div>}
+    </button>
+  );
+};
+
+IconButtonComponent.displayName = 'IconButton';
+
+export const IconButton = memo(IconButtonComponent);
 
 function getIconSize(size: IconSize) {
   if (size === 'sm') {

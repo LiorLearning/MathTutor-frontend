@@ -5,9 +5,7 @@ import { chatStore } from '@/components/bolt/lib/stores/chat';
 import { workbenchStore } from '@/components/bolt/lib/stores/workbench';
 import { classNames } from '@/components/bolt/utils/classNames';
 
-interface HeaderActionButtonsProps {}
-
-export function HeaderActionButtons({}: HeaderActionButtonsProps) {
+export function HeaderActionButtons({}) {
   const showWorkbench = useStore(workbenchStore.showWorkbench);
   const { showChat } = useStore(chatStore);
 

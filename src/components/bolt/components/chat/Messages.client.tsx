@@ -13,7 +13,7 @@ interface MessagesProps {
   messages?: Message[];
 }
 
-export const Messages = React.forwardRef<HTMLDivElement, MessagesProps>((props: MessagesProps, ref) => {
+const Messages = React.forwardRef<HTMLDivElement, MessagesProps>((props: MessagesProps, ref) => {
   const { id, isStreaming = false, messages = [] } = props;
   const messagesId = id ?? crypto.randomUUID();
   
@@ -56,3 +56,7 @@ export const Messages = React.forwardRef<HTMLDivElement, MessagesProps>((props: 
     </div>
   );
 });
+
+Messages.displayName = 'Messages';
+
+export { Messages };

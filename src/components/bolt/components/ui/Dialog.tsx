@@ -47,7 +47,7 @@ interface DialogButtonProps {
   onClick?: (event: React.UIEvent) => void;
 }
 
-export const DialogButton = memo(({ type, children, onClick }: DialogButtonProps) => {
+export const DialogButton = memo(function DialogButton({ type, children, onClick }: DialogButtonProps) {
   return (
     <button
       className={classNames(
@@ -68,7 +68,7 @@ export const DialogButton = memo(({ type, children, onClick }: DialogButtonProps
   );
 });
 
-export const DialogTitle = memo(({ className, children, ...props }: RadixDialog.DialogTitleProps) => {
+export const DialogTitle = memo(function DialogTitle({ className, children, ...props }: RadixDialog.DialogTitleProps) {
   return (
     <RadixDialog.Title
       className={classNames(
@@ -82,7 +82,7 @@ export const DialogTitle = memo(({ className, children, ...props }: RadixDialog.
   );
 });
 
-export const DialogDescription = memo(({ className, children, ...props }: RadixDialog.DialogDescriptionProps) => {
+export const DialogDescription = memo(function DialogDescription({ className, children, ...props }: RadixDialog.DialogDescriptionProps) {
   return (
     <RadixDialog.Description
       className={classNames('px-5 py-4 text-bolt-elements-textPrimary text-md', className)}
@@ -100,7 +100,7 @@ interface DialogProps {
   onClose?: (event: React.UIEvent) => void;
 }
 
-export const Dialog = memo(({ className, children, onBackdrop, onClose }: DialogProps) => {
+export const Dialog = memo(function Dialog({ className, children, onBackdrop, onClose }: DialogProps) {
   return (
     <RadixDialog.Portal>
       <RadixDialog.Overlay onClick={onBackdrop} asChild>

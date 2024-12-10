@@ -7,7 +7,7 @@ import { WORK_DIR } from '@/components/bolt/utils/constants';
 
 // User WebSocket Provider
 interface UserWebSocketContextType {
-  sendJsonMessage: (data: any) => void;
+  sendJsonMessage: () => void;
   isConnected: boolean;
 }
 
@@ -157,7 +157,7 @@ export const UserWebSocketProvider: React.FC<{
     };
   }, [base_url]);
 
-  const sendJsonMessage = (data: any) => {
+  const sendJsonMessage = () => {
     console.log('sendJsonMessage function is not implemented yet');
   };
 

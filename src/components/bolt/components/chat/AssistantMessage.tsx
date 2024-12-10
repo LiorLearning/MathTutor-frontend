@@ -7,10 +7,14 @@ interface AssistantMessageProps {
   content: string;
 }
 
-export const AssistantMessage = memo(({ content }: AssistantMessageProps) => {
+const AssistantMessageComponent = ({ content }: AssistantMessageProps) => {
   return (
     <div className="overflow-hidden w-full">
       <Markdown html>{content}</Markdown>
     </div>
   );
-});
+};
+
+AssistantMessageComponent.displayName = 'AssistantMessage';
+
+export const AssistantMessage = memo(AssistantMessageComponent);

@@ -11,7 +11,7 @@ interface PanelHeaderButtonProps {
   onClick?: (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void;
 }
 
-export const PanelHeaderButton = memo(
+const PanelHeaderButton = memo(
   ({ className, disabledClassName, disabled = false, children, onClick }: PanelHeaderButtonProps) => {
     return (
       <button
@@ -36,3 +36,7 @@ export const PanelHeaderButton = memo(
     );
   },
 );
+
+PanelHeaderButton.displayName = 'PanelHeaderButton';
+
+export { PanelHeaderButton };

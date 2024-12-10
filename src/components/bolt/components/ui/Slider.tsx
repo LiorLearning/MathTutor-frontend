@@ -21,7 +21,7 @@ interface SliderProps<T> {
   setSelected?: (selected: T) => void;
 }
 
-export const Slider = genericMemo(<T,>({ selected, options, setSelected }: SliderProps<T>) => {
+const SliderComponent = <T,>({ selected, options, setSelected }: SliderProps<T>) => {
   const isLeftSelected = selected === options.left.value;
 
   return (
@@ -34,7 +34,11 @@ export const Slider = genericMemo(<T,>({ selected, options, setSelected }: Slide
       </SliderButton>
     </div>
   );
-});
+};
+
+SliderComponent.displayName = 'Slider';
+
+export const Slider = genericMemo(SliderComponent);
 
 interface SliderButtonProps {
   selected: boolean;
@@ -64,3 +68,5 @@ const SliderButton = memo(({ selected, children, setSelected }: SliderButtonProp
     </button>
   );
 });
+
+SliderButton.displayName = 'SliderButton';
