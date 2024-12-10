@@ -128,6 +128,10 @@ export const Workbench = memo(({ chatStarted, isStreaming }: WorkspaceProps) => 
     sendJsonMessage({ role: 'files', content: fileMap });
   }, [files, sendJsonMessage]);
 
+  const clearUserScreen = useCallback(() => {
+    sendJsonMessage({ role: 'clear' });
+  }, [sendJsonMessage]);
+
   return (
     chatStarted && (
       <motion.div
@@ -165,6 +169,13 @@ export const Workbench = memo(({ chatStarted, isStreaming }: WorkspaceProps) => 
                 >
                   <div className="i-ph:upload" />
                   Send Files
+                </PanelHeaderButton>
+                <PanelHeaderButton
+                  className="mr-1 text-sm"
+                  onClick={clearUserScreen}
+                >
+                  <div className="i-ph:upload" />
+                  Clear User Window
                 </PanelHeaderButton>
                 <IconButton
                   icon="i-ph:x-circle"

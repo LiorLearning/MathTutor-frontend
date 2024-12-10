@@ -120,6 +120,9 @@ export const UserWebSocketProvider: React.FC<{
         htmlContentRef.current = html
         toggleRightCol();
     }
+    else if (message.role === 'clear') {
+      toggleRightColumn(true);
+    }
   };
 
 
