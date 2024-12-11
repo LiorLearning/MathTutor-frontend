@@ -5,7 +5,7 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Button } from "@/components/ui/button"
 import { useSearchParams } from 'next/navigation'
 import axios from 'axios'
-import { Wifi, WifiOff, User, Square, Trash } from "lucide-react"
+import { Square } from "lucide-react"
 
 import { 
   Message, 
@@ -17,7 +17,6 @@ import MessageComponents from '@/components/utils/admin/messages';
 // import AdminVideo from './webrtc/admin';
 import { AdminArtifactComponent } from '@/components/artifact/admin';
 import AdminInputBar from '@/components/utils/admin/admin_input';
-import { DarkModeToggle } from '@/components/themeContext';
 import ImageLoader from '@/components/ui/loaders/image_loader';
 import { SessionProvider } from '@/components/session-provider';
 import { 

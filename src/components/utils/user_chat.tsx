@@ -175,7 +175,6 @@ export function UserChat({ messages, setMessages, username, sessionId }: UserCha
           handleRecordingStart={handleRecordingStart}
           handleRecordingStop={handleRecordingStop}
           isRightColumnCollapsedRef={isRightColumnCollapsedRef}
-          toggleRightColumn={toggleRightColumn}
           sessionId={sessionId}
           deviceType={deviceType}
           isRightColumnCollapsed={isRightColumnCollapsed}

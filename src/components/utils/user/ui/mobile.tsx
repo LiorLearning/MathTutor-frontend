@@ -10,7 +10,7 @@ import InputBar from '../input_bar';
 import SpeechToText from '../audio/speech_to_text';
 import { Message } from '../chat_utils';
 
-interface DesktopProps {
+interface MobileProps {
   username: string;
   isChatConnected: boolean;
   speakout: boolean;
@@ -26,14 +26,13 @@ interface DesktopProps {
   handleRecordingStart: () => void;
   handleRecordingStop: (blob: Blob) => void;
   isRightColumnCollapsedRef: React.MutableRefObject<boolean>;
-  toggleRightColumn: () => void;
   sessionId: string;
   deviceType: string;
   isRightColumnCollapsed: boolean;
   setIsRightColumnCollapsed: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-const DesktopChat: React.FC<DesktopProps> = ({
+const MobileChat: React.FC<MobileProps> = ({
   username,
   isChatConnected,
   speakout,
@@ -49,7 +48,6 @@ const DesktopChat: React.FC<DesktopProps> = ({
   handleRecordingStart,
   handleRecordingStop,
   isRightColumnCollapsedRef,
-  toggleRightColumn,
   sessionId,
   deviceType,
   isRightColumnCollapsed,
@@ -147,4 +145,4 @@ const DesktopChat: React.FC<DesktopProps> = ({
   );
 };
 
-export default DesktopChat;
+export default MobileChat;
