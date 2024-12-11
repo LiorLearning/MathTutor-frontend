@@ -15,13 +15,14 @@ import {
 
 interface HeaderProps {
   username: string;
+  sessionId: string;
   isChatConnected: boolean;
   speakout: boolean;
   toggleSpeakout: () => void;
   deviceType: string;
 }
 
-const Header: React.FC<HeaderProps> = ({ username, isChatConnected, speakout, toggleSpeakout, deviceType }) => {
+const Header: React.FC<HeaderProps> = ({ username, sessionId, isChatConnected, speakout, toggleSpeakout, deviceType }) => {
   const isPhone = deviceType === ANDROID_PHONE || deviceType === IPHONE;
 
   return (
@@ -64,7 +65,7 @@ const Header: React.FC<HeaderProps> = ({ username, isChatConnected, speakout, to
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuLabel>My Account</DropdownMenuLabel>
+              <DropdownMenuLabel>Session {sessionId}</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem>
                 <User className="mr-2 h-4 w-4" />

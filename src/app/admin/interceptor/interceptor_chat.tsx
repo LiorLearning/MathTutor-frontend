@@ -32,6 +32,7 @@ import {
   END,
   ADMIN,
 } from '@/components/utils/common_utils';
+import AdminHeader from '@/components/utils/admin/admin-header';
 
 
 export function InterceptorChat() {
@@ -274,27 +275,13 @@ export function InterceptorChat() {
         {/* <UserSidebar username={username} /> */}
         
         <div className="flex flex-col flex-grow w-1/2">
-          <header className="p-4 border-b border-border dark:border-border">
-            <div className="flex justify-between items-center">
-              <h1 className="text-xl font-bold text-primary-foreground dark:text-primary-foreground">MathTutor</h1>
-              <div className="flex items-center gap-2">
-                <User className="h-5 w-5 text-muted-foreground dark:text-muted-foreground" />
-                <h3 className="text-lg text-muted-foreground dark:text-muted-foreground">{username}</h3>
-                {(isChatConnected) ? (
-                  <Wifi className="text-green-500" size={20} />
-                ) : (
-                  <WifiOff className="text-red-500" size={20} />
-                )}
-                <DarkModeToggle />
-                <Button 
-                  className="bg-destructive text-destructive-foreground dark:bg-destructive dark:text-destructive-foreground" 
-                  onClick={handleDeleteChat}
-                >
-                  <Trash className="h-5 w-5" />
-                </Button>
-              </div>
-            </div>
-          </header>
+          <AdminHeader 
+            username={username} 
+            sessionId={sessionId}
+            isChatConnected={isChatConnected} 
+            handleDeleteChat={handleDeleteChat} 
+            onEndSession={handleEndSession}
+          />
 
           <ScrollArea className="flex-grow p-4" ref={scrollAreaRef}>
             <div className="space-y-6">
@@ -318,7 +305,6 @@ export function InterceptorChat() {
               onSendCorrection={handleCorrectionMessage}
               pausedMessage={pausedMessage}
               handlePauseMessage={handlePauseMessage}
-              onEndSession={handleEndSession}
             />
           )}
 

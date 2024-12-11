@@ -78,6 +78,7 @@ const DesktopChat: React.FC<DesktopProps> = ({
         <div className="h-full flex flex-col border-border dark:border-dark-border">
           <Header 
             username={username} 
+            sessionId={sessionId}
             isChatConnected={isChatConnected}
             speakout={speakout}
             toggleSpeakout={toggleSpeakout}

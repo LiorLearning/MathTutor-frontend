@@ -9,11 +9,10 @@ interface AdminInputBarProps {
   onSendCorrection: (correction: string, images: string[]) => void;
   pausedMessage: boolean;
   handlePauseMessage: () => void;
-  onEndSession: () => void;
 }
 
 
-const AdminInputBar: React.FC<AdminInputBarProps> = ({ onSendMessage, onSendCorrection, pausedMessage, handlePauseMessage, onEndSession }) => {
+const AdminInputBar: React.FC<AdminInputBarProps> = ({ onSendMessage, onSendCorrection, pausedMessage, handlePauseMessage }) => {
   const handleTextSend = (text: string, images: string[]) => {
     onSendMessage(text, images);
   };
@@ -47,12 +46,6 @@ const AdminInputBar: React.FC<AdminInputBarProps> = ({ onSendMessage, onSendCorr
         <InputBar 
           onSendMessage={handleTextSend}
         />
-        <Button 
-          className="ml-2 h-10 px-4 py-2 rounded-md hover:bg-red-700 transition-colors duration-300"
-          onClick={onEndSession}
-        >
-          End Session
-        </Button>
       </div>
     </div>
   );
