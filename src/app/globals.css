@@ -76,3 +76,9 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+
+[data-radix-scroll-area-viewport] > div {
+  min-width: 0 !important; /* Remove table behavior */
+  display: block !important; /* Override display: table */
+}

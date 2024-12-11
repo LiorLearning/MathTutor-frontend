@@ -84,7 +84,7 @@ const DesktopChat: React.FC<DesktopProps> = ({
             deviceType={deviceType}
           />
 
-          <ScrollArea ref={scrollAreaRef} className="flex-grow p-4 overflow-y-auto, overflow-hidden">
+          <ScrollArea ref={scrollAreaRef} className="flex-grow p-4 overflow-y-auto overflow-hidden">
             <div className="space-y-6">
               <MessageComponents 
                 messages={messages}
