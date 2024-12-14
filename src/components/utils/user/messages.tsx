@@ -49,9 +49,10 @@ export default function MessageComponents({ messages, toggleAudio }: MessageComp
         <div ref={messagesEndRef} />
       </div>
       {visibleCount < messages.length && (
-        <div className="absolute top-4 left-1/2 transform -translate-x-1/2 opacity-60">
-          <Button onClick={handleLoadMore} variant="outline" size="sm">
-            <ChevronUp className="h-4 w-4" />
+        <div className="absolute top-4 left-1/2 transform -translate-x-1/2 opacity-100 rounded-lg shadow-lg bg-secondary text-secondary-foreground">
+          <Button onClick={handleLoadMore} variant="outline" size="sm" className="flex items-center space-x-2">
+            <ChevronUp className="h-4 w-4 text-secondary-foreground" />
+            <span>Load More</span>
           </Button>
         </div>
       )}
