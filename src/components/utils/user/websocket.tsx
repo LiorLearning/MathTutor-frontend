@@ -66,6 +66,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
   const [isChatConnected, setIsChatConnected] = useState(false);
   const [isSendingMessage, setIsSendingMessage] = useState(false);
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
+  const [isInterrupted, setIsInterrupted] = useState(false);
   const [speakout, setSpeakout] = useState(true);
   const messageStreamIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const isLastMessagePauseRef = useRef<boolean>(false);
@@ -84,7 +85,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
     audioContext.stopAudio(message.message_id);
   };
 
-  const handlePlayAudio = (messageId: string, messageText: string) => {
+  const handlePlayAudio = useCallback((messageId: string, messageText: string) => {
     if (!messageText.trim()) {
       return;
     }
@@ -99,8 +100,10 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
       )
     );
 
-    audioContext.playAudio(messageId, messageText);
-  };
+    if (!isInterrupted) {
+      audioContext.playAudio(messageId, messageText);
+    }
+  }, [isInterrupted]);
 
   const toggleAudio = useCallback(async (message: Message) => {
     if (message.audioUrl) {
@@ -151,6 +154,8 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
         const message = data.content;
         const role = data.role;
 
+        setIsInterrupted(false);
+
         switch (role) {
           case NOTEXT:
             setIsSendingMessage(false);
@@ -198,6 +203,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
 
           case INTERRUPT:
             audioContext.stopAudio();
+            setIsInterrupted(true);
             return;
 
           case GENERATING_IMAGE:
