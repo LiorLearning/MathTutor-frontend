@@ -1,6 +1,6 @@
 import { useStore } from '@nanostores/react';
-import { memo, useEffect, useMemo, useRef, useState } from 'react';
-import { Panel, PanelGroup, PanelResizeHandle, type ImperativePanelHandle } from 'react-resizable-panels';
+import { memo, useMemo } from 'react';
+import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import {
   CodeMirrorEditor,
   type EditorDocument,
@@ -10,19 +10,19 @@ import {
   type OnScrollCallback as OnEditorScroll,
 } from '@/components/bolt/components/codemirror/CodeMirrorEditor';
 import { PanelHeader } from '@/components/bolt/components/ui/PanelHeader';
-import { IconButton } from '@/components/bolt/components/ui/IconButton';
+// import { IconButton } from '@/components/bolt/components/ui/IconButton';
 import { PanelHeaderButton } from '@/components/bolt/components/ui/PanelHeaderButton';
-import { shortcutEventEmitter } from '@/components/bolt/lib/hooks';
+// import { shortcutEventEmitter } from '@/components/bolt/lib/hooks';
 import type { FileMap } from '@/components/bolt/lib/stores/files';
 import { workbenchStore } from '@/components/bolt/lib/stores/workbench';
 import { themeStore } from '@/components/bolt/lib/stores/theme';
-import { classNames } from '@/components/bolt/utils/classNames';
+// import { classNames } from '@/components/bolt/utils/classNames';
 import { WORK_DIR } from '@/components/bolt/utils/constants';
 import { renderLogger } from '@/components/bolt/utils/logger';
 import { isMobile } from '@/components/bolt/utils/mobile';
 import { FileBreadcrumb } from './FileBreadcrumb';
 import { FileTree } from './FileTree';
-import { Terminal, type TerminalRef } from './terminal/Terminal';
+// import { Terminal, type TerminalRef } from './terminal/Terminal';
 
 interface EditorPanelProps {
   files?: FileMap;
@@ -37,13 +37,13 @@ interface EditorPanelProps {
   onFileReset?: () => void;
 }
 
-const MAX_TERMINALS = 3;
+// const MAX_TERMINALS = 3;
 const DEFAULT_TERMINAL_SIZE = 25;
 const DEFAULT_EDITOR_SIZE = 100 - DEFAULT_TERMINAL_SIZE;
 
 const editorSettings: EditorSettings = { tabSize: 2 };
 
-export const EditorPanel = memo(
+const EditorPanel = memo(
   ({
     files,
     unsavedFiles,
@@ -254,3 +254,7 @@ export const EditorPanel = memo(
     );
   },
 );
+
+EditorPanel.displayName = "EditorPanel"
+
+export default EditorPanel;

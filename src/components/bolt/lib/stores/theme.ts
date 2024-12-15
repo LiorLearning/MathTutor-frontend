@@ -20,6 +20,7 @@ function initStore(): Theme {
       localStorage.removeItem('test');
       return true;
     } catch (e) {
+      console.error('Error accessing localStorage:', e);
       return false;
     }
   };

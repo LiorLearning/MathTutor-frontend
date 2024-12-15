@@ -16,7 +16,7 @@ import { workbenchStore, type WorkbenchViewType } from '@/components/bolt/lib/st
 
 import { classNames } from '@/components/bolt/utils/classNames'
 import { renderLogger } from '@/components/bolt/utils/logger';
-import { EditorPanel } from './EditorPanel';
+import EditorPanel from './EditorPanel';
 import { Preview } from './Preview';
 import { useAdminWebSocket } from '@/components/bolt/components/websocket/admin';
 import { FileMap } from '../../lib/stores/files';
