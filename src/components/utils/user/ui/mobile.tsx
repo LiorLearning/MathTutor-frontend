@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Square } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
@@ -56,10 +56,13 @@ const DesktopChat: React.FC<DesktopProps> = ({
   setIsRightColumnCollapsed
 }) => {
 
+  const [compactHeader, setCompactHeader] = useState(false); 
+
   // Sync state with ref
   useEffect(() => {
     isRightColumnCollapsedRef.current = isRightColumnCollapsed;
     setIsRightColumnCollapsed(isRightColumnCollapsed);
+    setCompactHeader(!isRightColumnCollapsed);
   }, [isRightColumnCollapsed]);
 
   return (
@@ -72,6 +75,7 @@ const DesktopChat: React.FC<DesktopProps> = ({
           speakout={speakout}
           toggleSpeakout={toggleSpeakout}
           deviceType={deviceType}
+          compact={compactHeader}
         />
 
         <ScrollArea ref={scrollAreaRef} className="flex-grow overflow-y-auto overflow-hidden px-4 mb-16">

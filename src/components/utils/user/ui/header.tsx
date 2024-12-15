@@ -20,9 +20,10 @@ interface HeaderProps {
   speakout: boolean;
   toggleSpeakout: () => void;
   deviceType: string;
+  compact: boolean;
 }
 
-const Header: React.FC<HeaderProps> = ({ username, sessionId, isChatConnected, speakout, toggleSpeakout, deviceType }) => {
+const Header: React.FC<HeaderProps> = ({ username, sessionId, isChatConnected, speakout, toggleSpeakout, deviceType, compact }) => {
   const isPhone = deviceType === ANDROID_PHONE || deviceType === IPHONE;
 
   return (
@@ -57,6 +58,14 @@ const Header: React.FC<HeaderProps> = ({ username, sessionId, isChatConnected, s
               </div>
             )}
           </Button>
+          
+          {/* Conditionally render Audio Selector */}
+          {!compact && (
+            <div className="hidden md:block">
+              <AudioSelector />
+            </div>
+          )}
+
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="flex items-center gap-2">
@@ -76,9 +85,14 @@ const Header: React.FC<HeaderProps> = ({ username, sessionId, isChatConnected, s
                 <span>Settings</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onSelect={(event) => event.preventDefault()}>
-                <AudioSelector />
-              </DropdownMenuItem>
+              
+              {/* Conditionally render Audio Selector for smaller screens */}
+              {compact && (
+                <DropdownMenuItem className="md:hidden" onSelect={(event) => event.preventDefault()}>
+                  <AudioSelector />
+                </DropdownMenuItem>
+              )}
+              
               <DropdownMenuSeparator />
               <DropdownMenuSeparator />
               <DropdownMenuItem>
