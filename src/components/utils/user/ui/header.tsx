@@ -88,13 +88,14 @@ const Header: React.FC<HeaderProps> = ({ username, sessionId, isChatConnected, s
               
               {/* Conditionally render Audio Selector for smaller screens */}
               {compact && (
-                <DropdownMenuItem className="md:hidden" onSelect={(event) => event.preventDefault()}>
-                  <AudioSelector />
-                </DropdownMenuItem>
+                <>
+                  <DropdownMenuItem onSelect={(event) => event.preventDefault()}>
+                    <AudioSelector />
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                </>
               )}
               
-              <DropdownMenuSeparator />
-              <DropdownMenuSeparator />
               <DropdownMenuItem>
                 <LogOut className="mr-2 h-4 w-4" />
                 <span>Log out</span>

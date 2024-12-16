@@ -54,13 +54,13 @@ const MobileChat: React.FC<MobileProps> = ({
   setIsRightColumnCollapsed
 }) => {
 
-  const [compactHeader, setCompactHeader] = useState(false); 
+  // const [compactHeader, setCompactHeader] = useState(false); 
 
   // Sync state with ref
   useEffect(() => {
     isRightColumnCollapsedRef.current = isRightColumnCollapsed;
     setIsRightColumnCollapsed(isRightColumnCollapsed);
-    setCompactHeader(!isRightColumnCollapsed);
+    // setCompactHeader(!isRightColumnCollapsed);
   }, [isRightColumnCollapsed]);
 
   return (
@@ -73,7 +73,7 @@ const MobileChat: React.FC<MobileProps> = ({
           speakout={speakout}
           toggleSpeakout={toggleSpeakout}
           deviceType={deviceType}
-          compact={compactHeader}
+          compact={true}
         />
 
         <ScrollArea ref={scrollAreaRef} className="flex-grow overflow-y-auto overflow-hidden px-4 mb-16">

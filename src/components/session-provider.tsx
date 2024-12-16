@@ -90,9 +90,6 @@ export function SessionProvider({ userId, sessionId, route, children }: SessionP
             </AlertDescription>
           </Alert>
         </CardContent>
-        <CardFooter className="flex justify-center">
-          <Button onClick={() => window.location.href = '/'}>Go to Home</Button>
-        </CardFooter>
       </Card>
     )
   }
