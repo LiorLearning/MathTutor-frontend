@@ -59,12 +59,9 @@ const Header: React.FC<HeaderProps> = ({ username, sessionId, isChatConnected, s
             )}
           </Button>
           
-          {/* Conditionally render Audio Selector */}
-          {!compact && (
-            <div className="hidden md:block">
-              <AudioSelector />
-            </div>
-          )}
+          <div className="hidden md:block">
+            <AudioSelector />
+          </div>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
