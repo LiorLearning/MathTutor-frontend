@@ -32,7 +32,7 @@ import {
   ADMIN,
 } from '@/components/utils/common_utils';
 import AdminHeader from '@/components/utils/admin/admin-header';
-
+import { ChatLoader } from '@/components/ui/loaders/chat_loader';
 
 export function InterceptorChat() {
   const searchParams = useSearchParams();
@@ -270,63 +270,67 @@ export function InterceptorChat() {
 
   return (
     <SessionProvider userId={username} sessionId={sessionId} route='/admin/interceptor'>
-      <div className="flex h-screen bg-background text-foreground dark:bg-background dark:text-foreground">
-        {/* <UserSidebar username={username} /> */}
-        
-        <div className="flex flex-col flex-grow w-1/2">
-          <AdminHeader 
-            username={username} 
-            sessionId={sessionId}
-            isChatConnected={isChatConnected} 
-            handleDeleteChat={handleDeleteChat} 
-            onEndSession={handleEndSession}
-          />
-
-          <ScrollArea className="flex-grow p-4" ref={scrollAreaRef}>
-            <div className="space-y-6">
-              <MessageComponents messages={messages} />
-            </div>
-          </ScrollArea>
-
-          {isGeneratingImage ? (
-            <div className="relative flex items-center justify-center m-4">
-              <div className="flex items-center justify-center m-2">
-                <ImageLoader />
-              </div>
-              <Button size="sm" onClick={sendStopMessage}>
-                <Square className="mr-2 text-sm" />
-                Stop
-              </Button>
-            </div>
-          ) : (
-            <AdminInputBar 
-              onSendMessage={handleSendMessage}
-              onSendCorrection={handleCorrectionMessage}
-              pausedMessage={pausedMessage}
-              handlePauseMessage={handlePauseMessage}
-            />
-          )}
-
-        </div>
-        <div className="w-1/2 p-4 flex flex-col h-full">
-          <AdminArtifactComponent username={username} sessionId={sessionId} />
-          {/* <div className="fixed left-4 top-4 w-[15vw] h-[calc(15vw * 4 / 3)] max-w-[256px] max-h-[calc(256px * 4 / 3)]">
-            <AdminVideo 
+      {!isChatConnected ? (
+        <ChatLoader />
+      ) : (
+        <div className="flex h-screen bg-background text-foreground dark:bg-background dark:text-foreground">
+          {/* <UserSidebar username={username} /> */}
+          
+          <div className="flex flex-col flex-grow w-1/2">
+            <AdminHeader 
               username={username} 
-              style={{ 
-                visibility: isVideoVisible ? 'visible' : 'hidden', // Hide the video feed
-                position: isVideoVisible ? 'static' : 'absolute', // Keep it in the flow or move it off-screen
-              }} 
+              sessionId={sessionId}
+              isChatConnected={isChatConnected} 
+              handleDeleteChat={handleDeleteChat} 
+              onEndSession={handleEndSession}
             />
-            <button 
-              onClick={toggleVideoFeed} 
-              className="absolute left-0 top-0 bg-muted text-muted-foreground dark:bg-muted dark:text-muted-foreground p-2 rounded"
-            >
-              {isVideoVisible ? <PanelLeftCloseIcon className="h-4 w-4" /> : <PanelRightCloseIcon className="h-4 w-4" />}
-            </button>
-          </div> */}
+
+            <ScrollArea className="flex-grow p-4" ref={scrollAreaRef}>
+              <div className="space-y-6">
+                <MessageComponents messages={messages} />
+              </div>
+            </ScrollArea>
+
+            {isGeneratingImage ? (
+              <div className="relative flex items-center justify-center m-4">
+                <div className="flex items-center justify-center m-2">
+                  <ImageLoader />
+                </div>
+                <Button size="sm" onClick={sendStopMessage}>
+                  <Square className="mr-2 text-sm" />
+                  Stop
+                </Button>
+              </div>
+            ) : (
+              <AdminInputBar 
+                onSendMessage={handleSendMessage}
+                onSendCorrection={handleCorrectionMessage}
+                pausedMessage={pausedMessage}
+                handlePauseMessage={handlePauseMessage}
+              />
+            )}
+
+          </div>
+          <div className="w-1/2 p-4 flex flex-col h-full">
+            <AdminArtifactComponent username={username} sessionId={sessionId} />
+            {/* <div className="fixed left-4 top-4 w-[15vw] h-[calc(15vw * 4 / 3)] max-w-[256px] max-h-[calc(256px * 4 / 3)]">
+              <AdminVideo 
+                username={username} 
+                style={{ 
+                  visibility: isVideoVisible ? 'visible' : 'hidden', // Hide the video feed
+                  position: isVideoVisible ? 'static' : 'absolute', // Keep it in the flow or move it off-screen
+                }} 
+              />
+              <button 
+                onClick={toggleVideoFeed} 
+                className="absolute left-0 top-0 bg-muted text-muted-foreground dark:bg-muted dark:text-muted-foreground p-2 rounded"
+              >
+                {isVideoVisible ? <PanelLeftCloseIcon className="h-4 w-4" /> : <PanelRightCloseIcon className="h-4 w-4" />}
+              </button>
+            </div> */}
+          </div>
         </div>
-      </div>
+      )}
     </SessionProvider>
   );
 }
