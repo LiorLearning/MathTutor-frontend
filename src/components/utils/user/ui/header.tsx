@@ -59,9 +59,9 @@ const Header: React.FC<HeaderProps> = ({ username, sessionId, isChatConnected, s
             )}
           </Button>
           
-          <div className="hidden md:block">
+          {compact && (
             <AudioSelector />
-          </div>
+          )}
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -82,17 +82,10 @@ const Header: React.FC<HeaderProps> = ({ username, sessionId, isChatConnected, s
                 <span>Settings</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              
-              {/* Conditionally render Audio Selector for smaller screens */}
-              {compact && (
-                <>
-                  <DropdownMenuItem onSelect={(event) => event.preventDefault()}>
-                    <AudioSelector />
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                </>
-              )}
-              
+              <DropdownMenuItem onSelect={(event) => event.preventDefault()}>
+                <AudioSelector />
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
               <DropdownMenuItem>
                 <LogOut className="mr-2 h-4 w-4" />
                 <span>Log out</span>
