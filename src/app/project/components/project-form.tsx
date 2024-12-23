@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { createProject, updateProject } from '../api';
 import { Project } from '../types';
+import { useToast } from '@/hooks/use-toast';
 
 interface ProjectFormProps {
   project?: Project;
@@ -18,6 +19,7 @@ export function ProjectForm({
 }: ProjectFormProps) {
   const [projectName, setProjectName] = useState(project?.project_name || '');
   const [description, setDescription] = useState(project?.description || '');
+  const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,6 +33,10 @@ export function ProjectForm({
           files: project.files || []
         });
         onProjectUpdated?.();
+        toast({
+          title: "Project Updated",
+          description: `Project "${projectName}" has been successfully updated.`,
+        });
       } else {
         // Create new project
         await createProject({
@@ -39,6 +45,10 @@ export function ProjectForm({
           files: []
         });
         onProjectCreated?.();
+        toast({
+          title: "Project Created",
+          description: `Project "${projectName}" has been successfully created.`,
+        });
       }
 
       // Reset form
@@ -46,6 +56,11 @@ export function ProjectForm({
       setDescription('');
     } catch (error) {
       console.error('Failed to save project:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save project. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
