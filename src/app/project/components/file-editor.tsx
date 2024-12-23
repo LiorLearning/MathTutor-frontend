@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import { File as FileIcon, Save, Trash2 } from 'lucide-react';
 import { updateFile, deleteFile } from '../api';
 import { File } from '../types';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { Card, CardHeader, CardContent, CardFooter } from '@/components/ui/card';
 
 interface FileEditorProps {
   file: File;
@@ -27,36 +30,38 @@ export function FileEditor({ file, onUpdate, onDelete }: FileEditorProps) {
   };
 
   return (
-    <div className="border rounded-lg p-4 mb-4 bg-card shadow-sm">
-      <div className="flex items-center justify-between mb-2">
+    <Card className="mb-4">
+      <CardHeader className="flex items-center justify-between">
         <div className="flex items-center space-x-2">
           <FileIcon className="w-4 h-4 text-muted-foreground" />
           <span className="font-medium">{file.path}</span>
         </div>
         <div className="flex space-x-2">
-          <button
+          <Button
             onClick={handleSave}
-            className="p-2 text-primary hover:bg-accent rounded-full"
+            variant="outline"
             disabled={!isEditing}
           >
             <Save className="w-4 h-4" />
-          </button>
-          <button
+          </Button>
+          <Button
             onClick={handleDelete}
-            className="p-2 text-destructive hover:bg-destructive-foreground rounded-full"
+            variant="destructive"
           >
             <Trash2 className="w-4 h-4" />
-          </button>
+          </Button>
         </div>
-      </div>
-      <textarea
-        value={content}
-        onChange={(e) => {
-          setContent(e.target.value);
-          setIsEditing(true);
-        }}
-        className="w-full h-32 p-2 border rounded-md font-mono text-sm bg-input text-foreground"
-      />
-    </div>
+      </CardHeader>
+      <CardContent>
+        <Textarea
+          value={content}
+          onChange={(e) => {
+            setContent(e.target.value);
+            setIsEditing(true);
+          }}
+          className="w-full h-32 font-mono text-sm"
+        />
+      </CardContent>
+    </Card>
   );
 }
