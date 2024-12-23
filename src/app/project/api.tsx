@@ -44,10 +44,9 @@ export async function createFile(file: Omit<File, 'file_id'>): Promise<File> {
     throw new Error('Failed to create file');
   }
 }
-
-export async function updateFile(fileId: string, content: string, path?: string): Promise<File> {
+export async function updateFile(fileId: string, file: Omit<File, 'file_id'>): Promise<File> {
   try {
-    const response = await axios.put(`${API_BASE_URL}/files/${fileId}`, { content, path });
+    const response = await axios.put(`${API_BASE_URL}/files/${fileId}`, file);
     return response.data as File;
   } catch (error) {
     console.error(`Failed to update file: ${error}`);

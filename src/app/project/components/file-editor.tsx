@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { File as FileIcon, Save, Trash2 } from 'lucide-react';
+import { File as FileIcon, Save, Trash2, Expand } from 'lucide-react';
 import { updateFile, deleteFile } from '../api';
 import { File } from '../types';
 import { Button } from '@/components/ui/button';
@@ -15,9 +15,15 @@ interface FileEditorProps {
 export function FileEditor({ file, onUpdate, onDelete }: FileEditorProps) {
   const [content, setContent] = useState(file.content);
   const [isEditing, setIsEditing] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   const handleSave = async () => {
-    await updateFile(file.file_id, content);
+    await updateFile(file.file_id, {
+      content: content,
+      filename: file.filename,
+      path: file.path,
+      project_id: file.project_id
+    });
     setIsEditing(false);
     onUpdate();
   };
@@ -31,37 +37,51 @@ export function FileEditor({ file, onUpdate, onDelete }: FileEditorProps) {
 
   return (
     <Card className="mb-4">
-      <CardHeader className="flex items-center justify-between">
+      <CardHeader className="flex flex-row items-center justify-between">
         <div className="flex items-center space-x-2">
           <FileIcon className="w-4 h-4 text-muted-foreground" />
-          <span className="font-medium">{file.path}</span>
+          <div className="flex flex-col">
+            <span className="font-medium text-sm">{file.filename}</span>
+            <span className="text-xs text-muted-foreground">{file.path}</span>
+          </div>
         </div>
         <div className="flex space-x-2">
+          <Button
+            onClick={() => setIsExpanded(!isExpanded)}
+            variant="outline"
+            size="icon"
+          >
+            <Expand className="w-4 h-4" />
+          </Button>
           <Button
             onClick={handleSave}
             variant="outline"
             disabled={!isEditing}
+            size="icon"
           >
             <Save className="w-4 h-4" />
           </Button>
           <Button
             onClick={handleDelete}
             variant="destructive"
+            size="icon"
           >
             <Trash2 className="w-4 h-4" />
           </Button>
         </div>
       </CardHeader>
-      <CardContent>
-        <Textarea
-          value={content}
-          onChange={(e) => {
-            setContent(e.target.value);
-            setIsEditing(true);
-          }}
-          className="w-full h-32 font-mono text-sm"
-        />
-      </CardContent>
+      {isExpanded && (
+        <CardContent>
+          <Textarea
+            value={content}
+            onChange={(e) => {
+              setContent(e.target.value);
+              setIsEditing(true);
+            }}
+            className="w-full font-mono text-sm h-96"
+          />
+        </CardContent>
+      )}
     </Card>
   );
 }

@@ -19,6 +19,7 @@ export function NewFileForm({ projectId, onFileCreated }: NewFileFormProps) {
     await createFile({
       path,
       content,
+      filename: path.split('/').pop() || 'new_file',
       project_id: projectId,
     });
     setPath('');

@@ -6,6 +6,7 @@ export interface Project {
 
 export interface File {
   file_id: string;
+  filename: string;
   content: string;
   path: string;
   project_id?: string;
