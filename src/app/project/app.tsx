@@ -1,31 +1,41 @@
-import React, { useEffect, useState } from 'react';
-import { FileEditor } from './components/file-editor';
-import { NewFileForm } from './components/new-file-form';
-import { ChevronDown } from 'lucide-react';
-import { fetchProjects, fetchProjectFiles } from './api';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import type { Project, File } from './types';
+import React, { useState, useEffect } from 'react';
+import { ProjectForm } from './components/project-form';
+import { fetchProjects, deleteProject } from './api';
+import type { Project } from './types';
+import { Button } from '@/components/ui/button';
+import { Trash2, Edit, Loader2, Plus } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
-function App() {
+export default function App() {
   const [projects, setProjects] = useState<Project[]>([]);
-  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
-  const [files, setFiles] = useState<File[]>([]);
+  const [selectedProject, setSelectedProject] = useState<Project | undefined>(undefined);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
+  const [isProjectDialogOpen, setIsProjectDialogOpen] = useState(false);
 
   const loadProjects = async () => {
     try {
       setIsLoading(true);
       setError(null);
-      const projectList = await fetchProjects();
-      
-      if (projectList.length === 0) {
-        setError('No projects found');
-        return;
-      }
-      
-      setProjects(projectList);
-      setSelectedProject(projectList[0]);
+      const fetchedProjects = await fetchProjects();
+      setProjects(fetchedProjects);
     } catch (error) {
       console.error('Failed to load projects:', error);
       setError('Failed to load projects. Please try again.');
@@ -34,98 +44,150 @@ function App() {
     }
   };
 
-  const loadProjectFiles = async (projectId: string) => {
-    try {
-      setError(null);
-      const project = await fetchProjectFiles(projectId);
-      setFiles(project.files || []);
-    } catch (error) {
-      console.error('Failed to load project files:', error);
-      setError('Failed to load project files. Please try again.');
-    }
-  };
-
   useEffect(() => {
     loadProjects();
   }, []);
 
-  useEffect(() => {
-    if (selectedProject) {
-      loadProjectFiles(selectedProject.project_id);
+  const handleDeleteProject = async (project: Project) => {
+    setProjectToDelete(project);
+  };
+
+  const confirmDelete = async () => {
+    if (!projectToDelete) return;
+    
+    try {
+      await deleteProject(projectToDelete.project_id);
+      loadProjects();
+    } catch (error) {
+      console.error('Failed to delete project:', error);
+    } finally {
+      setProjectToDelete(null);
     }
-  }, [selectedProject]);
+  };
+
+  const handleProjectCreated = () => {
+    loadProjects();
+    setSelectedProject(undefined);
+    setIsProjectDialogOpen(false);
+  };
+
+  const handleProjectUpdated = () => {
+    loadProjects();
+    setSelectedProject(undefined);
+    setIsProjectDialogOpen(false);
+  };
+
+  const openProjectDialog = (project?: Project) => {
+    setSelectedProject(project);
+    setIsProjectDialogOpen(true);
+  };
 
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p className="text-muted">Loading...</p>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-destructive mb-4">{error}</p>
-          <button 
-            onClick={loadProjects} 
-            className="px-4 py-2 bg-primary text-primary-foreground rounded"
-          >
-            Retry
-          </button>
+        <div className="flex items-center gap-2">
+          <Loader2 className="h-6 w-6 animate-spin" />
+          <p className="text-muted-foreground">Loading projects...</p>
         </div>
       </div>
     );
   }
+
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-background">
       <div className="max-w-5xl mx-auto py-8 px-4">
-        <div className="mb-8">
-          <Select
-            value={selectedProject?.project_id || ''}
-            onValueChange={(value) => {
-              const project = projects.find(p => p.project_id === value);
-              setSelectedProject(project || null);
-            }}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select a project">
-                {selectedProject ? selectedProject.project_name : "Select a project"}
-              </SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              {projects.map((project) => (
-                <SelectItem key={project.project_id} value={project.project_id}>
-                  {project.project_name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          {selectedProject && (
-            <>
-              <NewFileForm
-                projectId={selectedProject.project_id}
-                onFileCreated={() => loadProjectFiles(selectedProject.project_id)}
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-3xl font-bold">Project Manager</h1>
+          <Dialog open={isProjectDialogOpen} onOpenChange={setIsProjectDialogOpen}>
+            <DialogTrigger asChild>
+              <Button onClick={() => openProjectDialog()}>
+                <Plus className="h-4 w-4 mr-2" /> Create Project
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>{selectedProject ? 'Edit Project' : 'Create New Project'}</DialogTitle>
+              </DialogHeader>
+              <ProjectForm 
+                project={selectedProject} 
+                onProjectCreated={handleProjectCreated}
+                onProjectUpdated={handleProjectUpdated}
               />
+            </DialogContent>
+          </Dialog>
+        </div>
 
-              <div className="space-y-4">
-                {files.map((file) => (
-                  <FileEditor
-                    key={file.file_id}
-                    file={file}
-                    onUpdate={() => loadProjectFiles(selectedProject.project_id)}
-                    onDelete={() => loadProjectFiles(selectedProject.project_id)}
-                  />
-                ))}
-              </div>
-            </>
+        <div className="space-y-4">
+          <h2 className="text-2xl font-bold mb-4">Your Projects</h2>
+          
+          {error && (
+            <div className="bg-destructive/10 text-destructive p-4 rounded-lg mb-4">
+              <p>{error}</p>
+              <Button 
+                variant="outline" 
+                onClick={loadProjects}
+                className="mt-2"
+              >
+                Retry
+              </Button>
+            </div>
+          )}
+
+          {projects.length === 0 ? (
+            <div className="bg-muted/50 p-8 rounded-lg text-center">
+              <p className="text-muted-foreground">No projects found. Create your first project!</p>
+            </div>
+          ) : (
+            <div className="grid gap-4">
+              {projects.map((project) => (
+                <div 
+                  key={project.project_id} 
+                  className="bg-card p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow"
+                >
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h3 className="text-xl font-medium mb-2">{project.project_name}</h3>
+                      <p className="text-muted-foreground">{project.description}</p>
+                    </div>
+                    <div className="flex space-x-2">
+                      <Button 
+                        variant="outline" 
+                        size="icon" 
+                        onClick={() => openProjectDialog(project)}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button 
+                        variant="destructive" 
+                        size="icon" 
+                        onClick={() => handleDeleteProject(project)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           )}
         </div>
+
+        <AlertDialog open={!!projectToDelete} onOpenChange={() => setProjectToDelete(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This will permanently delete the project "{projectToDelete?.project_name}".
+                This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={confirmDelete}>Delete</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );
 }
-
-export default App;

@@ -12,6 +12,37 @@ export async function fetchProjects(): Promise<Project[]> {
   }
 }
 
+export async function createProject(project: Omit<Project, 'project_id'>): Promise<Project> {
+  try {
+    const response = await axios.post(`${API_BASE_URL}/projects/`, project);
+    return response.data as Project;
+  } catch (error) {
+    console.error(`Failed to create project: ${error}`);
+    throw new Error('Failed to create project');
+  }
+}
+
+export async function updateProject(projectId: string, project: Omit<Project, 'project_id'>): Promise<Project> {
+  try {
+    const response = await axios.put(`${API_BASE_URL}/projects/${projectId}`, project);
+    return response.data as Project;
+  } catch (error) {
+    console.error(`Failed to update project: ${error}`);
+    throw new Error('Failed to update project');
+  }
+}
+
+export async function deleteProject(projectId: string): Promise<void> {
+  try {
+    const response = await axios.delete(`${API_BASE_URL}/projects/${projectId}`);
+    return response.data as void;
+  } catch (error) {
+    console.error(`Failed to delete project: ${error}`);
+    throw new Error('Failed to delete project');
+  }
+}
+
+
 export async function fetchProjectFiles(projectId: string): Promise<Project> {
   try {
     // First get the project to get list of file IDs
