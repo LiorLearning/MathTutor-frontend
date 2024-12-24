@@ -4,6 +4,7 @@ import { fetchProjects, deleteProject } from './api';
 import type { Project } from './types';
 import { Button } from '@/components/ui/button';
 import { Trash2, Edit, Loader2, Plus } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -29,6 +30,7 @@ export default function App() {
   const [error, setError] = useState<string | null>(null);
   const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
   const [isProjectDialogOpen, setIsProjectDialogOpen] = useState(false);
+  const { toast } = useToast();
 
   const loadProjects = async () => {
     try {
@@ -37,6 +39,11 @@ export default function App() {
       const fetchedProjects = await fetchProjects();
       setProjects(fetchedProjects);
     } catch (error) {
+      toast({
+        title: 'Failed to Load Projects',
+        description: 'Unable to retrieve project list. Please try again later.',
+        variant: 'destructive'
+      });
       console.error('Failed to load projects:', error);
       setError('Failed to load projects. Please try again.');
     } finally {
@@ -59,6 +66,10 @@ export default function App() {
       await deleteProject(projectToDelete.project_id);
       loadProjects();
     } catch (error) {
+      toast({
+        title: 'Failed to delete project',
+        description: error instanceof Error ? error.message : 'An unknown error occurred'
+      });
       console.error('Failed to delete project:', error);
     } finally {
       setProjectToDelete(null);
@@ -142,14 +153,15 @@ export default function App() {
               {projects.map((project) => (
                 <div 
                   key={project.project_id} 
-                  className="bg-card p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow"
+                  className="bg-card p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+                  onClick={() => window.location.assign(`/project/${project.project_id}`)}
                 >
                   <div className="flex justify-between items-start">
                     <div>
                       <h3 className="text-xl font-medium mb-2">{project.project_name}</h3>
                       <p className="text-muted-foreground">{project.description}</p>
                     </div>
-                    <div className="flex space-x-2">
+                    <div className="flex space-x-2" onClick={(e) => e.stopPropagation()}>
                       <Button 
                         variant="outline" 
                         size="icon" 

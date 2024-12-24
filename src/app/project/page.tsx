@@ -1,6 +1,6 @@
 'use client';
 
-import App from './app';
+import App from './project';
 import { Header } from '@/components/header';
 
 export default function Page() {

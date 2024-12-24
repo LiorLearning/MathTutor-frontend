@@ -17,7 +17,7 @@ const geistMono = localFont({
 
 export const metadata: Metadata = {
   title: "MathTutor",
-  description: "MathTutor by Grade My Assignments",
+  description: "MathTutor by Lior AI",
 };
 
 export default function RootLayout({

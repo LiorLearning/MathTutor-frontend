@@ -8,7 +8,7 @@ export async function fetchProjects(): Promise<Project[]> {
     return response.data as Project[];
   } catch (error) {
     console.error(`Failed to fetch projects: ${error}`);
-    throw new Error('Failed to fetch projects');
+    throw error;
   }
 }
 
@@ -18,7 +18,7 @@ export async function createProject(project: Omit<Project, 'project_id'>): Promi
     return response.data as Project;
   } catch (error) {
     console.error(`Failed to create project: ${error}`);
-    throw new Error('Failed to create project');
+    throw error;
   }
 }
 
@@ -28,7 +28,7 @@ export async function updateProject(projectId: string, project: Omit<Project, 'p
     return response.data as Project;
   } catch (error) {
     console.error(`Failed to update project: ${error}`);
-    throw new Error('Failed to update project');
+    throw error;
   }
 }
 
@@ -38,7 +38,7 @@ export async function deleteProject(projectId: string): Promise<void> {
     return response.data as void;
   } catch (error) {
     console.error(`Failed to delete project: ${error}`);
-    throw new Error('Failed to delete project');
+    throw error;
   }
 }
 
@@ -62,7 +62,7 @@ export async function fetchProjectFiles(projectId: string): Promise<Project> {
     };
   } catch (error) {
     console.error(`Failed to fetch project files: ${error}`);
-    throw new Error('Failed to fetch project files');
+    throw error;
   }
 }
 
@@ -72,7 +72,7 @@ export async function createFile(file: Omit<File, 'file_id'>): Promise<File> {
     return response.data as File;
   } catch (error) {
     console.error(`Failed to create file: ${error}`);
-    throw new Error('Failed to create file');
+    throw error;
   }
 }
 export async function updateFile(fileId: string, file: Omit<File, 'file_id'>): Promise<File> {
@@ -81,7 +81,7 @@ export async function updateFile(fileId: string, file: Omit<File, 'file_id'>): P
     return response.data as File;
   } catch (error) {
     console.error(`Failed to update file: ${error}`);
-    throw new Error('Failed to update file');
+    throw error;
   }
 }
 
@@ -91,6 +91,6 @@ export async function deleteFile(fileId: string): Promise<void> {
     return response.data as void;
   } catch (error) {
     console.error(`Failed to delete file: ${error}`);
-    throw new Error('Failed to delete file');
+    throw error;
   }
 }
