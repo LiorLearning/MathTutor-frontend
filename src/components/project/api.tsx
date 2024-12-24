@@ -1,4 +1,4 @@
-import { Project, File } from "./types";
+import { Project, File } from "../../app/project/types";
 import axios from 'axios';
 const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_BASE_URL}api/v1`;
 

@@ -3,7 +3,7 @@
 import { useStore } from '@nanostores/react';
 import { easeInOut, motion, type Variants } from 'framer-motion';
 import { computed } from 'nanostores';
-import { memo, useCallback, useEffect } from 'react';
+import { memo, useCallback, useEffect, useRef } from 'react';
 import {
   type OnChangeCallback as OnEditorChange,
   type OnScrollCallback as OnEditorScroll,
@@ -20,6 +20,10 @@ import EditorPanel from './EditorPanel';
 import { Preview } from './Preview';
 import { useAdminWebSocket } from '@/components/bolt/components/websocket/admin';
 import { FileMap } from '../../lib/stores/files';
+import { FileAction } from '../../types/actions';
+import { ActionRunner } from '@/components/bolt/lib/runtime/action-runner';
+import { fetchProjectFiles } from '@/components/project/api';
+import { WORK_DIR } from '@/components/bolt/utils/constants';
 
 interface WorkspaceProps {
   chatStarted?: boolean;
@@ -67,6 +71,9 @@ const WorkbenchComponent = ({ chatStarted, isStreaming }: WorkspaceProps) => {
   const files = useStore(workbenchStore.files);
   const selectedView = useStore(workbenchStore.currentView);
   const adminWebSocketContext = useAdminWebSocket();
+  const actionRunner = useRef<ActionRunner>();
+  let actionCount = 0;
+
   const sendJsonMessage = adminWebSocketContext ? adminWebSocketContext.sendJsonMessage : () => {
     console.error('WebSocket context is not available');
   };
@@ -105,6 +112,10 @@ const WorkbenchComponent = ({ chatStarted, isStreaming }: WorkspaceProps) => {
 
   const onFileReset = useCallback(() => {
     workbenchStore.resetCurrentDocument();
+  }, []);
+
+  const onSetupBaseCode = useCallback(async () => {
+    workbenchStore.setupBaseCode();
   }, []);
 
   const sendFilesToWebSocket = useCallback(() => {
@@ -152,7 +163,7 @@ const WorkbenchComponent = ({ chatStarted, isStreaming }: WorkspaceProps) => {
                 <div className="ml-auto" />
                 {selectedView === 'code' && (
                   <>
-                    <PanelHeaderButton
+                    {/* <PanelHeaderButton
                       className="mr-1 text-sm"
                       onClick={() => {
                         workbenchStore.toggleTerminal(!workbenchStore.showTerminal.get());
@@ -160,6 +171,13 @@ const WorkbenchComponent = ({ chatStarted, isStreaming }: WorkspaceProps) => {
                     >
                       <div className="i-ph:terminal" />
                       Toggle Terminal
+                    </PanelHeaderButton> */}
+                    <PanelHeaderButton
+                      className="mr-1 text-sm"
+                      onClick={onSetupBaseCode}
+                    >
+                      <div className="i-ph:setup" />
+                      Setup Base Code
                     </PanelHeaderButton>
                   </>
                 )}

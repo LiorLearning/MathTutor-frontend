@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { createProject, updateProject } from '../api';
+import { createProject, updateProject } from '../../../components/project/api';
 import { Project } from '../types';
 import { useToast } from '@/hooks/use-toast';
 

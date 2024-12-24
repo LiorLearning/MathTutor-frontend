@@ -11,6 +11,8 @@ import { EditorStore } from './editor';
 import { FilesStore, type FileMap } from './files';
 import { PreviewsStore } from './previews';
 import { TerminalStore } from './terminal';
+import { FileAction, ShellAction } from '../../types/actions';
+import { fetchProjectFiles } from '@/components/project/api';
 
 export interface ArtifactState {
   id: string;
@@ -31,6 +33,7 @@ export class WorkbenchStore {
       this.#previewsStore = new PreviewsStore(webcontainer);
       this.#filesStore = new FilesStore(webcontainer);
       this.#terminalStore = new TerminalStore(webcontainer);
+      this.#actionRunner = new ActionRunner(webcontainer);
     }
     this.#editorStore = new EditorStore(this.#filesStore);
   }
@@ -39,8 +42,9 @@ export class WorkbenchStore {
   #filesStore!: FilesStore;
   #editorStore: EditorStore;
   #terminalStore!: TerminalStore;
-
+  #actionRunner!: ActionRunner;
   artifacts: Artifacts = map({});
+  actionCount = 0;
 
   showWorkbench: WritableAtom<boolean> = atom(true);
   currentView: WritableAtom<WorkbenchViewType> = atom('code');
@@ -76,6 +80,22 @@ export class WorkbenchStore {
     return this.#terminalStore.showTerminal;
   }
 
+  createAndRunAction = async (content: string) => {
+    const action = {
+      artifactId: 'artifact1',
+      messageId: 'message1',
+      actionId: String(this.actionCount++),
+      action: {
+        type: 'shell',
+        content: content,
+      } as ShellAction,
+    };
+
+    this.#actionRunner.addAction(action);
+    this.#actionRunner.runAction(action);
+  };
+
+
   toggleTerminal(value?: boolean) {
     this.#terminalStore.toggleTerminal(value);
   }
@@ -100,6 +120,35 @@ export class WorkbenchStore {
         }
       }
     }
+  }
+
+  async setupBaseCode() {
+    const projectDetails = await fetchProjectFiles('676a9f3c51ef601f37f2f632');
+    const files = projectDetails.files;
+    
+    for (const file of files) {
+      const { path, content, filename } = file;
+
+      if (file) {
+        const action = {
+          artifactId: 'artifact1',
+          messageId: 'message1',
+          actionId: String(this.actionCount++),
+          action: {
+            type: 'file',
+            content: content,
+            filePath: path,
+            filename: filename,
+          } as FileAction,
+        };
+
+        this.#actionRunner.addAction(action);
+        this.#actionRunner.runAction(action);
+      }
+    }
+
+    this.createAndRunAction('npm install');
+    this.createAndRunAction('npm run dev');
   }
 
   setShowWorkbench(show: boolean) {

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { File as FileIcon, Save, Trash2, Expand } from 'lucide-react';
-import { updateFile, deleteFile } from '../api';
+import { updateFile, deleteFile } from '../../../components/project/api';
 import { File } from '../types';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';

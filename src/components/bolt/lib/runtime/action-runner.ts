@@ -73,21 +73,30 @@ export class ActionRunner {
   }
 
   async runAction(data: ActionCallbackData) {
+    console.log('Running action:', data);
     const { actionId } = data;
-    const action = this.actions.get()[actionId];
+    const actions = this.actions.get();
+    const action = actions[actionId];
+
+    if (!action) {
+      console.error(`Action ${actionId} not found in actions map.`);
+    }
 
     if (!action) {
       unreachable(`Action ${actionId} not found`);
     }
 
     if (action.executed) {
+      console.log(`Action ${actionId} has already been executed.`);
       return;
     }
 
+    console.log(`Running action ${actionId} with data:`, data);
     this.#updateAction(actionId, { ...action, ...data.action, executed: true });
 
     this.#currentExecutionPromise = this.#currentExecutionPromise
       .then(() => {
+        console.log(`Executing action ${actionId}...`);
         return this.#executeAction(actionId);
       })
       .catch((error) => {
@@ -157,6 +166,9 @@ export class ActionRunner {
     const webcontainer = await this.#webcontainer;
 
     let folder = nodePath.dirname(action.filePath);
+
+    console.log('Action file path:', action.filePath);
+    console.log('Action folder:', folder);
 
     // remove trailing slashes
     folder = folder.replace(/\/+$/g, '');

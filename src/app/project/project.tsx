@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ProjectForm } from './components/project-form';
-import { fetchProjects, deleteProject } from './api';
+import { fetchProjects, deleteProject } from '../../components/project/api';
 import type { Project } from './types';
 import { Button } from '@/components/ui/button';
 import { Trash2, Edit, Loader2, Plus } from 'lucide-react';

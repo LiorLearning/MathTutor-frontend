@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { FileEditor } from '../components/file-editor';
 import { NewFileForm } from '../components/new-file-form';
-import { fetchProjectFiles } from '../api';
+import { fetchProjectFiles } from '../../../components/project/api';
 import type { File } from '../types';
 import { useParams } from 'next/navigation';
 
