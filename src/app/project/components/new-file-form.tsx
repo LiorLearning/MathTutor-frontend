@@ -53,7 +53,7 @@ export function NewFileForm({ projectId, onFileCreated }: NewFileFormProps) {
             value={content}
             onChange={(e) => setContent(e.target.value)}
             className="mt-1"
-            rows={4}
+            rows={8}
             required
           />
         </div>

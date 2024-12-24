@@ -4,6 +4,7 @@ import { updateFile, deleteFile } from '../api';
 import { File } from '../types';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardContent, CardFooter } from '@/components/ui/card';
 
 interface FileEditorProps {
@@ -14,6 +15,7 @@ interface FileEditorProps {
 
 export function FileEditor({ file, onUpdate, onDelete }: FileEditorProps) {
   const [content, setContent] = useState(file.content);
+  const [path, setPath] = useState(file.path);
   const [isEditing, setIsEditing] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -21,7 +23,7 @@ export function FileEditor({ file, onUpdate, onDelete }: FileEditorProps) {
     await updateFile(file.file_id, {
       content: content,
       filename: file.filename,
-      path: file.path,
+      path: path,
       project_id: file.project_id
     });
     setIsEditing(false);
@@ -71,7 +73,21 @@ export function FileEditor({ file, onUpdate, onDelete }: FileEditorProps) {
         </div>
       </CardHeader>
       {isExpanded && (
-        <CardContent>
+        <CardContent className="space-y-4">
+          <div>
+            <label htmlFor="path" className="block text-sm font-medium text-muted-foreground mb-1">
+              File Path
+            </label>
+            <Input
+              id="path"
+              value={path}
+              onChange={(e) => {
+                setPath(e.target.value);
+                setIsEditing(true);
+              }}
+              className="w-full"
+            />
+          </div>
           <Textarea
             value={content}
             onChange={(e) => {
