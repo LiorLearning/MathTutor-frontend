@@ -167,9 +167,6 @@ export class ActionRunner {
 
     let folder = nodePath.dirname(action.filePath);
 
-    console.log('Action file path:', action.filePath);
-    console.log('Action folder:', folder);
-
     // remove trailing slashes
     folder = folder.replace(/\/+$/g, '');
 

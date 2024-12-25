@@ -121,16 +121,18 @@ const WorkbenchComponent = ({ chatStarted, isStreaming }: WorkspaceProps) => {
   const sendFilesToWebSocket = useCallback(() => {
     const fileMap = Object.entries(files).reduce((acc, [fileName, fileData]) => {
       if (fileData) {
-        if (fileData.type === 'file') {
-          acc[fileName] = {
-            type: 'file',
-            content: fileData.content,
-            isBinary: fileData.isBinary,
-          };
-        } else if (fileData.type === 'folder') {
-          acc[fileName] = {
-            type: 'folder',
-          };
+        if (!fileName.includes('.next')) {
+          if (fileData.type === 'file') {
+            acc[fileName] = {
+              type: 'file',
+              content: fileData.content,
+              isBinary: fileData.isBinary,
+            };
+          } else if (fileData.type === 'folder') {
+            acc[fileName] = {
+              type: 'folder',
+            };
+          }
         }
       }
       return acc;
