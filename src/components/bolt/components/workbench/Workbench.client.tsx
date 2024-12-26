@@ -3,7 +3,7 @@
 import { useStore } from '@nanostores/react';
 import { easeInOut, motion, type Variants } from 'framer-motion';
 import { computed } from 'nanostores';
-import { memo, useCallback, useEffect } from 'react';
+import { memo, useCallback, useEffect, useState } from 'react';
 import {
   type OnChangeCallback as OnEditorChange,
   type OnScrollCallback as OnEditorScroll,
@@ -21,6 +21,9 @@ import { useAdminWebSocket } from '@/components/bolt/components/websocket/admin'
 import { FileMap } from '../../lib/stores/files';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { fetchProjects } from '@/components/project/api';
+import { Project } from '@/app/project/types';
 
 interface WorkspaceProps {
   chatStarted?: boolean;
@@ -59,6 +62,9 @@ const workbenchVariants = {
 
 const WorkbenchComponent = ({ chatStarted, isStreaming }: WorkspaceProps) => {
   renderLogger.trace('Workbench');
+
+  const [isProjectDialogOpen, setIsProjectDialogOpen] = useState(false);
+  const [projects, setProjects] = useState<Project[]>([]);
 
   const hasPreview = useStore(computed(workbenchStore.previews, (previews) => previews.length > 0));
   const showWorkbench = useStore(workbenchStore.showWorkbench);
@@ -110,7 +116,22 @@ const WorkbenchComponent = ({ chatStarted, isStreaming }: WorkspaceProps) => {
   }, []);
 
   const onSetupBaseCode = useCallback(async () => {
-    workbenchStore.setupBaseCode();
+    await workbenchStore.setupBaseCode();
+  }, []);
+
+  const onSelectGame = useCallback(async () => {
+    try {
+      const fetchedProjects = await fetchProjects();
+      setProjects(fetchedProjects);
+      setIsProjectDialogOpen(true);
+    } catch (error) {
+      console.error('Failed to fetch projects', error);
+    }
+  }, []);
+
+  const handleProjectSelect = useCallback(async (projectId: string) => {
+    await workbenchStore.selectGame(projectId);
+    setIsProjectDialogOpen(false);
   }, []);
 
   const sendFilesToWebSocket = useCallback(() => {
@@ -141,105 +162,133 @@ const WorkbenchComponent = ({ chatStarted, isStreaming }: WorkspaceProps) => {
   }, [sendJsonMessage]);
 
   return (
-    chatStarted && (
-      <motion.div
-        initial="closed"
-        animate={showWorkbench ? 'open' : 'closed'}
-        variants={workbenchVariants}
-        className="z-workbench h-full w-full"
-      >
-        <div
-          className={classNames(
-            'flex w-full h-full transition-[left,width] duration-200 bolt-ease-cubic-bezier',
-          )}
+    <>
+      {chatStarted && (
+        <motion.div
+          initial="closed"
+          animate={showWorkbench ? 'open' : 'closed'}
+          variants={workbenchVariants}
+          className="z-workbench h-full w-full"
         >
-          <div className="relative w-full h-full">
-            <div className="h-full flex flex-col bg-bolt-elements-background-depth-2 border border-bolt-elements-borderColor shadow-sm rounded-lg overflow-hidden">
-              <div className="flex items-center px-3 py-2 border-b border-bolt-elements-borderColor">
-              <Slider selected={selectedView} options={sliderOptions} setSelected={setSelectedView} />
-              <div className="ml-auto" />
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button 
-                      className="mr-1 text-sm flex items-center gap-1.5 px-1.5 rounded-md py-0.5 text-bolt-elements-item-contentDefault bg-transparent enabled:hover:text-bolt-elements-item-contentActive enabled:hover:bg-bolt-elements-item-backgroundActive"
+          <div
+            className={classNames(
+              'flex w-full h-full transition-[left,width] duration-200 bolt-ease-cubic-bezier',
+            )}
+          >
+            <div className="relative w-full h-full">
+              <div className="h-full flex flex-col bg-bolt-elements-background-depth-2 border border-bolt-elements-borderColor shadow-sm rounded-lg overflow-hidden">
+                <div className="flex items-center px-3 py-2 border-b border-bolt-elements-borderColor">
+                <Slider selected={selectedView} options={sliderOptions} setSelected={setSelectedView} />
+                <div className="ml-auto" />
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button 
+                        className="mr-1 text-sm flex items-center gap-1.5 px-1.5 rounded-md py-0.5 text-bolt-elements-item-contentDefault bg-transparent enabled:hover:text-bolt-elements-item-contentActive enabled:hover:bg-bolt-elements-item-backgroundActive"
+                      >
+                        Actions
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-56">
+                      <DropdownMenuGroup>
+                      <DropdownMenuItem 
+                          onSelect={() => onSelectGame()}
+                          className="cursor-pointer"
+                        >
+                          Select Game
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                          onSelect={onSetupBaseCode}
+                          className="cursor-pointer"
+                        >
+                          Setup Base Code
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                          onSelect={sendFilesToWebSocket}
+                          className="cursor-pointer"
+                        >
+                          Send Files
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                          onSelect={clearUserScreen}
+                          className="cursor-pointer"
+                        >
+                          Clear User Window
+                        </DropdownMenuItem>
+                      </DropdownMenuGroup>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                  <IconButton
+                    icon="i-ph:x-circle"
+                    className="-mr-1"
+                    size="xl"
+                    onClick={() => {
+                      workbenchStore.showWorkbench.set(false);
+                    }}
+                  />
+                </div>
+                <div className="relative flex-1 overflow-hidden">
+                  <div className="absolute inset-0 flex">
+                    <motion.div
+                      className="w-full h-full absolute"
+                      animate={{
+                        x: selectedView === 'code' ? 0 : '-100%',
+                        opacity: selectedView === 'code' ? 1 : 0,
+                        pointerEvents: selectedView === 'code' ? 'auto' : 'none',
+                      }}
+                      transition={viewTransition}
                     >
-                      Actions
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-56">
-                    <DropdownMenuGroup>
-                      <DropdownMenuItem 
-                        onSelect={onSetupBaseCode}
-                        className="cursor-pointer"
-                      >
-                        Setup Base Code
-                      </DropdownMenuItem>
-                      <DropdownMenuItem 
-                        onSelect={sendFilesToWebSocket}
-                        className="cursor-pointer"
-                      >
-                        Send Files
-                      </DropdownMenuItem>
-                      <DropdownMenuItem 
-                        onSelect={clearUserScreen}
-                        className="cursor-pointer"
-                      >
-                        Clear User Window
-                      </DropdownMenuItem>
-                    </DropdownMenuGroup>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-                <IconButton
-                  icon="i-ph:x-circle"
-                  className="-mr-1"
-                  size="xl"
-                  onClick={() => {
-                    workbenchStore.showWorkbench.set(false);
-                  }}
-                />
-              </div>
-              <div className="relative flex-1 overflow-hidden">
-                <div className="absolute inset-0 flex">
-                  <motion.div
-                    className="w-full h-full absolute"
-                    animate={{
-                      x: selectedView === 'code' ? 0 : '-100%',
-                      opacity: selectedView === 'code' ? 1 : 0,
-                      pointerEvents: selectedView === 'code' ? 'auto' : 'none',
-                    }}
-                    transition={viewTransition}
-                  >
-                    <EditorPanel
-                      editorDocument={currentDocument}
-                      isStreaming={isStreaming}
-                      selectedFile={selectedFile}
-                      files={files}
-                      unsavedFiles={unsavedFiles}
-                      onFileSelect={onFileSelect}
-                      onEditorScroll={onEditorScroll}
-                      onEditorChange={onEditorChange}
-                      onFileSave={onFileSave}
-                      onFileReset={onFileReset}
-                    />
-                  </motion.div>
-                  <motion.div
-                    className="w-full h-full absolute"
-                    animate={{
-                      x: selectedView === 'preview' ? 0 : '100%',
-                      opacity: selectedView === 'preview' ? 1 : 0,
-                      pointerEvents: selectedView === 'preview' ? 'auto' : 'none',
-                    }}
-                    transition={viewTransition}
-                  >
-                    <Preview />
-                  </motion.div>
+                      <EditorPanel
+                        editorDocument={currentDocument}
+                        isStreaming={isStreaming}
+                        selectedFile={selectedFile}
+                        files={files}
+                        unsavedFiles={unsavedFiles}
+                        onFileSelect={onFileSelect}
+                        onEditorScroll={onEditorScroll}
+                        onEditorChange={onEditorChange}
+                        onFileSave={onFileSave}
+                        onFileReset={onFileReset}
+                      />
+                    </motion.div>
+                    <motion.div
+                      className="w-full h-full absolute"
+                      animate={{
+                        x: selectedView === 'preview' ? 0 : '100%',
+                        opacity: selectedView === 'preview' ? 1 : 0,
+                        pointerEvents: selectedView === 'preview' ? 'auto' : 'none',
+                      }}
+                      transition={viewTransition}
+                    >
+                      <Preview />
+                    </motion.div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-      </motion.div>
-    )
+        </motion.div>
+      )}
+
+      <Dialog open={isProjectDialogOpen} onOpenChange={setIsProjectDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Select a Project</DialogTitle>
+            <DialogDescription>Choose a project to work on</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            {projects.map((project) => (
+              <Button 
+                key={project.project_id} 
+                onClick={() => handleProjectSelect(project.project_id)}
+                className="w-full"
+              >
+                {project.project_name}
+              </Button>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
 

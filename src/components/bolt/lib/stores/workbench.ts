@@ -81,7 +81,7 @@ export class WorkbenchStore {
     return this.#terminalStore.showTerminal;
   }
 
-  createAndRunAction = async (content: string) => {
+  createAndRunShellAction = async (content: string) => {
     const action = {
       artifactId: 'artifact1',
       messageId: 'message1',
@@ -123,13 +123,13 @@ export class WorkbenchStore {
     }
   }
 
-  async setupBaseCode() {
-    const projectDetails = await fetchProjectFiles('676a9f3c51ef601f37f2f632');
+  async fetchProjectFiles(project_id: string, base_path: string) {
+    const projectDetails = await fetchProjectFiles(project_id);
     const files = projectDetails.files;
     
     for (const file of files) {
       const { path, content, filename } = file;
-
+    
       if (file) {
         const action = {
           artifactId: 'artifact1',
@@ -138,7 +138,7 @@ export class WorkbenchStore {
           action: {
             type: 'file',
             content: content,
-            filePath: path,
+            filePath: `${base_path}${path}`,
             filename: filename,
           } as FileAction,
         };
@@ -147,9 +147,17 @@ export class WorkbenchStore {
         this.#actionRunner.runAction(action);
       }
     }
+  }
 
-    this.createAndRunAction('npm install');
-    this.createAndRunAction('npm run dev');
+  async setupBaseCode() {
+    await this.fetchProjectFiles('676a9f3c51ef601f37f2f632', '');
+    await this.createAndRunShellAction('npm install');
+    this.createAndRunShellAction('npm run dev');
+  }
+
+  async selectGame(game_id: string) {
+    this.#actionRunner = new ActionRunner(webcontainer!);
+    await this.fetchProjectFiles(game_id, 'src/app/game/');
   }
 
   setShowWorkbench(show: boolean) {

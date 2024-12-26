@@ -45,20 +45,18 @@ export async function deleteProject(projectId: string): Promise<void> {
 
 export async function fetchProjectFiles(projectId: string): Promise<Project> {
   try {
-    // First get the project to get list of file IDs
+    // Fetch files directly using the project/id/files endpoint
+    const response = await axios.get(`${API_BASE_URL}/projects/${projectId}/files`);
+    const files = response.data as File[];
+
+    // Fetch the project details separately
     const projectResponse = await axios.get(`${API_BASE_URL}/projects/${projectId}`);
     const project = projectResponse.data as Project;
-
-    // Then fetch all files
-    const filePromises = project.files.map(fileId => 
-      axios.get(`${API_BASE_URL}/files/${fileId}`)
-    );
-    const fileResponses = await Promise.all(filePromises);
     
     // Add files array to project
     return {
       ...project,
-      files: fileResponses.map(response => response.data as File)
+      files: files
     };
   } catch (error) {
     console.error(`Failed to fetch project files: ${error}`);

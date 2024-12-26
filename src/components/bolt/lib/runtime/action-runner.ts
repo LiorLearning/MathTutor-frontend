@@ -73,7 +73,6 @@ export class ActionRunner {
   }
 
   async runAction(data: ActionCallbackData) {
-    console.log('Running action:', data);
     const { actionId } = data;
     const actions = this.actions.get();
     const action = actions[actionId];
@@ -87,16 +86,13 @@ export class ActionRunner {
     }
 
     if (action.executed) {
-      console.log(`Action ${actionId} has already been executed.`);
       return;
     }
 
-    console.log(`Running action ${actionId} with data:`, data);
     this.#updateAction(actionId, { ...action, ...data.action, executed: true });
 
     this.#currentExecutionPromise = this.#currentExecutionPromise
       .then(() => {
-        console.log(`Executing action ${actionId}...`);
         return this.#executeAction(actionId);
       })
       .catch((error) => {
@@ -121,9 +117,11 @@ export class ActionRunner {
         }
       }
 
-      this.#updateAction(actionId, { status: action.abortSignal.aborted ? 'aborted' : 'complete' });
+      const finalStatus = action.abortSignal.aborted ? 'aborted' : 'complete';
+      this.#updateAction(actionId, { status: finalStatus });
     } catch (error) {
       this.#updateAction(actionId, { status: 'failed', error: 'Action failed' });
+      console.error(`Action ${actionId} failed with error:`, error);
 
       // re-throw the error to be caught in the promise chain
       throw error;
@@ -160,6 +158,7 @@ export class ActionRunner {
 
   async #runFileAction(action: ActionState) {
     if (action.type !== 'file') {
+      console.error('Action type mismatch: expected "file", received:', action.type);
       unreachable('Expected file action');
     }
 
