@@ -11,7 +11,7 @@ import { workbenchStore } from '@/components/bolt/lib/stores/workbench';
 import { fileModificationsToHTML } from '@/components/bolt/utils/diff';
 import { createScopedLogger, renderLogger } from '@/components/bolt/utils/logger';
 import { BaseChat } from './BaseChat';
-import { useMessageContext } from '@/components/utils/user/provider/message';
+import { useMessageContext } from '@/components/utils/provider/message';
 import { convertToAIMessage } from '@/components/utils/user/chat_utils';
 const logger = createScopedLogger('Chat');
 

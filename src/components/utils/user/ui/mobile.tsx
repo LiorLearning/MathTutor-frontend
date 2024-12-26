@@ -9,7 +9,7 @@ import MessageLoader from '@/components/ui/loaders/message_loader';
 import InputBar from '../input_bar';
 import SpeechToText from '../audio/speech_to_text';
 import { Message } from '../chat_utils';
-import { useMessageContext } from '../provider/message';
+import { useMessageContext } from '../../provider/message';
 
 interface MobileProps {
   username: string;

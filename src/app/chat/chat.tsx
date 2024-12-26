@@ -9,7 +9,7 @@ import { SessionProvider } from '../../components/session-provider';
 import { WebSocketProvider } from "@/components/utils/user/websocket";
 import Popup from "@/components/utils/user/ui/popup";
 import { QueryClient, QueryClientProvider } from 'react-query';
-import { MessageProvider } from '@/components/utils/user/provider/message';
+import { MessageProvider } from '@/components/utils/provider/message';
 
 const queryClient = new QueryClient();
 

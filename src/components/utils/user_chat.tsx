@@ -14,7 +14,7 @@ import MobileChat from './user/ui/mobile';
 import { useWebSocket } from './user/websocket';
 import { getDeviceType, ANDROID_PHONE, IPHONE, OTHER } from './common_utils';
 import { ChatLoader } from '@/components/ui/loaders/chat_loader';
-import { useMessageContext } from './user/provider/message';
+import { useMessageContext } from './provider/message';
 const deviceType = typeof window !== 'undefined' ? getDeviceType() : OTHER;
 
 interface UserChatProps {

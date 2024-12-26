@@ -33,19 +33,21 @@ import {
 } from '@/components/utils/common_utils';
 import AdminHeader from '@/components/utils/admin/admin-header';
 import { ChatLoader } from '@/components/ui/loaders/chat_loader';
+import { useMessageContext } from '@/components/utils/provider/message';
 
 export function InterceptorChat() {
   const searchParams = useSearchParams();
   const username = searchParams?.get('username') || 'testuser';
   const sessionId = searchParams?.get('session') || '0';
   
-  const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const chatWebsocketRef = useRef<WebSocket | null>(null);
   const [pausedMessage, setPausedMessage] = useState(false);
   const [isChatConnected, setIsChatConnected] = useState(false);
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
+
+  const { messages, setMessages } = useMessageContext();
 
   // const [isVideoVisible, setIsVideoVisible] = useState(true); // State to manage visibility
   // const toggleVideoFeed = () => {
@@ -116,7 +118,11 @@ export function InterceptorChat() {
         { headers: { 'Content-Type': 'application/json' } }
         );
 
+        console.log('historyResponse', historyResponse.data);
+
         setMessages(historyResponse.data || []);
+
+        console.log('messages', messages);
 
         // WebSocket setup
         initChatWebSocket();
@@ -287,7 +293,7 @@ export function InterceptorChat() {
 
             <ScrollArea className="flex-grow p-4" ref={scrollAreaRef}>
               <div className="space-y-6">
-                <MessageComponents messages={messages} />
+                <MessageComponents />
               </div>
             </ScrollArea>
 

@@ -1,5 +1,8 @@
+'use client';
+
 import React, { useMemo } from 'react';
-import { Message, MarkdownComponent } from '../user/chat_utils';
+import { MarkdownComponent } from '../user/chat_utils';
+import { useMessageContext } from '../provider/message';
 
 const USER = 'user';
 const ASSISTANT = 'assistant';
@@ -8,11 +11,11 @@ const CORRECTION = 'correction';
 const CORRECTED = 'corrected';
 const ADMIN = 'admin';
 
-interface MessageComponentsProps {
-  messages: Message[];
-}
+interface MessageComponentsProps {}
 
-const MessageComponents: React.FC<MessageComponentsProps> = ({ messages }) => {
+const MessageComponents: React.FC<MessageComponentsProps> = ({}) => {
+  const { messages } = useMessageContext();
+
   const messageComponents = useMemo(() => (
     Array.isArray(messages) ? messages
       .filter(message => message.role !== ASSISTANT_HIDE)

@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, createContext, ReactNode } from 'react';
 import { audioFiles, audioFileMap } from '@/components/audio-selector';
-import { useMessageContext } from '../provider/message';
+import { useMessageContext } from '../../provider/message';
 
 const STREAM_CLOSE_DELAY = 2000; // Time in milliseconds to wait before closing the stream after the last chunk
 const BUFFER_QUEUE_THRESHOLD = 3; // Minimum number of chunks to queue before starting playback

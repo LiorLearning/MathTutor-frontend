@@ -20,7 +20,7 @@ import {
   IPAD,
   MAC,
 } from '../common_utils';
-import { useMessageContext } from './provider/message';
+import { useMessageContext } from '../provider/message';
 
 const deviceType = getDeviceType();
 

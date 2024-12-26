@@ -1,5 +1,7 @@
+'use client';
+
 import { createContext, useState, useContext, ReactNode } from 'react';
-import { Message } from '../chat_utils';
+import { Message } from '../user/chat_utils';
 
 interface MessageContextType {
   messages: Message[];

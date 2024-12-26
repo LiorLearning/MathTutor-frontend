@@ -11,7 +11,7 @@ import InputBar from '../input_bar';
 import SpeechToText from '../audio/speech_to_text';
 import { UserArtifactComponent } from '@/components/artifact/user';
 import { Message } from '../chat_utils';
-import { useMessageContext } from '../provider/message';
+import { useMessageContext } from '../../provider/message';
 
 interface DesktopProps {
   username: string;
