@@ -8,6 +8,7 @@ import { WORK_DIR } from '@/components/bolt/utils/constants';
 import { computeFileModifications } from '@/components/bolt/utils/diff';
 import { createScopedLogger } from '@/components/bolt/utils/logger';
 import { unreachable } from '@/components/bolt/utils/unreachable';
+import { convertFilesToXML } from '../runtime/send-file-parser';
 
 const logger = createScopedLogger('FilesStore');
 
@@ -66,6 +67,23 @@ export class FilesStore {
 
   getFileModifications() {
     return computeFileModifications(this.files.get(), this.#modifiedFiles);
+  }
+
+  getGameFiles() {
+    const filtered_files = Object.entries(this.files.get()).filter(([path, dirent]) => 
+      dirent !== undefined && 
+      dirent.type === 'file' && 
+      path.startsWith(`${WORK_DIR}/src/app/game/`)
+    );
+    const filesRecord: Record<string, File> = Object.fromEntries(
+      filtered_files.map(([filePath, dirent]) => [
+        filePath.replace(`${WORK_DIR}/`, ''),
+        dirent as File
+      ])
+    );
+    const artifactId = 'test-artifact';
+    const artifactTitle = 'Test Artifact';
+    return convertFilesToXML(filesRecord, artifactId, artifactTitle);
   }
 
   resetFileModifications() {

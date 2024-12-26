@@ -13,6 +13,7 @@ import { PreviewsStore } from './previews';
 import { TerminalStore } from './terminal';
 import { FileAction, ShellAction } from '../../types/actions';
 import { fetchProjectFiles } from '@/components/project/api';
+import { convertFilesToXML } from '../runtime/send-file-parser';
 
 export interface ArtifactState {
   id: string;
@@ -251,6 +252,10 @@ export class WorkbenchStore {
     for (const filePath of this.unsavedFiles.get()) {
       await this.saveFile(filePath);
     }
+  }
+
+  getParsedGameFiles() {
+    return this.#filesStore.getGameFiles();
   }
 
   getFileModifcations() {

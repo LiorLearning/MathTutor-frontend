@@ -43,7 +43,9 @@ const ChatImpl = memo(({ initialMessages, storeMessageHistory }: ChatProps) => {
 
   const [animationScope] = useAnimate();
 
-  const { messages, isLoading, input, handleInputChange, setInput, stop, append } = useChat({
+  const messageCount = useRef(0);
+
+  const { messages, isLoading, input, handleInputChange, setInput, stop, reload, setMessages } = useChat({
     api: `${process.env.NEXT_PUBLIC_API_BASE_URL}api/v1/bolt/chat`,
     // api: `http://localhost:5173/api/chat`,
     onError: (error) => {
@@ -108,7 +110,9 @@ const ChatImpl = memo(({ initialMessages, storeMessageHistory }: ChatProps) => {
   };
 
   const sendMessage = async (_event: React.UIEvent, messageInput?: string) => {
-    const _input = messageInput || input;
+    const parsedGameFiles = workbenchStore.getParsedGameFiles();
+
+    const _input = `${messageInput || input}\n${parsedGameFiles}`;
 
     if (_input.length === 0 || isLoading) {
       return;
@@ -121,15 +125,20 @@ const ChatImpl = memo(({ initialMessages, storeMessageHistory }: ChatProps) => {
     chatStore.setKey('aborted', false);
     runAnimation();
 
+    console.log('fileModifications', fileModifications);
+    console.log('input', _input);
+
     if (fileModifications !== undefined) {
       const diff = fileModificationsToHTML(fileModifications);
 
-      append({ role: 'user', content: `${diff}\n\n${_input}` });
+      setMessages([{ role: 'user', content: `${diff}\n\n${_input}`, id: `user-message-${messageCount.current}` }]);
       workbenchStore.resetAllFileModifications();
     } else {
-      append({ role: 'user', content: _input });
+      setMessages([{ role: 'user', content: _input, id: `user-message-${messageCount.current}` }]);
     }
+    messageCount.current++;
 
+    reload();
     setInput('');
     resetEnhancer();
     textareaRef.current?.blur();
