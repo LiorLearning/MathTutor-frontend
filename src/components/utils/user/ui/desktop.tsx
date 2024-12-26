@@ -11,6 +11,7 @@ import InputBar from '../input_bar';
 import SpeechToText from '../audio/speech_to_text';
 import { UserArtifactComponent } from '@/components/artifact/user';
 import { Message } from '../chat_utils';
+import { useMessageContext } from '../provider/message';
 
 interface DesktopProps {
   username: string;
@@ -18,7 +19,6 @@ interface DesktopProps {
   speakout: boolean;
   toggleSpeakout: () => void;
   scrollAreaRef: React.RefObject<HTMLDivElement>;
-  messages: Message[];
   toggleAudio: (message: Message) => Promise<void>;
   isGeneratingImage: boolean;
   isSendingMessage: boolean;
@@ -41,7 +41,6 @@ const DesktopChat: React.FC<DesktopProps> = ({
   speakout,
   toggleSpeakout,
   scrollAreaRef,
-  messages,
   toggleAudio,
   isGeneratingImage,
   isSendingMessage,
@@ -59,6 +58,7 @@ const DesktopChat: React.FC<DesktopProps> = ({
 }) => {
   
   const [compactHeader, setCompactHeader] = useState(false); 
+  const { messages } = useMessageContext();
 
   // Sync state with ref
   useEffect(() => {

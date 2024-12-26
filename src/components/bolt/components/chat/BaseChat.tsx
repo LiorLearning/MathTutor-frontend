@@ -16,13 +16,11 @@ interface BaseChatProps {
   chatStarted?: boolean
   isStreaming?: boolean
   messages?: Message[]
-  enhancingPrompt?: boolean
-  promptEnhanced?: boolean
   input?: string
   handleStop?: () => void
+  contexualiseGameFiles?: () => void
   sendMessage?: (event: React.UIEvent, messageInput?: string) => void
   handleInputChange?: (event: React.ChangeEvent<HTMLTextAreaElement>) => void
-  enhancePrompt?: () => void
 }
 
 export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
@@ -33,14 +31,12 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
     showChat = true,
     chatStarted = false,
     isStreaming = false,
-    enhancingPrompt = false,
-    promptEnhanced = false,
     messages,
     input = '',
     sendMessage,
     handleInputChange,
-    enhancePrompt,
     handleStop,
+    contexualiseGameFiles,
   }, ref) => {
     const TEXTAREA_MIN_HEIGHT = 76
     const TEXTAREA_MAX_HEIGHT = chatStarted ? 400 : 200
@@ -81,36 +77,18 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
             translate="no"
           />
           <div className="flex justify-between items-center pt-2">
-            <Button
-              variant="outline"
-              size="sm"
-              className={`flex items-center ${promptEnhanced ? 'text-primary' : ''}`}
-              disabled={input.length === 0 || enhancingPrompt}
-              onClick={() => enhancePrompt?.()}
-            >
-              {enhancingPrompt ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  <span>Enhancing prompt...</span>
-                </>
-              ) : (
-                <>
-                  <Stars className="h-4 w-4" />
-                  <span>{promptEnhanced ? 'Prompt enhanced' : 'Enhance prompt'}</span>
-                </>
-              )}
-            </Button>
-              <SendButton
-                show={input.length > 0}
-                isStreaming={isStreaming}
-                onClick={(event) => {
-                  if (isStreaming) {
-                    handleStop?.()
-                    return
-                  }
-                  sendMessage?.(event)
-                }}
-              />
+            <Button onClick={contexualiseGameFiles}>Contexualise</Button>
+            <SendButton
+              show={input.length > 0}
+              isStreaming={isStreaming}
+              onClick={(event) => {
+                if (isStreaming) {
+                  handleStop?.()
+                  return
+                }
+                sendMessage?.(event)
+              }}
+            />
           </div>
         </div>
       </div>

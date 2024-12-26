@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect, createContext, ReactNode } from 'react';
 import { audioFiles, audioFileMap } from '@/components/audio-selector';
+import { useMessageContext } from '../provider/message';
 
 const STREAM_CLOSE_DELAY = 2000; // Time in milliseconds to wait before closing the stream after the last chunk
 const BUFFER_QUEUE_THRESHOLD = 3; // Minimum number of chunks to queue before starting playback
@@ -15,10 +16,9 @@ export const AudioContext = createContext<AudioContextProps | null>(null);
 interface AudioProviderProps {
   children: ReactNode;
   clientId: string;
-  setIsPlaying: (messageId: string, isPlaying: boolean) => void;
 }
 
-export const AudioProvider: React.FC<AudioProviderProps> = ({ children, clientId, setIsPlaying }) => {
+export const AudioProvider: React.FC<AudioProviderProps> = ({ children, clientId }) => {
   const [isConnected, setIsConnected] = useState(false);
   const webSocketRef = useRef<WebSocket | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
@@ -27,6 +27,8 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children, clientId
   const currentMessageIdRef = useRef<string | null>(null);
   const currentSourceRef = useRef<AudioBufferSourceNode | null>(null);
   const streamCloseTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const { setIsPlaying } = useMessageContext();
 
   // Function to unlock AudioContext on user interaction
   const unlockAudioContext = () => {

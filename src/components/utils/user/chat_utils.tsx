@@ -20,6 +20,12 @@ export interface Message {
     isPlaying?: boolean;
 }
 
+export interface AIMessage {
+    role: string;
+    content: string;
+    id: string;
+}
+
 export interface StartChatResponse {
     chat_id: string;
 }
@@ -150,4 +156,12 @@ export const MarkdownComponent: React.FC<{ content: string }> = ({ content }) =>
 export const extractTextFromMessage = (message: string): string => {
     const imageTagPattern = /!\[Generated image\]\(.*?\)/;
     return message.replace(imageTagPattern, '').trim();
+};
+
+export const convertToAIMessage = (messages: Message[]): AIMessage[] => {
+    return messages.map(message => ({
+        role: message.role === 'user' || message.role === 'correction' || message.role === 'admin' ? 'user' : 'assistant',
+        content: message.content,
+        id: message.message_id
+    }));
 };

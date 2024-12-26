@@ -20,6 +20,7 @@ import {
   IPAD,
   MAC,
 } from '../common_utils';
+import { useMessageContext } from './provider/message';
 
 const deviceType = getDeviceType();
 
@@ -52,14 +53,12 @@ const SLEEP_TIME_AFTER_MESSAGE = 1000;
 interface WebSocketProviderProps {
   children: React.ReactNode;
   sessionId: string;
-  setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
   setShowPopup: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ 
   children, 
-  sessionId, 
-  setMessages,
+  sessionId,
   setShowPopup 
 }) => {
   const chatWebsocketRef = useRef<WebSocket | null>(null);
@@ -75,6 +74,8 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
   if (!audioContext) {
     throw new Error('MessageCard must be used within an AudioProvider');
   }
+
+  const { setMessages } = useMessageContext();
 
   const toggleSpeakout = () => {
     setSpeakout(prev => !prev);

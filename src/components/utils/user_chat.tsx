@@ -14,20 +14,21 @@ import MobileChat from './user/ui/mobile';
 import { useWebSocket } from './user/websocket';
 import { getDeviceType, ANDROID_PHONE, IPHONE, OTHER } from './common_utils';
 import { ChatLoader } from '@/components/ui/loaders/chat_loader';
+import { useMessageContext } from './user/provider/message';
 const deviceType = typeof window !== 'undefined' ? getDeviceType() : OTHER;
 
 interface UserChatProps {
-  messages: Message[];
-  setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
   username: string;
   sessionId: string;
 }
 
-export function UserChat({ messages, setMessages, username, sessionId }: UserChatProps) {
+export function UserChat({ username, sessionId }: UserChatProps) {
   const audioContext = useContext(AudioContext);
   if (!audioContext) {
     throw new Error('MessageCard must be used within an AudioProvider');
   }
+
+  const { messages, setMessages } = useMessageContext();
   
   const [chatId, setChatId] = useState("");
   const [isLoading, setIsLoading] = useState(true);
@@ -168,7 +169,6 @@ export function UserChat({ messages, setMessages, username, sessionId }: UserCha
             speakout={speakout}
             toggleSpeakout={toggleSpeakout}
             scrollAreaRef={scrollAreaRef}
-            messages={messages}
             toggleAudio={toggleAudio}
             isGeneratingImage={isGeneratingImage}
             isSendingMessage={isSendingMessage}
@@ -190,7 +190,6 @@ export function UserChat({ messages, setMessages, username, sessionId }: UserCha
             speakout={speakout}
             toggleSpeakout={toggleSpeakout}
             scrollAreaRef={scrollAreaRef}
-            messages={messages}
             toggleAudio={toggleAudio}
             isGeneratingImage={isGeneratingImage}
             isSendingMessage={isSendingMessage}

@@ -150,7 +150,7 @@ export class WorkbenchStore {
   }
 
   async setupBaseCode() {
-    await this.fetchProjectFiles('676a9f3c51ef601f37f2f632', '');
+    await this.fetchProjectFiles('676da3c3f01bb7b077b2133d', '');
     await this.createAndRunShellAction('npm install');
     this.createAndRunShellAction('npm run dev');
   }
@@ -263,7 +263,17 @@ export class WorkbenchStore {
   }
 
   getParsedGameFiles() {
-    return this.#filesStore.getGameFiles();
+    const filesRecord = this.#filesStore.getFiles('src/app/game/');
+    const artifactId = 'test-artifact';
+    const artifactTitle = 'Test Artifact';
+    return convertFilesToXML(filesRecord, artifactId, artifactTitle);
+  }
+
+  getGameStateFile() {
+    const filesRecord = this.#filesStore.getFiles('src/app/game/game-state.tsx');
+    const artifactId = 'test-artifact';
+    const artifactTitle = 'Test Artifact';
+    return convertFilesToXML(filesRecord, artifactId, artifactTitle);
   }
 
   getFileModifcations() {

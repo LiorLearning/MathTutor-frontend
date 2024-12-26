@@ -9,6 +9,7 @@ import MessageLoader from '@/components/ui/loaders/message_loader';
 import InputBar from '../input_bar';
 import SpeechToText from '../audio/speech_to_text';
 import { Message } from '../chat_utils';
+import { useMessageContext } from '../provider/message';
 
 interface MobileProps {
   username: string;
@@ -16,7 +17,6 @@ interface MobileProps {
   speakout: boolean;
   toggleSpeakout: () => void;
   scrollAreaRef: React.RefObject<HTMLDivElement>;
-  messages: Message[];
   toggleAudio: (message: Message) => Promise<void>;
   isGeneratingImage: boolean;
   isSendingMessage: boolean;
@@ -38,7 +38,6 @@ const MobileChat: React.FC<MobileProps> = ({
   speakout,
   toggleSpeakout,
   scrollAreaRef,
-  messages,
   toggleAudio,
   isGeneratingImage,
   isSendingMessage,
@@ -55,6 +54,7 @@ const MobileChat: React.FC<MobileProps> = ({
 }) => {
 
   // const [compactHeader, setCompactHeader] = useState(false); 
+  const { messages } = useMessageContext();
 
   // Sync state with ref
   useEffect(() => {

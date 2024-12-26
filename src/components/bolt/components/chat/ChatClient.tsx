@@ -1,7 +1,7 @@
 'use client'
 
 import { useStore } from '@nanostores/react';
-import type { Message } from 'ai';
+import type { ChatRequestOptions, Message } from 'ai';
 import { useChat } from 'ai/react';
 import { useAnimate } from 'framer-motion';
 import { memo, useEffect, useRef, useState } from 'react';
@@ -11,7 +11,8 @@ import { workbenchStore } from '@/components/bolt/lib/stores/workbench';
 import { fileModificationsToHTML } from '@/components/bolt/utils/diff';
 import { createScopedLogger, renderLogger } from '@/components/bolt/utils/logger';
 import { BaseChat } from './BaseChat';
-
+import { useMessageContext } from '@/components/utils/user/provider/message';
+import { convertToAIMessage } from '@/components/utils/user/chat_utils';
 const logger = createScopedLogger('Chat');
 
 export function Chat() {
@@ -45,6 +46,8 @@ const ChatImpl = memo(({ initialMessages, storeMessageHistory }: ChatProps) => {
 
   const messageCount = useRef(0);
 
+  const { messages: sessionMessages } = useMessageContext();
+
   const { messages, isLoading, input, handleInputChange, setInput, stop, reload, setMessages } = useChat({
     api: `${process.env.NEXT_PUBLIC_API_BASE_URL}api/v1/bolt/chat`,
     // api: `http://localhost:5173/api/chat`,
@@ -54,8 +57,6 @@ const ChatImpl = memo(({ initialMessages, storeMessageHistory }: ChatProps) => {
     onFinish: () => {},
     initialMessages,
   });
-
-  const { enhancingPrompt, promptEnhanced, enhancePrompt, resetEnhancer } = usePromptEnhancer();
 
   const { parsedMessages, parseMessages } = useMessageParser();
 
@@ -140,9 +141,33 @@ const ChatImpl = memo(({ initialMessages, storeMessageHistory }: ChatProps) => {
 
     reload();
     setInput('');
-    resetEnhancer();
     textareaRef.current?.blur();
   };
+
+  const contexualiseGameFiles = () => {
+    const parsedGameFiles = workbenchStore.getGameStateFile();
+    const aiMessages = convertToAIMessage(sessionMessages);
+
+    aiMessages.forEach((message) => {
+      console.log('message', message);
+    });
+    aiMessages.push({ 
+      role: 'user', 
+      id: `user-message-${messageCount.current}`,
+      content: `Current game state file: ${parsedGameFiles}\n\nContexualise this game state file.`, 
+    });
+
+    messageCount.current++;
+
+    setMessages(aiMessages as Message[]);
+
+    const chatRequestOptions: ChatRequestOptions = {
+      body: {
+        persona: 'contexualise',
+      },
+    };
+    reload(chatRequestOptions);
+  }
 
   const [messageRef, scrollRef] = useSnapScroll();
 
@@ -154,9 +179,8 @@ const ChatImpl = memo(({ initialMessages, storeMessageHistory }: ChatProps) => {
       showChat={showChat}
       chatStarted={chatStarted}
       isStreaming={isLoading}
-      enhancingPrompt={enhancingPrompt}
-      promptEnhanced={promptEnhanced}
       sendMessage={sendMessage}
+      contexualiseGameFiles={contexualiseGameFiles}
       messageRef={messageRef}
       scrollRef={scrollRef}
       handleInputChange={handleInputChange}
@@ -171,12 +195,6 @@ const ChatImpl = memo(({ initialMessages, storeMessageHistory }: ChatProps) => {
           content: parsedMessages[i] || '',
         };
       })}
-      enhancePrompt={() => {
-        enhancePrompt(input, (input) => {
-          setInput(input);
-          scrollTextArea();
-        });
-      }}
     />
   );
 });
