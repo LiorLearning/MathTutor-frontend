@@ -3,14 +3,13 @@
 import { useStore } from '@nanostores/react';
 import { easeInOut, motion, type Variants } from 'framer-motion';
 import { computed } from 'nanostores';
-import { memo, useCallback, useEffect, useRef } from 'react';
+import { memo, useCallback, useEffect } from 'react';
 import {
   type OnChangeCallback as OnEditorChange,
   type OnScrollCallback as OnEditorScroll,
 } from '@/components/bolt/components/codemirror/CodeMirrorEditor';
 import { IconButton } from '@/components/bolt/components/ui/IconButton';
 
-import { PanelHeaderButton } from '@/components/bolt/components/ui/PanelHeaderButton';
 import { Slider, type SliderOptions } from '@/components/bolt/components/ui/Slider';
 import { workbenchStore, type WorkbenchViewType } from '@/components/bolt/lib/stores/workbench';
 
@@ -20,10 +19,8 @@ import EditorPanel from './EditorPanel';
 import { Preview } from './Preview';
 import { useAdminWebSocket } from '@/components/bolt/components/websocket/admin';
 import { FileMap } from '../../lib/stores/files';
-import { FileAction } from '../../types/actions';
-import { ActionRunner } from '@/components/bolt/lib/runtime/action-runner';
-import { fetchProjectFiles } from '@/components/project/api';
-import { WORK_DIR } from '@/components/bolt/utils/constants';
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem } from '@/components/ui/dropdown-menu';
+import { Button } from '@/components/ui/button';
 
 interface WorkspaceProps {
   chatStarted?: boolean;
@@ -71,8 +68,6 @@ const WorkbenchComponent = ({ chatStarted, isStreaming }: WorkspaceProps) => {
   const files = useStore(workbenchStore.files);
   const selectedView = useStore(workbenchStore.currentView);
   const adminWebSocketContext = useAdminWebSocket();
-  const actionRunner = useRef<ActionRunner>();
-  let actionCount = 0;
 
   const sendJsonMessage = adminWebSocketContext ? adminWebSocketContext.sendJsonMessage : () => {
     console.error('WebSocket context is not available');
@@ -161,42 +156,39 @@ const WorkbenchComponent = ({ chatStarted, isStreaming }: WorkspaceProps) => {
           <div className="relative w-full h-full">
             <div className="h-full flex flex-col bg-bolt-elements-background-depth-2 border border-bolt-elements-borderColor shadow-sm rounded-lg overflow-hidden">
               <div className="flex items-center px-3 py-2 border-b border-bolt-elements-borderColor">
-                <Slider selected={selectedView} options={sliderOptions} setSelected={setSelectedView} />
-                <div className="ml-auto" />
-                {selectedView === 'code' && (
-                  <>
-                    {/* <PanelHeaderButton
-                      className="mr-1 text-sm"
-                      onClick={() => {
-                        workbenchStore.toggleTerminal(!workbenchStore.showTerminal.get());
-                      }}
+              <Slider selected={selectedView} options={sliderOptions} setSelected={setSelectedView} />
+              <div className="ml-auto" />
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button 
+                      className="mr-1 text-sm flex items-center gap-1.5 px-1.5 rounded-md py-0.5 text-bolt-elements-item-contentDefault bg-transparent enabled:hover:text-bolt-elements-item-contentActive enabled:hover:bg-bolt-elements-item-backgroundActive"
                     >
-                      <div className="i-ph:terminal" />
-                      Toggle Terminal
-                    </PanelHeaderButton> */}
-                    <PanelHeaderButton
-                      className="mr-1 text-sm"
-                      onClick={onSetupBaseCode}
-                    >
-                      <div className="i-ph:setup" />
-                      Setup Base Code
-                    </PanelHeaderButton>
-                  </>
-                )}
-                <PanelHeaderButton
-                  className="mr-1 text-sm"
-                  onClick={sendFilesToWebSocket}
-                >
-                  <div className="i-ph:upload" />
-                  Send Files
-                </PanelHeaderButton>
-                <PanelHeaderButton
-                  className="mr-1 text-sm"
-                  onClick={clearUserScreen}
-                >
-                  <div className="i-ph:upload" />
-                  Clear User Window
-                </PanelHeaderButton>
+                      Actions
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-56">
+                    <DropdownMenuGroup>
+                      <DropdownMenuItem 
+                        onSelect={onSetupBaseCode}
+                        className="cursor-pointer"
+                      >
+                        Setup Base Code
+                      </DropdownMenuItem>
+                      <DropdownMenuItem 
+                        onSelect={sendFilesToWebSocket}
+                        className="cursor-pointer"
+                      >
+                        Send Files
+                      </DropdownMenuItem>
+                      <DropdownMenuItem 
+                        onSelect={clearUserScreen}
+                        className="cursor-pointer"
+                      >
+                        Clear User Window
+                      </DropdownMenuItem>
+                    </DropdownMenuGroup>
+                  </DropdownMenuContent>
+                </DropdownMenu>
                 <IconButton
                   icon="i-ph:x-circle"
                   className="-mr-1"
