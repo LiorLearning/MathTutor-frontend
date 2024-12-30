@@ -64,6 +64,16 @@ export class FilesStore {
     return dirent;
   }
 
+  async deleteFile(filePath: string) {
+    const webcontainer = await this.#webcontainer;
+    await webcontainer.fs.rm(filePath);
+  }
+
+  async deleteFolder(folderPath: string) {
+    const webcontainer = await this.#webcontainer;
+    await webcontainer.fs.rm(folderPath, { recursive: true });
+  } 
+
   getFileModifications() {
     return computeFileModifications(this.files.get(), this.#modifiedFiles);
   }

@@ -4,10 +4,11 @@ import React, { useEffect, useState } from 'react';
 import { FileEditor } from '../components/file-editor';
 import { NewFileForm } from '../components/new-file-form';
 import { fetchProjectFiles } from '../../../components/project/api';
-import type { File } from '../types';
+import type { File, Project } from '../types';
 import { useParams } from 'next/navigation';
 
 function App() {
+  const [project, setProject] = useState<Project | null>(null);
   const [files, setFiles] = useState<File[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -18,6 +19,7 @@ function App() {
     try {
       setError(null);
       const project = await fetchProjectFiles(projectId);
+      setProject(project.project_details);
       setFiles(project.files || []);
       setIsLoading(false);
     } catch (error) {
@@ -59,6 +61,8 @@ function App() {
   return (
     <div className="min-h-screen">
       <div className="max-w-5xl mx-auto py-8 px-4">
+        <h1 className="text-2xl font-bold mb-4">{project?.project_name}</h1>
+        <p className="text-muted-foreground mb-4">{project?.description}</p>
         <div className="mb-8">
           <NewFileForm
             projectId={projectId}

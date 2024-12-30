@@ -8,7 +8,7 @@ import {
   type OnChangeCallback as OnEditorChange,
   type OnScrollCallback as OnEditorScroll,
 } from '@/components/bolt/components/codemirror/CodeMirrorEditor';
-import { IconButton } from '@/components/bolt/components/ui/IconButton';
+import { RefreshCcw } from 'lucide-react'
 
 import { Slider, type SliderOptions } from '@/components/bolt/components/ui/Slider';
 import { workbenchStore, type WorkbenchViewType } from '@/components/bolt/lib/stores/workbench';
@@ -190,7 +190,16 @@ const WorkbenchComponent = ({ chatStarted, isStreaming }: WorkspaceProps) => {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent className="w-56">
                       <DropdownMenuGroup>
-                      <DropdownMenuItem 
+                        <DropdownMenuItem 
+                          onSelect={() => {
+                            workbenchStore.showWorkbench.set(false);
+                          }}
+                          className="cursor-pointer"
+                        >
+                          <RefreshCcw className="w-4 h-4 mr-2" />
+                          Reload Previews
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
                           onSelect={() => onSelectGame()}
                           className="cursor-pointer"
                         >
@@ -217,14 +226,6 @@ const WorkbenchComponent = ({ chatStarted, isStreaming }: WorkspaceProps) => {
                       </DropdownMenuGroup>
                     </DropdownMenuContent>
                   </DropdownMenu>
-                  <IconButton
-                    icon="i-ph:x-circle"
-                    className="-mr-1"
-                    size="xl"
-                    onClick={() => {
-                      workbenchStore.showWorkbench.set(false);
-                    }}
-                  />
                 </div>
                 <div className="relative flex-1 overflow-hidden">
                   <div className="absolute inset-0 flex">

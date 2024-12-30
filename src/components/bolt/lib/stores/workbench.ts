@@ -14,6 +14,7 @@ import { TerminalStore } from './terminal';
 import { FileAction, ShellAction } from '../../types/actions';
 import { fetchProjectFiles } from '@/components/project/api';
 import { convertFilesToXML } from '../runtime/send-file-parser';
+import { WORK_DIR } from '@/components/bolt/utils/constants';
 
 export interface ArtifactState {
   id: string;
@@ -157,6 +158,7 @@ export class WorkbenchStore {
 
   async selectGame(game_id: string) {
     this.#actionRunner = new ActionRunner(webcontainer!);
+    await this.#filesStore.deleteFolder('src/app/game/');
     await this.fetchProjectFiles(game_id, 'src/app/game/');
   }
 
