@@ -132,7 +132,6 @@ const DesktopChat: React.FC<DesktopProps> = ({
       >
         <UserArtifactComponent 
           username={username} 
-          isRightColumnCollapsed={isRightColumnCollapsedRef}
           toggleRightColumn={toggleRightColumn} 
           sessionId={sessionId}
         />

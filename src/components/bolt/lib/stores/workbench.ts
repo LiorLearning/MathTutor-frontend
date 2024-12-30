@@ -155,6 +155,7 @@ export class WorkbenchStore {
     await this.fetchProjectFiles('676da3c3f01bb7b077b2133d', '');
     await this.createAndRunShellAction('npm install');
     this.createAndRunShellAction('npm run dev');
+    this.addArtifact({ messageId: 'message1', title: 'Test Artifact', id: 'artifact1' });
   }
 
   async selectGame(game_id: string) {
@@ -272,9 +273,16 @@ export class WorkbenchStore {
     return convertFilesToXML(filesRecord, artifactId, artifactTitle);
   }
 
-  getRawGameFiles() {
+  getRawGameFiles(allFiles: boolean = false) {
     const rawFiles = this.#filesStore.getFiles('src/app/game/');
-    delete rawFiles['state-utils.tsx'];
+    if (!allFiles) {
+      Object.keys(rawFiles).forEach(key => {
+        if (!key.endsWith('.tsx')) {
+          delete rawFiles[key];
+        }
+      });
+      delete rawFiles['state-utils.tsx'];
+    }
     return rawFiles;
   }
 
