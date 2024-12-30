@@ -1,12 +1,12 @@
 'use client'
 
-import React, { type RefCallback, useEffect } from 'react'
+import React, { type RefCallback, useEffect, useState } from 'react'
 import { type Message } from 'ai'
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { Workbench } from '@/components/bolt/components/workbench/Workbench.client'
 import { SendButton } from './SendButton.client'
-import { Stars, Loader2 } from 'lucide-react'
+import { Switch } from "@/components/ui/switch"
 
 interface BaseChatProps {
   textareaRef?: React.RefObject<HTMLTextAreaElement>
@@ -19,7 +19,7 @@ interface BaseChatProps {
   input?: string
   handleStop?: () => void
   contexualiseGameFiles?: () => void
-  sendMessage?: (event: React.UIEvent, messageInput?: string) => void
+  sendMessage?: (event: React.UIEvent, messageInput?: string, stateFile?: boolean) => void
   handleInputChange?: (event: React.ChangeEvent<HTMLTextAreaElement>) => void
 }
 
@@ -40,6 +40,7 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
   }, ref) => {
     const TEXTAREA_MIN_HEIGHT = 76
     const TEXTAREA_MAX_HEIGHT = chatStarted ? 400 : 200
+    const [stateFile, setStateFile] = useState(false); // Toggle for stateFile
 
     useEffect(() => {
     }, [messages, messageRef]);
@@ -64,7 +65,11 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
             onKeyDown={(event) => {
               if (event.key === 'Enter' && !event.shiftKey) {
                 event.preventDefault()
-                sendMessage?.(event)
+                sendMessage?.(
+                  event,
+                  undefined,
+                  stateFile, // Pass the stateFile toggle
+                )
               }
             }}
             value={input}
@@ -78,17 +83,29 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
           />
           <div className="flex justify-between items-center pt-2">
             <Button onClick={contexualiseGameFiles}>Contexualise</Button>
-            <SendButton
-              show={input.length > 0}
-              isStreaming={isStreaming}
-              onClick={(event) => {
-                if (isStreaming) {
-                  handleStop?.()
-                  return
-                }
-                sendMessage?.(event)
-              }}
-            />
+            <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-2">
+                <span className="text-sm text-muted-foreground">
+                  {stateFile ? 'State changes' : 'Game changes'}
+                </span>
+                <Switch
+                  checked={stateFile}
+                  onCheckedChange={setStateFile}
+                  aria-label="State changes toggle"
+                />
+              </div>
+              <SendButton
+                show={input.length > 0}
+                isStreaming={isStreaming}
+                onClick={(event) => {
+                  if (isStreaming) {
+                    handleStop?.()
+                    return
+                  }
+                  sendMessage?.(event)
+                }}
+              />
+            </div>
           </div>
         </div>
       </div>

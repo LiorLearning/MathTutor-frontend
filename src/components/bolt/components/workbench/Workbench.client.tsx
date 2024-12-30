@@ -8,7 +8,6 @@ import {
   type OnChangeCallback as OnEditorChange,
   type OnScrollCallback as OnEditorScroll,
 } from '@/components/bolt/components/codemirror/CodeMirrorEditor';
-import { RefreshCcw } from 'lucide-react'
 
 import { Slider, type SliderOptions } from '@/components/bolt/components/ui/Slider';
 import { workbenchStore, type WorkbenchViewType } from '@/components/bolt/lib/stores/workbench';
@@ -22,7 +21,8 @@ import { FileMap } from '../../lib/stores/files';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { fetchProjects } from '@/components/project/api';
+import { fetchProjects, updateProjectFiles } from '@/components/project/api';
+import { File } from '@/app/project/types';
 import { Project } from '@/app/project/types';
 
 interface WorkspaceProps {
@@ -65,6 +65,7 @@ const WorkbenchComponent = ({ chatStarted, isStreaming }: WorkspaceProps) => {
 
   const [isProjectDialogOpen, setIsProjectDialogOpen] = useState(false);
   const [projects, setProjects] = useState<Project[]>([]);
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
 
   const hasPreview = useStore(computed(workbenchStore.previews, (previews) => previews.length > 0));
   const showWorkbench = useStore(workbenchStore.showWorkbench);
@@ -115,6 +116,20 @@ const WorkbenchComponent = ({ chatStarted, isStreaming }: WorkspaceProps) => {
     workbenchStore.resetCurrentDocument();
   }, []);
 
+  const updateGameFiles = useCallback(async () => {
+    if (selectedProjectId) {
+      const filesArray: File[] = Object.entries(await workbenchStore.getRawGameFiles()).map(([path, fileData]) => ({
+        file_id: '', // We don't need a file_id here, we'll use the path, project_id to identify the file
+        filename: path.split('/').pop() || path,
+        path: path.replace('src/app/game/', ''),
+        content: fileData.type === 'file' ? fileData.content : '',
+        project_id: selectedProjectId,
+      }));
+      console.log(filesArray);
+      await updateProjectFiles(selectedProjectId, filesArray);
+    }
+  }, [selectedProjectId]);
+
   const onSetupBaseCode = useCallback(async () => {
     await workbenchStore.setupBaseCode();
   }, []);
@@ -130,6 +145,7 @@ const WorkbenchComponent = ({ chatStarted, isStreaming }: WorkspaceProps) => {
   }, []);
 
   const handleProjectSelect = useCallback(async (projectId: string) => {
+    setSelectedProjectId(projectId);
     await workbenchStore.selectGame(projectId);
     setIsProjectDialogOpen(false);
   }, []);
@@ -191,15 +207,6 @@ const WorkbenchComponent = ({ chatStarted, isStreaming }: WorkspaceProps) => {
                     <DropdownMenuContent className="w-56">
                       <DropdownMenuGroup>
                         <DropdownMenuItem 
-                          onSelect={() => {
-                            workbenchStore.showWorkbench.set(false);
-                          }}
-                          className="cursor-pointer"
-                        >
-                          <RefreshCcw className="w-4 h-4 mr-2" />
-                          Reload Previews
-                        </DropdownMenuItem>
-                        <DropdownMenuItem 
                           onSelect={() => onSelectGame()}
                           className="cursor-pointer"
                         >
@@ -210,6 +217,12 @@ const WorkbenchComponent = ({ chatStarted, isStreaming }: WorkspaceProps) => {
                           className="cursor-pointer"
                         >
                           Setup Base Code
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                          onSelect={updateGameFiles}
+                          className="cursor-pointer"
+                        >
+                          Update Game Files
                         </DropdownMenuItem>
                         <DropdownMenuItem 
                           onSelect={sendFilesToWebSocket}

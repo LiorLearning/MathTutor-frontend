@@ -59,6 +59,16 @@ export async function fetchProjectFiles(projectId: string): Promise<ProjectFiles
   }
 }
 
+export async function updateProjectFiles(projectId: string, files: File[]): Promise<void> {
+  try {
+    const response = await axios.put(`${API_BASE_URL}/projects/${projectId}/files`, files);
+    return response.data as void;
+  } catch (error) {
+    console.error(`Failed to update project files: ${error}`);
+    throw error;
+  }
+}
+
 export async function createFile(file: Omit<File, 'file_id'>): Promise<File> {
   try {
     const response = await axios.post(`${API_BASE_URL}/files/`, file);

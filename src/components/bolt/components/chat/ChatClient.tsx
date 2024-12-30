@@ -76,14 +76,6 @@ const ChatImpl = memo(({ initialMessages, storeMessageHistory }: ChatProps) => {
     }
   }, [messages, isLoading, parseMessages]);
 
-  const scrollTextArea = () => {
-    const textarea = textareaRef.current;
-
-    if (textarea) {
-      textarea.scrollTop = textarea.scrollHeight;
-    }
-  };
-
   const abort = () => {
     stop();
     chatStore.setKey('aborted', true);
@@ -110,8 +102,8 @@ const ChatImpl = memo(({ initialMessages, storeMessageHistory }: ChatProps) => {
     setChatStarted(true);
   };
 
-  const sendMessage = async (_event: React.UIEvent, messageInput?: string) => {
-    const parsedGameFiles = workbenchStore.getParsedGameFiles();
+  const sendMessage = async (_event: React.UIEvent, messageInput?: string, stateFile?: boolean) => {
+    const parsedGameFiles = stateFile ? workbenchStore.getGameStateFile() : workbenchStore.getParsedGameFiles();
 
     const _input = `${messageInput || input}\n${parsedGameFiles}`;
 
@@ -125,9 +117,6 @@ const ChatImpl = memo(({ initialMessages, storeMessageHistory }: ChatProps) => {
 
     chatStore.setKey('aborted', false);
     runAnimation();
-
-    console.log('fileModifications', fileModifications);
-    console.log('input', _input);
 
     if (fileModifications !== undefined) {
       const diff = fileModificationsToHTML(fileModifications);

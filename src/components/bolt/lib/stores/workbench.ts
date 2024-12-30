@@ -38,6 +38,7 @@ export class WorkbenchStore {
       this.#actionRunner = new ActionRunner(webcontainer);
     }
     this.#editorStore = new EditorStore(this.#filesStore);
+    this.setupBaseCode();
   }
 
   #previewsStore!: PreviewsStore;
@@ -265,10 +266,16 @@ export class WorkbenchStore {
   }
 
   getParsedGameFiles() {
-    const filesRecord = this.#filesStore.getFiles('src/app/game/');
+    const filesRecord = this.getRawGameFiles();
     const artifactId = 'test-artifact';
     const artifactTitle = 'Test Artifact';
     return convertFilesToXML(filesRecord, artifactId, artifactTitle);
+  }
+
+  getRawGameFiles() {
+    const rawFiles = this.#filesStore.getFiles('src/app/game/');
+    delete rawFiles['state-utils.tsx'];
+    return rawFiles;
   }
 
   getGameStateFile() {
