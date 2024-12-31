@@ -5,7 +5,7 @@ import type { ChatRequestOptions, Message } from 'ai';
 import { useChat } from 'ai/react';
 import { useAnimate } from 'framer-motion';
 import { memo, useEffect, useRef, useState } from 'react';
-import { useMessageParser, usePromptEnhancer, useShortcuts, useSnapScroll } from '@/components/bolt/lib/hooks';
+import { useMessageParser, useShortcuts, useSnapScroll } from '@/components/bolt/lib/hooks';
 import { chatStore } from '@/components/bolt/lib/stores/chat';
 import { workbenchStore } from '@/components/bolt/lib/stores/workbench';
 import { fileModificationsToHTML } from '@/components/bolt/utils/diff';

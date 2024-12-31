@@ -11,9 +11,8 @@ const CORRECTION = 'correction';
 const CORRECTED = 'corrected';
 const ADMIN = 'admin';
 
-interface MessageComponentsProps {}
 
-const MessageComponents: React.FC<MessageComponentsProps> = ({}) => {
+const MessageComponents: React.FC= () => {
   const { messages } = useMessageContext();
 
   const messageComponents = useMemo(() => (

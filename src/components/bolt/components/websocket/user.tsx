@@ -4,7 +4,6 @@ import { workbenchStore } from '@/components/bolt/lib/stores/workbench';
 import { FileAction } from '@/components/bolt/types/actions';
 import { FileMap } from '@/components/bolt/lib/stores/files';
 import { WORK_DIR } from '@/components/bolt/utils/constants';
-import { useStore } from '@nanostores/react';
 
 // User WebSocket Provider
 interface UserWebSocketContextType {

@@ -44,7 +44,7 @@ export default function ChatHistory({ username, sessionId }: ChatHistoryProps) {
     <div className="p-4 space-y-4">
       <ScrollArea className="flex-grow p-4" ref={scrollAreaRef}>
         <div className="space-y-6">
-          <MessageComponents messages={messages} />
+          <MessageComponents />
         </div>
       </ScrollArea>
     </div>

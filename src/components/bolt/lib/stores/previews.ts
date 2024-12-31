@@ -46,9 +46,4 @@ export class PreviewsStore {
       this.previews.set([...previews]);
     });
   }
-
-  async reload() {
-    const webcontainer = await this.#webcontainer;
-    
-  }
 }

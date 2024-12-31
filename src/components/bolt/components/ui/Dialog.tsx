@@ -4,7 +4,6 @@ import * as RadixDialog from '@radix-ui/react-dialog';
 import { easeInOut, motion, type Variants } from 'framer-motion';
 import React, { memo, type ReactNode } from 'react';
 import { classNames } from '@/components/bolt/utils/classNames';
-import { IconButton } from './IconButton';
 
 export { Close as DialogClose, Root as DialogRoot } from '@radix-ui/react-dialog';
 
@@ -125,7 +124,7 @@ export const Dialog = memo(function Dialog({ className, children, onBackdrop, on
         >
           {children}
           <RadixDialog.Close asChild onClick={onClose}>
-            <IconButton icon="i-ph:x" className="absolute top-[10px] right-[10px]" />
+            <span className="absolute top-[10px] right-[10px]">Close</span>
           </RadixDialog.Close>
         </motion.div>
       </RadixDialog.Content>

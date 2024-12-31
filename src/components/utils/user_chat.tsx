@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect, useContext } from 'react';
 import axios from 'axios';
 
-import { Message, API_BASE_URL, GetChatHistoryResponse, StartChatResponse } from './user/chat_utils';
+import { API_BASE_URL, GetChatHistoryResponse, StartChatResponse } from './user/chat_utils';
 
 import { AudioContext } from './user/audio/eleven_labs_audio_stream';
 import PageLoader from '../ui/loaders/page_loader';

@@ -189,7 +189,7 @@ export default function App() {
             <AlertDialogHeader>
               <AlertDialogTitle>Are you sure?</AlertDialogTitle>
               <AlertDialogDescription>
-                This will permanently delete the project "{projectToDelete?.project_name}".
+                This will permanently delete the project &quot;{projectToDelete?.project_name}&quot;.
                 This action cannot be undone.
               </AlertDialogDescription>
             </AlertDialogHeader>
