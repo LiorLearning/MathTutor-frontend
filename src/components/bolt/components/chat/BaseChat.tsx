@@ -40,7 +40,7 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
   }, ref) => {
     const TEXTAREA_MIN_HEIGHT = 76
     const TEXTAREA_MAX_HEIGHT = chatStarted ? 400 : 200
-    const [stateFile, setStateFile] = useState(false); // Toggle for stateFile
+    const [stateFile, setStateFile] = useState(true);
 
     useEffect(() => {
     }, [messages, messageRef]);

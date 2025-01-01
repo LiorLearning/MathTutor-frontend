@@ -137,25 +137,16 @@ const ChatImpl = memo(({ initialMessages, storeMessageHistory }: ChatProps) => {
     const parsedGameFiles = workbenchStore.getGameStateFile();
     const aiMessages = convertToAIMessage(sessionMessages);
 
-    aiMessages.forEach((message) => {
-      console.log('message', message);
-    });
     aiMessages.push({ 
       role: 'user', 
       id: `user-message-${messageCount.current}`,
-      content: `Current game state file: ${parsedGameFiles}\n\nContexualise this game state file.`, 
+      content: `Contexualise the game as per the coversation history. Pick up the latest question and update the initial game state to update the game to teach the latest question.\n${parsedGameFiles}`, 
     });
 
     messageCount.current++;
 
     setMessages(aiMessages as Message[]);
-
-    const chatRequestOptions: ChatRequestOptions = {
-      body: {
-        persona: 'contexualise',
-      },
-    };
-    reload(chatRequestOptions);
+    reload();
   }
 
   const [messageRef, scrollRef] = useSnapScroll();
