@@ -10,6 +10,7 @@ import InputBar from '../input_bar';
 import SpeechToText from '../audio/speech_to_text';
 import { Message } from '../chat_utils';
 import { useMessageContext } from '../../provider/message';
+import { useArtifactContext } from '../../provider/artifact';
 
 interface MobileProps {
   username: string;
@@ -25,11 +26,8 @@ interface MobileProps {
   onSendTextMessage: (message: string) => void;
   handleRecordingStart: () => void;
   handleRecordingStop: (blob: Blob) => void;
-  isRightColumnCollapsedRef: React.MutableRefObject<boolean>;
   sessionId: string;
   deviceType: string;
-  isRightColumnCollapsed: boolean;
-  setIsRightColumnCollapsed: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const MobileChat: React.FC<MobileProps> = ({
@@ -46,21 +44,17 @@ const MobileChat: React.FC<MobileProps> = ({
   onSendTextMessage,
   handleRecordingStart,
   handleRecordingStop,
-  isRightColumnCollapsedRef,
   sessionId,
   deviceType,
-  isRightColumnCollapsed,
-  setIsRightColumnCollapsed
 }) => {
 
   // const [compactHeader, setCompactHeader] = useState(false); 
   const { messages } = useMessageContext();
+  const { isRightColumnCollapsed, toggleRightColumn } = useArtifactContext();
 
   // Sync state with ref
   useEffect(() => {
-    isRightColumnCollapsedRef.current = isRightColumnCollapsed;
-    setIsRightColumnCollapsed(isRightColumnCollapsed);
-    // setCompactHeader(!isRightColumnCollapsed);
+    toggleRightColumn(isRightColumnCollapsed);
   }, [isRightColumnCollapsed]);
 
   return (

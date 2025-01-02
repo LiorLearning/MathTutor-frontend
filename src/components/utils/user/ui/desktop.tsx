@@ -12,6 +12,7 @@ import SpeechToText from '../audio/speech_to_text';
 import { UserArtifactComponent } from '@/components/artifact/user';
 import { Message } from '../chat_utils';
 import { useMessageContext } from '../../provider/message';
+import { useArtifactContext } from '../../provider/artifact';
 
 interface DesktopProps {
   username: string;
@@ -27,12 +28,8 @@ interface DesktopProps {
   onSendTextMessage: (message: string) => void;
   handleRecordingStart: () => void;
   handleRecordingStop: (blob: Blob) => void;
-  isRightColumnCollapsedRef: React.MutableRefObject<boolean>;
-  toggleRightColumn: (override?: boolean) => void;
   sessionId: string;
   deviceType: string;
-  isRightColumnCollapsed: boolean;
-  setIsRightColumnCollapsed: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const DesktopChat: React.FC<DesktopProps> = ({
@@ -49,20 +46,16 @@ const DesktopChat: React.FC<DesktopProps> = ({
   onSendTextMessage,
   handleRecordingStart,
   handleRecordingStop,
-  isRightColumnCollapsedRef,
-  toggleRightColumn,
   sessionId,
   deviceType,
-  isRightColumnCollapsed,
-  setIsRightColumnCollapsed
 }) => {
   
   const [compactHeader, setCompactHeader] = useState(false); 
   const { messages } = useMessageContext();
-
+  const { showHtml, isRightColumnCollapsed, toggleRightColumn } = useArtifactContext();
+  
   // Sync state with ref
   useEffect(() => {
-    isRightColumnCollapsedRef.current = isRightColumnCollapsed;
     setCompactHeader(!isRightColumnCollapsed);
   }, [isRightColumnCollapsed]);
 
@@ -71,10 +64,11 @@ const DesktopChat: React.FC<DesktopProps> = ({
       <motion.div
         className="flex-1 p-4 transition-all duration-200 ease-in-out"
         animate={{
-          width: isRightColumnCollapsed ? "100%" : "70%",
+          width: isRightColumnCollapsed ? "100%" : (showHtml ? "30%" : "100%"),
         }}
         style={{
-          marginRight: isRightColumnCollapsed ? "0%" : "70%",
+          marginRight: isRightColumnCollapsed ? "0%" : (showHtml ? "70%" : "0%"),
+          display: isRightColumnCollapsed ? "block" : (showHtml ? "block" : "none")
         }}
       >
         <div className="h-full flex flex-col border-border dark:border-dark-border">
@@ -125,14 +119,13 @@ const DesktopChat: React.FC<DesktopProps> = ({
       </motion.div>
 
       <motion.div
-        className="fixed right-0 top-0 h-full w-[70%] bg-secondary dark:bg-dark-secondary p-6 shadow-lg transition-all duration-200 ease-in-out"
+        className={`fixed right-0 top-0 h-full bg-secondary dark:bg-dark-secondary p-6 shadow-lg transition-all duration-200 ease-in-out ${showHtml ? 'w-[70%]' : 'w-[100%]'}`} 
         animate={{
           x: isRightColumnCollapsed ? "100%" : "0%",
         }}
       >
         <UserArtifactComponent 
           username={username} 
-          toggleRightColumn={toggleRightColumn} 
           sessionId={sessionId}
         />
       </motion.div>
@@ -155,7 +148,7 @@ const DesktopChat: React.FC<DesktopProps> = ({
 
       <Button
         className="fixed bottom-4 right-4 z-10"
-        onClick={() => setIsRightColumnCollapsed(!isRightColumnCollapsed)}
+        onClick={() => toggleRightColumn(!isRightColumnCollapsed)}
         aria-label={isRightColumnCollapsed ? "Expand right column" : "Collapse right column"}
       >
         {isRightColumnCollapsed ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}

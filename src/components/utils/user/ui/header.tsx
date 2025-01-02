@@ -59,7 +59,7 @@ const Header: React.FC<HeaderProps> = ({ username, sessionId, isChatConnected, s
             )}
           </Button>
           
-          {compact && (
+          {!compact && (
             <AudioSelector />
           )}
 

@@ -1,7 +1,7 @@
 'use client'
 
 import { useStore } from '@nanostores/react';
-import type { ChatRequestOptions, Message } from 'ai';
+import type { Message } from 'ai';
 import { useChat } from 'ai/react';
 import { useAnimate } from 'framer-motion';
 import { memo, useEffect, useRef, useState } from 'react';

@@ -15,6 +15,7 @@ import { useWebSocket } from './user/websocket';
 import { getDeviceType, ANDROID_PHONE, IPHONE, OTHER } from './common_utils';
 import { ChatLoader } from '@/components/ui/loaders/chat_loader';
 import { useMessageContext } from './provider/message';
+import { ArtifactProvider } from './provider/artifact';
 const deviceType = typeof window !== 'undefined' ? getDeviceType() : OTHER;
 
 interface UserChatProps {
@@ -50,22 +51,7 @@ export function UserChat({ username, sessionId }: UserChatProps) {
     isLastMessagePauseRef
   } = useWebSocket();
 
-  const isRightColumnCollapsedRef = useRef<boolean>(true);
-  const [isRightColumnCollapsed, setIsRightColumnCollapsed] = useState(isRightColumnCollapsedRef.current);
-
-  const toggleRightColumn = (override?: boolean) => {
-    if (typeof override === 'boolean') {
-      console.log(`Setting right column collapsed state to: ${override}`);
-      isRightColumnCollapsedRef.current = override;
-      setIsRightColumnCollapsed(override);
-    } else {
-      const newState = !isRightColumnCollapsedRef.current;
-      console.log(`Toggling right column collapsed state to: ${newState}`);
-      isRightColumnCollapsedRef.current = newState;
-      setIsRightColumnCollapsed(newState);
-    }
-  };
-
+  
   // Speech to Text functions
   const handleRecordingStart = () => {
     audioContext.stopAudio();
@@ -157,56 +143,52 @@ export function UserChat({ username, sessionId }: UserChatProps) {
   if (isLoading) {
     return <PageLoader />;
   }
+
   return (
-    <div className="flex h-screen bg-background dark:bg-dark-background">
-      {!isChatConnected ? (
-        <ChatLoader />
-      ) : (
-        (deviceType === IPHONE || deviceType === ANDROID_PHONE) ? (
-          <MobileChat
-            username={username}
-            isChatConnected={isChatConnected}
-            speakout={speakout}
-            toggleSpeakout={toggleSpeakout}
-            scrollAreaRef={scrollAreaRef}
-            toggleAudio={toggleAudio}
-            isGeneratingImage={isGeneratingImage}
-            isSendingMessage={isSendingMessage}
-            isLastMessagePauseRef={isLastMessagePauseRef}
-            sendStopMessage={sendStopMessage}
-            onSendTextMessage={onSendTextMessage}
-            handleRecordingStart={handleRecordingStart}
-            handleRecordingStop={handleRecordingStop}
-            isRightColumnCollapsedRef={isRightColumnCollapsedRef}
-            sessionId={sessionId}
-            deviceType={deviceType}
-            isRightColumnCollapsed={isRightColumnCollapsed}
-            setIsRightColumnCollapsed={setIsRightColumnCollapsed}
-          />
+    <ArtifactProvider>
+      <div className="flex h-screen bg-background dark:bg-dark-background">
+        {!isChatConnected ? (
+          <ChatLoader />
         ) : (
-          <DesktopChat
-            username={username}
-            isChatConnected={isChatConnected}
-            speakout={speakout}
-            toggleSpeakout={toggleSpeakout}
-            scrollAreaRef={scrollAreaRef}
-            toggleAudio={toggleAudio}
-            isGeneratingImage={isGeneratingImage}
-            isSendingMessage={isSendingMessage}
-            isLastMessagePauseRef={isLastMessagePauseRef}
-            sendStopMessage={sendStopMessage}
-            onSendTextMessage={onSendTextMessage}
-            handleRecordingStart={handleRecordingStart}
-            handleRecordingStop={handleRecordingStop}
-            isRightColumnCollapsedRef={isRightColumnCollapsedRef}
-            toggleRightColumn={toggleRightColumn}
-            sessionId={sessionId}
-            deviceType={deviceType}
-            isRightColumnCollapsed={isRightColumnCollapsed}
-            setIsRightColumnCollapsed={setIsRightColumnCollapsed}
-          />
-        )
-      )}
-    </div>
+          (deviceType === IPHONE || deviceType === ANDROID_PHONE) ? (
+            <MobileChat
+              username={username}
+              isChatConnected={isChatConnected}
+              speakout={speakout}
+              toggleSpeakout={toggleSpeakout}
+              scrollAreaRef={scrollAreaRef}
+              toggleAudio={toggleAudio}
+              isGeneratingImage={isGeneratingImage}
+              isSendingMessage={isSendingMessage}
+              isLastMessagePauseRef={isLastMessagePauseRef}
+              sendStopMessage={sendStopMessage}
+              onSendTextMessage={onSendTextMessage}
+              handleRecordingStart={handleRecordingStart}
+              handleRecordingStop={handleRecordingStop}
+              sessionId={sessionId}
+              deviceType={deviceType}
+            />
+          ) : (
+            <DesktopChat
+              username={username}
+              isChatConnected={isChatConnected}
+              speakout={speakout}
+              toggleSpeakout={toggleSpeakout}
+              scrollAreaRef={scrollAreaRef}
+              toggleAudio={toggleAudio}
+              isGeneratingImage={isGeneratingImage}
+              isSendingMessage={isSendingMessage}
+              isLastMessagePauseRef={isLastMessagePauseRef}
+              sendStopMessage={sendStopMessage}
+              onSendTextMessage={onSendTextMessage}
+              handleRecordingStart={handleRecordingStart}
+              handleRecordingStop={handleRecordingStop}
+              sessionId={sessionId}
+              deviceType={deviceType}
+            />
+          )
+        )}
+      </div>
+    </ArtifactProvider>
   )
 }

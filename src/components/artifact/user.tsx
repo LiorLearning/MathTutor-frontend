@@ -1,23 +1,22 @@
 'use client'
 
-import { useState, useRef } from 'react';
+import { useRef } from 'react';
 import { UserWebSocketProvider } from '@/components/bolt/components/websocket/user';
 // import { Workbench } from '@/components/bolt/components/workbench/Workbench.client';
 import { Preview } from '@/components/bolt/components/workbench/Preview';
+import { useArtifactContext } from '@/components/utils/provider/artifact';
 
 interface UserArtifactProps {
   username: string;
-  toggleRightColumn: (override?: boolean) => void;
   sessionId: string;
 }
 
 export const UserArtifactComponent: React.FC<UserArtifactProps> = ({ 
   username, 
-  toggleRightColumn, 
   sessionId,
 }) => {
+  const { showHtml, toggleRightColumn } = useArtifactContext();
   const htmlContentRef = useRef<string>('');
-  const [showHtml, setShowHtml] = useState(true);
 
   return (
     <div className="flex flex-col h-full w-full">
@@ -25,9 +24,8 @@ export const UserArtifactComponent: React.FC<UserArtifactProps> = ({
         base_url={`${process.env.NEXT_PUBLIC_WS_BASE_URL}/bolt/ws/${username}/${sessionId}`}
         toggleRightColumn={toggleRightColumn}
         htmlContentRef={htmlContentRef}
-        setShowHtml={setShowHtml}
       >
-        <div className="h-screen m-4">
+        <div className="h-screen">
           {showHtml ? 
             <>
               <iframe 

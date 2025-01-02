@@ -35,9 +35,9 @@ export class WorkbenchStore {
       this.#filesStore = new FilesStore(webcontainer);
       this.#terminalStore = new TerminalStore(webcontainer);
       this.#actionRunner = new ActionRunner(webcontainer);
+      this.setupBaseCode();
     }
     this.#editorStore = new EditorStore(this.#filesStore);
-    this.setupBaseCode();
   }
 
   #previewsStore!: PreviewsStore;

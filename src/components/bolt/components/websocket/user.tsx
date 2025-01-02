@@ -4,6 +4,7 @@ import { workbenchStore } from '@/components/bolt/lib/stores/workbench';
 import { FileAction } from '@/components/bolt/types/actions';
 import { FileMap } from '@/components/bolt/lib/stores/files';
 import { WORK_DIR } from '@/components/bolt/utils/constants';
+import { useArtifactContext } from '@/components/utils/provider/artifact';
 
 // User WebSocket Provider
 interface UserWebSocketContextType {
@@ -18,14 +19,13 @@ export const UserWebSocketProvider: React.FC<{
   children: React.ReactNode, 
   toggleRightColumn: (override?: boolean) => void,
   htmlContentRef: React.MutableRefObject<string>,
-  setShowHtml: React.Dispatch<React.SetStateAction<boolean>>
 }> = ({ 
   children, 
   base_url, 
   toggleRightColumn,
   htmlContentRef,
-  setShowHtml
 }) => {
+  const { setShowHtml } = useArtifactContext();
   const [isConnected, setIsConnected] = useState(false);
   const socketRef = useRef<WebSocket | null>(null);
   let actionCount = 0;
