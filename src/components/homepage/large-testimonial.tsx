@@ -12,19 +12,19 @@ export default function LargeTestimonial() {
 
   const testimonials = [
     {
+      image: Image2,
+      text: "I asked him the other day what his favourite thing in the week was, and you were right after his favourite video game. Whatever you’re doing is working really well!",
+      name: "Loren’s mom",
+    },
+    {
       image: Image1,
-      text: "These are the coolest progress reports ever. People don't understand that for this and next generation making learning interest-based isn't just a 'nice to have', it's actually the critical piece for their learning efficacy.",
-      name: "Julietta",
+      text: "This made my day!! These 'report cards' are the coolest I've ever seen. Thank you for the fantastic work you're doing! Our families are very happy and grateful for their tutoring experience with you guys!",
+      name: "Julieta",
       title: "Microschool founder",
     },
     {
       text: "I still can't quite grasp how fascinating it is that the boys actually want to schedule more classes.",
       name: "Samuel, Asher and Anica’s mom",
-    },
-    {
-      image: Image2,
-      text: "I asked him the other day what his favourite thing in the week was, and you were right after his favourite video game. Whatever you’re doing is working really well!",
-      name: "Loren’s mom",
     },
     {
       text: "Earlier learning math was always a battle. But now Connor is so excited for the next session. What you guys are doing is really amazing.",
@@ -47,7 +47,7 @@ export default function LargeTestimonial() {
       setCurrentIndex((prevIndex) =>
         prevIndex === testimonials.length - 1 ? 0 : prevIndex + 1
       );
-    }, 5000);
+    }, 8000);
 
     return () => clearInterval(interval);
   }, [testimonials.length]);
