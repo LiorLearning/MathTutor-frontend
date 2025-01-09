@@ -3,7 +3,7 @@
 import React, { useEffect } from 'react'
 import { Question } from '@/types/question-bank'
 import { fetchQuestionById } from '../actions/fetchQuestion';
-import { MarkdownComponent } from './markdown';
+import { MarkdownComponent } from '@/components/utils/user/chat_utils';
 
 export function QuestionDisplay({ questionId }: { questionId: string }) {
   const [question, setQuestion] = React.useState<Question | null>(null);
