@@ -125,7 +125,6 @@ const WorkbenchComponent = ({ chatStarted, isStreaming }: WorkspaceProps) => {
         content: fileData.type === 'file' ? fileData.content : '',
         project_id: selectedProjectId,
       }));
-      console.log(filesArray);
       await updateProjectFiles(selectedProjectId, filesArray);
     }
   }, [selectedProjectId]);

@@ -30,6 +30,7 @@ import {
   STOP, 
   END,
   ADMIN,
+  keepAlive,
 } from '@/components/utils/common_utils';
 import AdminHeader from '@/components/utils/admin/admin-header';
 import { ChatLoader } from '@/components/ui/loaders/chat_loader';
@@ -87,10 +88,8 @@ export function InterceptorChat() {
 
         if (role === GENERATING_IMAGE) {
           if (message === "start") {
-            console.log("Image generation started");
             setIsGeneratingImage(true);
           } else if (message === "done") {
-            console.log("Image generation done");
             setIsGeneratingImage(false);
           }
           return;
@@ -118,11 +117,7 @@ export function InterceptorChat() {
         { headers: { 'Content-Type': 'application/json' } }
         );
 
-        console.log('historyResponse', historyResponse.data);
-
         setMessages(historyResponse.data || []);
-
-        console.log('messages', messages);
 
         // WebSocket setup
         initChatWebSocket();
@@ -153,6 +148,12 @@ export function InterceptorChat() {
       }
     }
   }, [messages]);
+
+  // Call keepAlive when the component mounts
+  useEffect(() => {
+    const cleanup = keepAlive();
+    return cleanup;
+  }, []);
 
   const handleDeleteChat = async () => {
     try {
@@ -232,7 +233,6 @@ export function InterceptorChat() {
       return;
     }
     setPausedMessage(true);
-    console.log("Message paused by the user.")
     if (chatWebsocketRef.current) {
       chatWebsocketRef.current.send(JSON.stringify({
         'role': PAUSE,

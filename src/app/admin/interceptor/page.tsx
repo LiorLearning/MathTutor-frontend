@@ -1,4 +1,4 @@
-import { InterceptorChat } from "@/app/admin/interceptor/interceptor_chat";
+import { InterceptorChat } from "@/components/utils/interceptor_chat";
 import { FallbackComponent } from "@/components/fallback";
 import { MessageProvider } from "@/components/utils/provider/message";
 import React, { Suspense } from 'react';

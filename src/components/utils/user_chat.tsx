@@ -7,7 +7,7 @@ import { API_BASE_URL, GetChatHistoryResponse, StartChatResponse } from './user/
 
 import { AudioContext } from './user/audio/eleven_labs_audio_stream';
 import PageLoader from '../ui/loaders/page_loader';
-import { ASSISTANT, USER } from './common_utils';
+import { ASSISTANT, keepAlive, USER } from './common_utils';
 import DesktopChat from './user/ui/desktop';
 import MobileChat from './user/ui/mobile';
 
@@ -76,6 +76,12 @@ export function UserChat({ username, sessionId }: UserChatProps) {
 
     initializeWebSocket();
   }, [speakout]);
+
+  // Call keepAlive when the component mounts
+  useEffect(() => {
+    const cleanup = keepAlive();
+    return cleanup;
+  }, []);
 
   useEffect(() => {
     const initializeChat = async () => {

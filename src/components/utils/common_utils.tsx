@@ -22,6 +22,16 @@ export const MAC = "Mac";
 export const WINDOWS = "Windows";
 export const OTHER = "Other";
 
+export function keepAlive() {
+  const intervalId = setInterval(() => {
+    console.log('pinging self');
+    fetch(window.location.href)
+  }, 60_000);
+
+  // Cleanup function to prevent memory leaks
+  return () => clearInterval(intervalId);
+}
+
 
 export const getDeviceType = () => {
   if (typeof navigator === 'undefined') {
