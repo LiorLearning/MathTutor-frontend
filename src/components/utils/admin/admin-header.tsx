@@ -42,7 +42,7 @@ const AdminHeader: React.FC<AdminHeaderProps> = ({ username, sessionId, isChatCo
   return (
     <header className="p-4 border-b border-border dark:border-border bg-background text-foreground dark:bg-background dark:text-foreground sticky top-0 z-10">
       <div className="flex justify-between items-center">
-        <h1 className="text-lg font-bold text-primary-foreground dark:text-primary-foreground">MathTutor</h1>
+        <h1 className="text-lg font-bold text-primary-foreground dark:text-primary-foreground">MathKraft</h1>
         <div className="flex items-center gap-4">
           {isChatConnected ? (
             <Wifi className="text-green-500" size={16} />
