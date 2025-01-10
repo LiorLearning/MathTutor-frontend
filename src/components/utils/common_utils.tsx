@@ -26,9 +26,8 @@ export function keepAlive() {
   const intervalId = setInterval(() => {
     console.log('pinging self');
     fetch(window.location.href)
-  }, 60_000);
+  }, 300_000); // 5 minutes
 
-  // Cleanup function to prevent memory leaks
   return () => clearInterval(intervalId);
 }
 

@@ -1,6 +1,8 @@
 // next.config.js
 export default {
+  crossOrigin: 'anonymous',
   async headers() {
+    
     return [
       {
         source: '/(.*)',
