@@ -47,7 +47,7 @@ export default function FeaturesPlanet() {
           {/* Section header */}
           <div className="mx-auto max-w-3xl pb-16 text-center md:pb-20">
             <h3 className="text-2xl font-bold text-gray-200 md:text-3xl">
-              With Lior AI, learning math doesn’t have to be a struggle!
+              With MathKraft, learning math doesn’t have to be a struggle!
             </h3>
           </div>
           

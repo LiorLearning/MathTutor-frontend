@@ -11,7 +11,7 @@ export default function ModalVideo() {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const thumbWidth = 1920;
   const thumbHeight = 1080;
-  const thumbAlt = "Lior Learning: Math Tutor";
+  const thumbAlt = "MathKraft: Math Tutor";
   const videoId = "r-Rqf_ZCd0Y";
 
   return (
