@@ -152,7 +152,7 @@ export class WorkbenchStore {
 
   async setupBaseCode() {
     await this.fetchProjectFiles('676da3c3f01bb7b077b2133d', '');
-    await this.createAndRunShellAction('npm ci');
+    await this.createAndRunShellAction('npm install');
     this.createAndRunShellAction('npm run dev');
     this.addArtifact({ messageId: 'message1', title: 'Test Artifact', id: 'artifact1' });
   }

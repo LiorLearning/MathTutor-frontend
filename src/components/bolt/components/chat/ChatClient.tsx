@@ -135,7 +135,7 @@ const ChatImpl = memo(({ initialMessages, storeMessageHistory }: ChatProps) => {
 
   const contexualiseGameFiles = () => {
     const parsedGameFiles = workbenchStore.getGameStateFile();
-    const aiMessages = convertToAIMessage(sessionMessages);
+    const aiMessages = convertToAIMessage(sessionMessages) as Message[];
 
     aiMessages.push({ 
       role: 'user', 
@@ -179,6 +179,4 @@ const ChatImpl = memo(({ initialMessages, storeMessageHistory }: ChatProps) => {
   );
 });
 
-ChatImpl.displayName = 'ChatImpl'
-
-export { ChatImpl }
+export default Chat;

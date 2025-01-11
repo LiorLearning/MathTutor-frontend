@@ -132,5 +132,4 @@ const PreviewComponent = () => {
   );
 };
 
-export const Preview = memo(PreviewComponent);
-Preview.displayName = 'Preview';
+export default memo(PreviewComponent);

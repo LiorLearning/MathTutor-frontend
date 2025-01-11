@@ -3,6 +3,8 @@ import localFont from "next/font/local";
 import { ThemeProvider } from '@/components/themeContext';  // adjust path as needed
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster"
+import { ThemeScript } from '@/components/bolt/theme-script';
+import { ThemeListener } from '@/components/bolt/theme-listener';
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -28,9 +30,13 @@ export default function RootLayout({
   return (
     <ThemeProvider>
       <html lang="en">
+        <head>
+          <ThemeScript />
+        </head>
         <body
           className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         >
+          <ThemeListener />
           <main>{children}</main>
           <Toaster />
         </body>

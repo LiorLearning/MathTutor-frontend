@@ -91,6 +91,7 @@
     "tailwind-merge": "^2.5.3",
     "tailwindcss-animate": "^1.0.7",
     "unist-util-visit": "^5.0.0",
+    "unocss": "^65.4.0",
     "vitest": "^2.1.8"
   },
   "devDependencies": {
@@ -109,7 +110,6 @@
     "tailwindcss": "^3.4.1",
     "typescript": "^5",
     "unified": "^11.0.5",
-    "unocss": "^0.61.3",
     "zod": "^3.23.8"
   },
   "resolutions": {

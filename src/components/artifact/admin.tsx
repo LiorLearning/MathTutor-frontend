@@ -1,7 +1,11 @@
 'use client'
 
-import { Chat } from '@/components/bolt/components/chat/ChatClient';
+import dynamic from 'next/dynamic';
 import { AdminWebSocketProvider } from '@/components/bolt/components/websocket/admin';
+
+const Chat = dynamic(() => import('@/components/bolt/components/chat/ChatClient').then(mod => mod.default), {
+  ssr: false,
+});
 
 export interface AdminArtifactProps {
     username: string;

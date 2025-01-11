@@ -2,9 +2,12 @@
 
 import { useRef } from 'react';
 import { UserWebSocketProvider } from '@/components/bolt/components/websocket/user';
-// import { Workbench } from '@/components/bolt/components/workbench/Workbench.client';
-import { Preview } from '@/components/bolt/components/workbench/Preview';
 import { useArtifactContext } from '@/components/utils/provider/artifact';
+import dynamic from 'next/dynamic';
+
+const Preview = dynamic(() => import('@/components/bolt/components/workbench/Preview'), {
+  ssr: false,
+});
 
 interface UserArtifactProps {
   username: string;

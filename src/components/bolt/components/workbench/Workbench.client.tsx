@@ -15,7 +15,7 @@ import { workbenchStore, type WorkbenchViewType } from '@/components/bolt/lib/st
 import { classNames } from '@/components/bolt/utils/classNames'
 import { renderLogger } from '@/components/bolt/utils/logger';
 import EditorPanel from './EditorPanel';
-import { Preview } from './Preview';
+import Preview from './Preview';
 import { useAdminWebSocket } from '@/components/bolt/components/websocket/admin';
 import { FileMap } from '../../lib/stores/files';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem } from '@/components/ui/dropdown-menu';
@@ -52,7 +52,7 @@ const workbenchVariants = {
     },
   },
   open: {
-    width: 'var(--workbench-width)',
+    width: '100%',
     transition: {
       duration: 0.2,
       ease: easeInOut,
@@ -95,6 +95,7 @@ const WorkbenchComponent = ({ chatStarted, isStreaming }: WorkspaceProps) => {
   }, [files]);
 
   const onEditorChange = useCallback<OnEditorChange>((update) => {
+    console.log('onEditorChange', update);
     workbenchStore.setCurrentDocumentContent(update.content);
   }, []);
 

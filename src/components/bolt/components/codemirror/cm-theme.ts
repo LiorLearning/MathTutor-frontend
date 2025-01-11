@@ -1,10 +1,8 @@
-'use client'
-
 import { Compartment, type Extension } from '@codemirror/state';
 import { EditorView } from '@codemirror/view';
 import { vscodeDark, vscodeLight } from '@uiw/codemirror-theme-vscode';
-import type { Theme } from '@/components/bolt/types/theme.js';
-import type { EditorSettings } from './CodeMirrorEditor.jsx';
+import type { Theme } from '@/components/bolt/types/theme';
+import type { EditorSettings } from './CodeMirrorEditor.js';
 
 export const darkTheme = EditorView.theme({}, { dark: true });
 export const themeSelection = new Compartment();
