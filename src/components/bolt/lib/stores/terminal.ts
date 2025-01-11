@@ -8,7 +8,7 @@ export class TerminalStore {
   #webcontainer: Promise<WebContainer>;
   #terminals: Array<{ terminal: ITerminal; process: WebContainerProcess }> = [];
 
-  showTerminal: WritableAtom<boolean> = atom(false);
+  showTerminal: WritableAtom<boolean> = atom(true);
 
   constructor(webcontainerPromise: Promise<WebContainer>) {
     this.#webcontainer = webcontainerPromise;
