@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Workbench } from '@/components/bolt/components/workbench/Workbench.client'
 import { SendButton } from './SendButton.client'
 import { Switch } from "@/components/ui/switch"
+import { Loader2 } from 'lucide-react'
 
 interface BaseChatProps {
   textareaRef?: React.RefObject<HTMLTextAreaElement>
@@ -82,7 +83,14 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
             translate="no"
           />
           <div className="flex justify-between items-center pt-2">
-            <Button onClick={contexualiseGameFiles}>Contexualise</Button>
+            <SendButton
+              show={true}
+              isStreaming={isStreaming}
+              text={'Contexualise'}
+              onClick={() => {
+                contexualiseGameFiles?.()
+              }}
+            />
             <div className="flex items-center space-x-2">
               <div className="flex items-center space-x-2">
                 <span className="text-sm text-muted-foreground">
