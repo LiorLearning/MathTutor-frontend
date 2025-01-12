@@ -3,11 +3,11 @@
 import React, { type RefCallback, useEffect, useState } from 'react'
 import { type Message } from 'ai'
 import { Textarea } from "@/components/ui/textarea"
-import { Button } from "@/components/ui/button"
+// import { Button } from "@/components/ui/button"
 import { Workbench } from '@/components/bolt/components/workbench/Workbench.client'
 import { SendButton } from './SendButton.client'
 import { Switch } from "@/components/ui/switch"
-import { Loader2 } from 'lucide-react'
+// import { Loader2 } from 'lucide-react'
 
 interface BaseChatProps {
   textareaRef?: React.RefObject<HTMLTextAreaElement>

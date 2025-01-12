@@ -62,6 +62,8 @@ export const IconButton = memo(
   },
 );
 
+IconButton.displayName = 'IconButton';
+
 function getIconSize(size: IconSize) {
   if (size === 'sm') {
     return 'text-sm';

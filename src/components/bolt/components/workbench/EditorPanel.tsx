@@ -1,6 +1,7 @@
 import { useStore } from '@nanostores/react';
-import { memo, useEffect, useState, useMemo, useRef } from 'react';
-import { ImperativePanelHandle, Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
+// import { memo, useEffect, useState, useMemo, useRef } from 'react';
+import { memo, useMemo } from 'react';
+import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import {
   CodeMirrorEditor,
   type EditorDocument,
@@ -10,11 +11,9 @@ import {
   type OnScrollCallback as OnEditorScroll,
 } from '@/components/bolt/components/codemirror/CodeMirrorEditor';
 import { PanelHeader } from '@/components/bolt/components/ui/PanelHeader';
-import { IconButton } from '@/components/bolt/components/ui/IconButton';
 import { PanelHeaderButton } from '@/components/bolt/components/ui/PanelHeaderButton';
-import { shortcutEventEmitter } from '@/components/bolt/lib/hooks';
 import type { FileMap } from '@/components/bolt/lib/stores/files';
-import { workbenchStore } from '@/components/bolt/lib/stores/workbench';
+// import { workbenchStore } from '@/components/bolt/lib/stores/workbench';
 import { themeStore } from '@/components/bolt/lib/stores/theme';
 import { WORK_DIR } from '@/components/bolt/utils/constants';
 import { renderLogger } from '@/components/bolt/utils/logger';
@@ -37,9 +36,9 @@ interface EditorPanelProps {
   onFileReset?: () => void;
 }
 
-const MAX_TERMINALS = 3;
-const DEFAULT_TERMINAL_SIZE = 25;
-const DEFAULT_EDITOR_SIZE = 100 - DEFAULT_TERMINAL_SIZE;
+// const MAX_TERMINALS = 3;
+// const DEFAULT_TERMINAL_SIZE = 25;
+// const DEFAULT_EDITOR_SIZE = 100 - DEFAULT_TERMINAL_SIZE;
 
 const editorSettings: EditorSettings = { tabSize: 2 };
 
@@ -59,7 +58,7 @@ const EditorPanel = memo(
     renderLogger.trace('EditorPanel');
 
     const theme = useStore(themeStore);
-    const showTerminal = useStore(workbenchStore.showTerminal);
+    // const showTerminal = useStore(workbenchStore.showTerminal);
 
     // const terminalRefs = useRef<Array<TerminalRef | null>>([]);
     // const terminalPanelRef = useRef<ImperativePanelHandle>(null);

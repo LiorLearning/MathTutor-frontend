@@ -179,4 +179,8 @@ const ChatImpl = memo(({ initialMessages, storeMessageHistory }: ChatProps) => {
   );
 });
 
+ChatImpl.displayName = 'ChatImpl';
+
+Chat.displayName = 'Chat';
+
 export default Chat;
